@@ -1,7 +1,5 @@
-# dc10
+# dc10-scala
 A ***D**efinitional* ***C**ompiler* for generating Scala code.
- - [`dc10-core`](#dc10-core): Core models and abstractions for defining a language implementation
- - [`dc10-io`](#dc10-io): Fs2 integration for evaluating metaprograms into source files
  - [`dc10-scala`](#dc10-scala): AST and dsl for defining and rendering Scala programs
 
 ### Getting Started
@@ -14,73 +12,7 @@ A ***D**efinitional* ***C**ompiler* for generating Scala code.
 
 ### Usage
 
-### `dc10-core`
-The `compile` package provides abstractions for implementation by a downstream
-language library:
-
-<details><summary>Compiler</summary>
-
-```scala
-package dc10.compile
-
-trait Compiler[
-  F[_],              // Error functor in ctx
-  G[_],              // Output unit, e.g., List, Id, etc.
-  E,                 // Error type
-  A,                 // Code level, representing symbols introduced into ctx
-  B                  // File level, representing source files with path and ast
-]:
-
-  type Ctx[_[_],_,_] // Monadic context, to build up ASTs and then compile them
-
-  extension [C, D] (ast: Ctx[F, List[D], C])
-    def compile: F[List[D]]
-
-  extension (res: F[G[A]])
-    def toString[V](using R: Renderer[V, E, G[A]]): String
-
-  extension (res: F[G[A]])
-    def toStringOrError[V](using R: Renderer[V, E, G[A]]): F[String]
-
-  extension (res: F[G[B]])
-    def toVirtualFile[V](using R: Renderer[V, E, G[A]]): F[List[VirtualFile]]
-```
-</details>
-
-<details><summary>Renderer</summary>
-
-```scala
-package dc10.compile
-
-trait Renderer[V, E, A]:
-  def render(input: A): String
-  def renderErrors(errors: List[E]): String
-  def version: V
-```
-</details>
-
-<details><summary>VirtualFile</summary>
-
-```scala
-package dc10.compile
-
-import java.nio.file.Path
-
-case class VirtualFile(path: Path, contents: String)
-```
-</details>
-
-### `dc10-io`
-The `io` package provides extension methods to write files using fs2:
-
-```scala
-import dc10.io.toFile
-import dc10.scala.version.`3.3.1`
-
-_.toFile["scala-3.3.1"]
-```
-
-### `dc10-scala`
+#### `dc10-scala`
 
 Use the dsl to define Scala code:
 
