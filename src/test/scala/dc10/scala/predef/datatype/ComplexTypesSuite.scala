@@ -14,7 +14,7 @@ class ComplexTypesSuite extends FunSuite:
 
     type Person
 
-    def ast = CASECLASS[Person, String]("Person", VAL("name", STRING))
+    def ast = CASECLASS[Person, String]("Person", FIELD("name", STRING))
     
     val obtained: String =
       ast.compile.toString["scala-3.3.1"]
@@ -63,5 +63,47 @@ class ComplexTypesSuite extends FunSuite:
          |val l2: List[String] = List("1", "2", "3")
          |val l3: List[List[String]] = List(List("1", "2", "3"), List("4", "5", "6"))
          |val l4: List[List[List[String]]] = List(l3, l3)""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("option val dec"):
+
+    def ast =
+      for
+        _ <- VAL("l1", OPTION(INT))
+        _ <- VAL("l2", OPTION(STRING))
+        _ <- VAL("l3", OPTION(OPTION(STRING)))
+        _ <- VAL("l4", OPTION(OPTION(OPTION(STRING))))
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|val l1: Option[Int]
+         |val l2: Option[String]
+         |val l3: Option[Option[String]]
+         |val l4: Option[Option[Option[String]]]""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("option val def"):
+    
+    def ast =
+      for
+        _ <- VAL("l1", OPTION(INT), Option(1))
+        a <- VAL("l2", OPTION(STRING), Option("1"))
+        l <- VAL("l3", OPTION(OPTION(STRING)), Option(Option("1")))
+        _ <- VAL("l4", OPTION(OPTION(OPTION(STRING))), Option(l))
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|val l1: Option[Int] = Option[Int](1)
+         |val l2: Option[String] = Option[String]("1")
+         |val l3: Option[Option[String]] = Option[Option[String]](Option[String]("1"))
+         |val l4: Option[Option[Option[String]]] = Option[Option[Option[String]]](l3)""".stripMargin
       
     assertEquals(obtained, expected)

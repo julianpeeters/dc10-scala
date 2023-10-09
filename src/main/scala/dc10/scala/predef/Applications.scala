@@ -4,12 +4,12 @@ import cats.implicits.*
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import dc10.scala.ast.Symbol.Term
-import dc10.scala.ast.Symbol.Term.TypeLevel.__
-import dc10.scala.ast.Symbol.Term.{TypeLevel, ValueLevel}
-import dc10.scala.ast.Statement
-import dc10.scala.ast.Statement.{TypeExpr, ValueExpr}
-import dc10.scala.error.ErrorF
+import dc10.scala.Symbol.Term
+import dc10.scala.Symbol.Term.TypeLevel.__
+import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
+import dc10.scala.Statement
+import dc10.scala.Statement.{TypeExpr, ValueExpr}
+import dc10.scala.ctx.ErrorF
 
 trait Applications[F[_]]:
 

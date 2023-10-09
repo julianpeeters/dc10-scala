@@ -1,4 +1,4 @@
-package dc10.scala.ast
+package dc10.scala
 
 import java.nio.file.Path
 

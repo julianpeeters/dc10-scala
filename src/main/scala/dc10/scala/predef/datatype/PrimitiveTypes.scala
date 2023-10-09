@@ -3,11 +3,11 @@ package dc10.scala.predef.datatype
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import dc10.scala.ast.Statement
-import dc10.scala.ast.Statement.{TypeExpr, ValueExpr}
-import dc10.scala.ast.Symbol.Term
-import dc10.scala.ast.Symbol.Term.ValueLevel
-import dc10.scala.error.ErrorF
+import dc10.scala.Statement
+import dc10.scala.Statement.{TypeExpr, ValueExpr}
+import dc10.scala.Symbol.Term
+import dc10.scala.Symbol.Term.ValueLevel
+import dc10.scala.ctx.ErrorF
 
 trait PrimitiveTypes[F[_]]:
 

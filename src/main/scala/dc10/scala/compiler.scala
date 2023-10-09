@@ -2,13 +2,12 @@ package dc10.scala
 
 import cats.data.StateT
 import dc10.compile.{Compiler, Renderer, VirtualFile}
-import dc10.scala.ast.{ScalaFile, Statement}
-import dc10.scala.error.{CompileError, ErrorF}
+import dc10.scala.ctx.{ErrorF, CompilerError}
 
 implicit object compiler extends Compiler[
   ErrorF,
   List,
-  CompileError,
+  CompilerError,
   Statement,
   ScalaFile
 ]:
@@ -21,19 +20,19 @@ implicit object compiler extends Compiler[
 
   extension (res: ErrorF[List[Statement]])
     def toString[V](
-      using R: Renderer[V, CompileError, List[Statement]]
+      using R: Renderer[V, CompilerError, List[Statement]]
     ): String =
       res.fold(R.renderErrors, R.render)
 
   extension (res: ErrorF[List[Statement]])
     def toStringOrError[V](
-      using R: Renderer[V, CompileError, List[Statement]]
+      using R: Renderer[V, CompilerError, List[Statement]]
     ): ErrorF[String] =
       res.map(R.render)
 
   extension (res: ErrorF[List[ScalaFile]])
     def toVirtualFile[V](
-      using R: Renderer[V, CompileError, List[Statement]]
+      using R: Renderer[V, CompilerError, List[Statement]]
     ): ErrorF[List[VirtualFile]] =
       for
         fds <- res

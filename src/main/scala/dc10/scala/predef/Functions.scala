@@ -4,11 +4,11 @@ import cats.implicits.*
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import dc10.scala.ast.Statement
-import dc10.scala.ast.Statement.{TypeExpr, ValueExpr}
-import dc10.scala.ast.Symbol.Term
-import dc10.scala.ast.Symbol.Term.{Type, Value}
-import dc10.scala.error.ErrorF
+import dc10.scala.Statement
+import dc10.scala.Statement.{TypeExpr, ValueExpr}
+import dc10.scala.Symbol.Term
+import dc10.scala.Symbol.Term.{Type, Value}
+import dc10.scala.ctx.ErrorF
 
 trait Functions[F[_]]:
 
@@ -32,7 +32,14 @@ object Functions:
         for
           a <- domain
           b <- codomain
-          v <- StateT.pure[ErrorF, List[Statement], Type[A => B]](Cofree((), Eval.now(Term.TypeLevel.App2(None, Cofree((), Eval.now(Term.TypeLevel.Var.Function1Type(None))), a.tpe, b.tpe))))
+          v <- StateT.pure[ErrorF, List[Statement], Type[A => B]](
+            Cofree((), Eval.now(Term.TypeLevel.App2(
+              None,
+              Cofree((), Eval.now(Term.TypeLevel.Var.Function1Type(None))),
+              a.tpe,
+              b.tpe))
+            )
+          )
         yield TypeExpr(v)
 
     extension [A, B] (fa: StateT[ErrorF, List[Statement], ValueExpr[A]])
@@ -43,7 +50,7 @@ object Functions:
         for
           a <- StateT.liftF(fa.runEmptyA)
           b <- f(a)
-          v <- StateT.pure[ErrorF, List[Statement], Value[A => B]](Cofree((), Eval.now(Term.ValueLevel.Lam1(None, a.value, b.value))))
+          v <- StateT.pure[ErrorF, List[Statement], Value[A => B]](
+            Cofree((), Eval.now(Term.ValueLevel.Lam1(None, a.value, b.value)))
+          )
         yield ValueExpr(v)
-
-        

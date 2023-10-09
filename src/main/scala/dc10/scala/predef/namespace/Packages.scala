@@ -2,11 +2,11 @@ package dc10.scala.predef.namespace
 
 import cats.implicits.*
 import cats.data.StateT
-import dc10.scala.ast.{Statement, ScalaFile, Symbol}
-import dc10.scala.ctx.ext
-import dc10.scala.error.ErrorF
-import org.tpolecat.sourcepos.SourcePos
+import dc10.scala.{Statement, ScalaFile, Symbol}
+import dc10.scala.ctx.{ErrorF, ext}
 import java.nio.file.Path
+import org.tpolecat.sourcepos.SourcePos
+
 
 trait Packages[F[_]]:
   def PACKAGE[A](nme: String, files: F[A])(using sp: SourcePos): F[A]

@@ -13,6 +13,41 @@ class PrimitiveTypeSuite extends FunSuite:
   import dc10.scala.compiler.{compile, toString}
   import dc10.scala.version.`3.3.1`
 
+  test("def dec"):
+
+    def ast =
+      for
+        _ <- DEF("greeting", VAL("str", STRING), STRING)
+        _ <- VAL("farewell", STRING)
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|def greeting(str: String): String
+         |val farewell: String""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  
+  test("def def"):
+
+    def ast =
+      for
+        f <- DEF("f", VAL("str", STRING), STRING, s => s)
+        _ <- VAL("farewell", STRING, f("aloha"))
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|def f(str: String): String = str
+         |val farewell: String = f("aloha")""".stripMargin
+      
+    assertEquals(obtained, expected)
+
   test("val dec"):
 
     def ast =

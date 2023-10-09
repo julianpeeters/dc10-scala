@@ -1,15 +1,14 @@
 package dc10.scala.version
 
 import dc10.compile.Renderer
-import dc10.scala.ast.Statement
-import dc10.scala.ast.Statement.{CaseClassDef, PackageDef, TypeExpr, ValDef, ValueExpr}
-import dc10.scala.ast.Symbol.{Object, Package}
-import dc10.scala.ast.Symbol.Term
-import dc10.scala.ast.Symbol.Term.ValueLevel.{App1, AppCtor1, AppVargs, Lam1}
-import dc10.scala.error.CompileError
+import dc10.scala.Statement
+import dc10.scala.Statement.{CaseClassDef, PackageDef, TypeExpr, ValueDef, ValueExpr}
+import dc10.scala.Symbol.{Object, Package, Term}
+import dc10.scala.Symbol.Term.ValueLevel.{AppCtor1, AppVargs, Lam1}
+import dc10.scala.ctx.CompilerError
 
-given `3.3.1`: Renderer["scala-3.3.1", CompileError, List[Statement]] =
-  new Renderer["scala-3.3.1", CompileError, List[Statement]]:
+given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
+  new Renderer["scala-3.3.1", CompilerError, List[Statement]]:
 
     override def render(input: List[Statement]): String = input.map(stmt => stmt match
       case d@CaseClassDef(_, _) =>
@@ -18,32 +17,17 @@ given `3.3.1`: Renderer["scala-3.3.1", CompileError, List[Statement]] =
         indent(d.indent) ++ renderObject(d.obj)
       case d@PackageDef(_, _) =>
         indent(d.indent) ++ renderPackage(d.pkg)
-      case d@ValDef(_, _) =>
-        indent(d.indent) ++ (d.value.tail.value match
-          case Term.ValueLevel.Var.UserDefinedValue(_, nme, tpe, impl) => impl.fold(
-              s"val ${nme}: ${renderType(tpe.tail.value)}"
-            )(
-              i =>
-                s"val ${nme}: ${renderType(tpe.tail.value)} = ${renderValue(i.tail.value)}"
-            )
-          case Term.ValueLevel.App1(_, _, _) => ""
-          case Term.ValueLevel.AppCtor1(_, _, _) => ""
-          case Term.ValueLevel.AppVargs(_, _, _) => ""
-          case Term.ValueLevel.Lam1(_, _, _) => ""
-          case Term.ValueLevel.Var.BooleanLiteral(_, _) => ""
-          case Term.ValueLevel.Var.IntLiteral(_, _) => ""
-          case Term.ValueLevel.AppVargs(_, _, _*) => ""
-          case Term.ValueLevel.Var.StringLiteral(_, _) => ""
-          case Term.ValueLevel.Var.ListCtor(_) => ""
-        )
-
+      case d@ValueDef.Def(_, _) =>
+        indent(d.indent) ++ renderValueDef(d)
+      case d@ValueDef.Val(_, _) =>
+        indent(d.indent) ++ renderValueDef(d)
       case e@TypeExpr(t) => 
         indent(e.indent) ++ renderType(t.tail.value)
       case e@ValueExpr(v) => 
         indent(e.indent) ++ renderValue(v.tail.value)
     ).mkString("\n")
 
-    override def renderErrors(errors: List[CompileError]): String =
+    override def renderErrors(errors: List[CompilerError]): String =
       errors.map(_.toString()).mkString("\n")
 
     override def version: "scala-3.3.1" =
@@ -53,7 +37,9 @@ given `3.3.1`: Renderer["scala-3.3.1", CompileError, List[Statement]] =
       "  ".repeat(i)
 
     private def renderObject[T](obj: Object[T]): String =
-      s"object ${obj.nme}:\n\n${render(obj.body)}"
+      obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
+        s"object ${obj.nme} extends ${renderType(p.tail.value)}:\n\n${render(obj.body)}"
+      )
 
     private def renderPackage(pkg: Package): String =
       pkg match
@@ -72,6 +58,7 @@ given `3.3.1`: Renderer["scala-3.3.1", CompileError, List[Statement]] =
         // complex
         case Term.TypeLevel.Var.Function1Type(_) => "=>"
         case Term.TypeLevel.Var.ListType(_) => "List"
+        case Term.TypeLevel.Var.OptionType(_) => "Option"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i) => s
 
     private def renderValue[T, X](value: Term.ValueLevel[T, X]): String =
@@ -88,4 +75,22 @@ given `3.3.1`: Renderer["scala-3.3.1", CompileError, List[Statement]] =
         case Term.ValueLevel.Var.StringLiteral(q, s) => s"\"${s}\""
         // complex
         case Term.ValueLevel.Var.ListCtor(q) => s"List"
+        case Term.ValueLevel.Var.OptionCtor(q) => s"Option"
+        case Term.ValueLevel.Var.Println(q, s) => s"IO.println(${renderValue(s.tail.value)})"
         case Term.ValueLevel.Var.UserDefinedValue(q, s, t, i) => s
+
+    private def renderValueDef(valueDef: ValueDef): String =
+      valueDef match
+        case d@ValueDef.Def(_, _) =>
+          d.ret.fold(
+            s"def ${d.value.nme}(${renderValue(d.arg.tail.value)}: ${renderType(d.arg.tail.value.tpe.tail.value)}): ${renderType(d.tpe.tail.value)}"
+          )(
+            i => s"def ${d.value.nme}(${renderValue(d.arg.tail.value)}: ${renderType(d.arg.tail.value.tpe.tail.value)}): ${renderType(d.tpe.tail.value)} = ${renderValue(i.tail.value)}"
+          )
+        case d@ValueDef.Val(_, _)  =>
+          d.value.impl.fold(
+            s"val ${d.value.nme}: ${renderType(d.value.tpe.tail.value)}"
+          )(
+            i =>
+              s"val ${d.value.nme}: ${renderType(d.value.tpe.tail.value)} = ${renderValue(i.tail.value)}"
+          )
