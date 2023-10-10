@@ -1,6 +1,5 @@
 val CatsV = "2.10.0"
-val Dc10V = "0.2.0"
-val Fs2V = "3.9.2"
+val Dc10V = "0.3.0"
 val MUnitV = "0.7.29"
 val SourcePosV = "1.1.0"
 
@@ -37,7 +36,6 @@ lazy val `dc10-scala` = (project in file("."))
       // main
       "com.julianpeeters" %% "dc10-core" % Dc10V,
       "org.tpolecat"      %% "sourcepos" % SourcePosV,
-      "org.typelevel"     %% "cats-free" % CatsV,
       "org.typelevel"     %% "cats-free" % CatsV,
       // test
       "org.scalameta"     %% "munit"     % MUnitV % Test
