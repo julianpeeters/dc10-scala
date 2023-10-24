@@ -2,6 +2,9 @@ package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
 
+import cats.data.StateT
+import dc10.scala.{ErrorF, Statement}
+import dc10.scala.Statement.ValueExpr
 import munit.FunSuite
 
 class PrimitiveTypeSuite extends FunSuite:
@@ -30,7 +33,6 @@ class PrimitiveTypeSuite extends FunSuite:
       
     assertEquals(obtained, expected)
 
-  
   test("def def"):
 
     def ast =
@@ -45,6 +47,41 @@ class PrimitiveTypeSuite extends FunSuite:
     val expected: String =
       """|def f(str: String): String = str
          |val farewell: String = f("aloha")""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("ext def"):
+
+    trait ExtensionR[A]:
+      extension (s: StateT[ErrorF, List[Statement], ValueExpr[A]] | ValueExpr[A])
+        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String]]): StateT[ErrorF, List[Statement], ValueExpr[String]]
+
+    object ExtensionR:
+      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[String => String]]): ExtensionR[String] =
+        new ExtensionR[String]:
+          extension (s: StateT[ErrorF, List[Statement], ValueExpr[String]] | ValueExpr[String])
+            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String]]): StateT[ErrorF, List[Statement], ValueExpr[String]] =
+              s.DOT(f)(n)
+        
+    def ast =
+      for
+        given ExtensionR[String] <- EXT(
+          for
+            _ <- EXTENSION("str", STRING)
+            f <- DEF("replace", VAL("msg", STRING), STRING, b => b)
+          yield ExtensionR(f)
+        )
+        _ <- VAL("farewell", STRING, sLit("hello").REPLACE("goodbye"))
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|extension (str: String)
+         |  def replace(msg: String): String = msg
+         |
+         |val farewell: String = "hello".replace("goodbye")""".stripMargin
       
     assertEquals(obtained, expected)
 

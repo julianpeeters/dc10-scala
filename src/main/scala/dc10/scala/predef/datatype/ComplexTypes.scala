@@ -4,14 +4,12 @@ import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
 import cats.implicits.*
-import dc10.scala.Statement
+import dc10.scala.{ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.TypeLevel.__
-import dc10.scala.Symbol.Term.ValueLevel.{AppCtor1, AppVargs}
+import dc10.scala.Symbol.Term.ValueLevel.App.{AppCtor1, AppVargs}
 import dc10.scala.Symbol.Term.ValueLevel.Var.{ListCtor, OptionCtor}
-import dc10.scala.ctx.ErrorF
-
 
 trait ComplexTypes[F[_]]:
   def LIST: F[TypeExpr[List[__]]]
@@ -24,7 +22,6 @@ trait ComplexTypes[F[_]]:
   extension [A] (option: F[ValueExpr[Option[A] => Option[A]]])
     @scala.annotation.targetName("appVO")
     def apply(arg: F[ValueExpr[A]]): F[ValueExpr[Option[A]]]
-
 
 object ComplexTypes:
 
@@ -42,7 +39,7 @@ object ComplexTypes:
         for
           l <- list
           a <- args.toList.sequence
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.AppVargs(None, l.value, a.map(arg => arg.value)*))))
+        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppVargs(None, l.value, a.map(arg => arg.value)*))))
 
     def OPTION: StateT[ErrorF, List[Statement], TypeExpr[Option[__]]] =
       StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None)))))
@@ -57,5 +54,4 @@ object ComplexTypes:
           o <- option
           a <- arg
           t <- StateT.pure[ErrorF, List[Statement], Term.Type[Option[A]]](Cofree((), Eval.now(Term.TypeLevel.App1(None, Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None))), a.value.tail.value.tpe))))
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.AppCtor1(None, t, a.value))))
-
+        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppCtor1(None, t, a.value))))

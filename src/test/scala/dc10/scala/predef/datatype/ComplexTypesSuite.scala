@@ -20,7 +20,7 @@ class ComplexTypesSuite extends FunSuite:
       ast.compile.toString["scala-3.3.1"]
       
     val expected: String =
-      """case class Person(val name: String)""".stripMargin
+      """case class Person(name: String)""".stripMargin
       
     assertEquals(obtained, expected)
   

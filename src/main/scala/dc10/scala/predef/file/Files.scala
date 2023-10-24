@@ -2,7 +2,8 @@ package dc10.scala.predef.file
 
 import cats.data.StateT
 import dc10.scala.{ScalaFile, Statement, Symbol}
-import dc10.scala.ctx.{ErrorF, ext}
+import dc10.scala.ctx.ext
+import dc10.scala.ErrorF
 import java.nio.file.Path
 import org.tpolecat.sourcepos.SourcePos
 

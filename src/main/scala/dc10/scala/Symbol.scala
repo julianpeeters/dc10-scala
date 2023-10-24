@@ -9,7 +9,9 @@ sealed trait Symbol
 object Symbol:
 
   // Templates ////////////////////////////////////////////////////////////////
-  sealed abstract class CaseClass[T] extends Symbol:
+  sealed trait Template extends Symbol
+  case class Extension(field: Statement, body: List[Statement]) extends Template
+  sealed abstract class CaseClass[T] extends Template:
     def nme: String
     def tpe: Term.Type[T]
     def fields: List[Statement]
@@ -88,12 +90,14 @@ object Symbol:
       type __
       case class App1[T[_], A, X](qnt: Option[Long], tfun: Type[T[__]], targ: Type[A]) extends TypeLevel[T[A], X]
       case class App2[T[_,_], A, B, X](qnt: Option[Long], tfun: Type[T[__,__]], ta: Type[A], tb: Type[B]) extends TypeLevel[T[A, B], X]
+      case class App3[T[_,_,_], A, B, X](qnt: Option[Long], tfun: Type[T[__,__,__]], ta1: Type[A], ta2: Type[A], tb: Type[B]) extends TypeLevel[T[A, A, B], X]
       sealed abstract class Var[T, +X] extends TypeLevel[T, X]
       object Var:
         case class BooleanType[X](qnt: Option[Long]) extends Var[Boolean, X]
         case class IntType[X](qnt: Option[Long]) extends Var[Int, X]
         case class StringType[X](qnt: Option[Long]) extends Var[String, X]
         case class Function1Type[X](qnt: Option[Long]) extends Var[__ => __, X]
+        case class Function2Type[X](qnt: Option[Long]) extends Var[(__, __) => __, X]
         case class ListType[X](qnt: Option[Long]) extends Var[List[__], X]
         case class OptionType[X](qnt: Option[Long]) extends Var[Option[__], X]
 
@@ -104,13 +108,22 @@ object Symbol:
       def tpe: Type[T]
 
     object ValueLevel:
-      case class App1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg: Value[A]) extends Term.ValueLevel[B, X]:
-        def tpe: Type[B] = ???
-      case class AppCtor1[T, A, X](qnt: Option[Long], tpe: Type[T], arg: Value[A]) extends Term.ValueLevel[T, X]
-      case class AppVargs[A, B, X](qnt: Option[Long], fun: Value[List[A] => B], vargs: Value[A]*) extends Term.ValueLevel[B, X]:
-        def tpe: Type[B] = ???
-      case class Lam1[A, B, X](qnt: Option[Long], a: Value[A], b: Value[B]) extends Term.ValueLevel[A => B, X]:
-        def tpe: Type[A => B] = ???
+      def dot1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg1: Value[A], arg2: Value[B]): Term.ValueLevel[B, X] = App.Dot1(qnt, fun, arg1, arg2)
+      sealed abstract class App[T, X] extends Term.ValueLevel[T, X]
+      object App:
+        case class App1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg: Value[A]) extends Term.ValueLevel.App[B, X]:
+          def tpe: Type[B] = ???
+        case class AppCtor1[T, A, X](qnt: Option[Long], tpe: Type[T], arg: Value[A]) extends Term.ValueLevel.App[T, X]
+        case class AppVargs[A, B, X](qnt: Option[Long], fun: Value[List[A] => B], vargs: Value[A]*) extends Term.ValueLevel.App[B, X]:
+          def tpe: Type[B] = ???
+        case class Dot1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg1: Value[A], arg2: Value[B]) extends Term.ValueLevel.App[B, X]:
+          def tpe: Type[B] = ???
+      sealed abstract class Lam[T, X] extends Term.ValueLevel[T, X]
+      object Lam:
+        case class Lam1[A, B, X](qnt: Option[Long], a: Value[A], b: Value[B]) extends Term.ValueLevel.Lam[A => B, X]:
+          def tpe: Type[A => B] = ???
+        case class Lam2[A, B, X](qnt: Option[Long], a1: Value[A], a2: Value[A], b: Value[B]) extends Term.ValueLevel.Lam[(A, A) => B, X]:
+          def tpe: Type[(A, A) => B] = ???
 
       sealed abstract class Var[T, X] extends Term.ValueLevel[T, X]
       object Var:

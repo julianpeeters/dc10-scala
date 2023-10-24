@@ -1,7 +1,7 @@
 package dc10.scala
 
+import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import org.tpolecat.sourcepos.SourcePos
-import dc10.scala.Symbol.{CaseClass, Object, Package, Term}
 
 sealed trait Statement:
   def indent: Int
@@ -13,11 +13,13 @@ object Statement:
     def addIndent: Statement =
       s match
         case d@CaseClassDef(i, sp) => CaseClassDef(d.caseclass, i + 1)(using sp)
+        case d@ExtensionDef(i, sp) => ExtensionDef(d.extension, i + 1)(using sp)
         case d@ObjectDef(i, sp) => ObjectDef(d.obj, i + 1)(using sp)
         case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
         case TypeExpr(tpe) => ???
         case ValueExpr(value) => ???
         case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)
+        case d@ValueDef.Fld(i, sp) => ValueDef.Fld(i + 1, d.value)(using sp)
         case d@ValueDef.Val(i, sp) => ValueDef.Val(i + 1, d.value)(using sp)
 
   sealed abstract case class CaseClassDef(
@@ -37,6 +39,23 @@ object Statement:
       new CaseClassDef(i, sp):
         type Tpe = T
         def caseclass: CaseClass[T] = v
+
+  
+  sealed abstract case class ExtensionDef(
+    indent: Int,
+    sp: SourcePos
+  ) extends Statement:
+    def extension: Extension
+
+  object ExtensionDef:
+    def apply(
+      v: Extension,
+      i: Int
+    )(
+      using sp: SourcePos
+    ): ExtensionDef =
+      new ExtensionDef(i, sp):
+        def extension: Extension = v
 
   sealed abstract case class ObjectDef(
     indent: Int,
@@ -107,6 +126,28 @@ object Statement:
           def ret: Option[Term.Value[B]] = r
           def tpe: Term.Type[B] = t
           def value: Term.ValueLevel.Var.UserDefinedValue[T, X] = v
+
+
+    abstract case class Fld[T, X <: Term.ValueLevel[T, X]](
+      i: Int,
+      s: SourcePos   
+    ) extends ValueDef:
+      type Tpe = T
+      type Nom = X
+      // def sp: SourcePos = s
+      def indent: Int = i
+      def sp: SourcePos = s
+
+    object Fld:
+      def apply[T, A <: Term.ValueLevel[T, A]](
+        i: Int,
+        v: Term.ValueLevel.Var.UserDefinedValue[T, A]
+      )(
+        using sp: SourcePos
+      ): ValueDef =
+        new Fld[T, A](i, sp):
+          def value: Term.ValueLevel.Var.UserDefinedValue[T, A] = v
+   
 
     abstract case class Val[T, X <: Term.ValueLevel[T, X]](
       i: Int,

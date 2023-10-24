@@ -2,32 +2,27 @@ package dc10.scala.version
 
 import dc10.compile.Renderer
 import dc10.scala.Statement
-import dc10.scala.Statement.{CaseClassDef, PackageDef, TypeExpr, ValueDef, ValueExpr}
-import dc10.scala.Symbol.{Object, Package, Term}
-import dc10.scala.Symbol.Term.ValueLevel.{AppCtor1, AppVargs, Lam1}
-import dc10.scala.ctx.CompilerError
+import dc10.scala.Statement.{CaseClassDef, ExtensionDef, PackageDef, TypeExpr, ValueDef, ValueExpr}
+import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
+import dc10.scala.Symbol.Term.ValueLevel.{App, Lam}
+import dc10.scala.ScalaError
 
-given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
-  new Renderer["scala-3.3.1", CompilerError, List[Statement]]:
+given `3.3.1`: Renderer["scala-3.3.1", ScalaError, List[Statement]] =
+  new Renderer["scala-3.3.1", ScalaError, List[Statement]]:
 
     override def render(input: List[Statement]): String = input.map(stmt => stmt match
-      case d@CaseClassDef(_, _) =>
-        indent(d.indent) ++ s"case class ${d.caseclass.nme}(${render(d.caseclass.fields).mkString})"
-      case d@Statement.ObjectDef(_, _) =>
-        indent(d.indent) ++ renderObject(d.obj)
-      case d@PackageDef(_, _) =>
-        indent(d.indent) ++ renderPackage(d.pkg)
-      case d@ValueDef.Def(_, _) =>
-        indent(d.indent) ++ renderValueDef(d)
-      case d@ValueDef.Val(_, _) =>
-        indent(d.indent) ++ renderValueDef(d)
-      case e@TypeExpr(t) => 
-        indent(e.indent) ++ renderType(t.tail.value)
-      case e@ValueExpr(v) => 
-        indent(e.indent) ++ renderValue(v.tail.value)
+      case d@CaseClassDef(_, _)        => indent(d.indent) ++ renderCaseClass(d.caseclass)
+      case d@ExtensionDef(_, _)        => indent(d.indent) ++ renderExtension(d.extension)
+      case d@Statement.ObjectDef(_, _) => indent(d.indent) ++ renderObject(d.obj)
+      case d@PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
+      case d@ValueDef.Def(_, _)        => indent(d.indent) ++ renderValueDef(d)
+      case d@ValueDef.Fld(_, _)        => indent(d.indent) ++ renderValueDef(d)
+      case d@ValueDef.Val(_, _)        => indent(d.indent) ++ renderValueDef(d)
+      case e@TypeExpr(t)               => indent(e.indent) ++ renderType(t.tail.value)
+      case e@ValueExpr(v)              => indent(e.indent) ++ renderValue(v.tail.value)
     ).mkString("\n")
 
-    override def renderErrors(errors: List[CompilerError]): String =
+    override def renderErrors(errors: List[ScalaError]): String =
       errors.map(_.toString()).mkString("\n")
 
     override def version: "scala-3.3.1" =
@@ -35,6 +30,12 @@ given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
 
     private def indent(i: Int): String =
       "  ".repeat(i)
+
+    private def renderCaseClass[T](cls: CaseClass[T]) =
+      s"case class ${cls.nme}(${render(cls.fields).mkString})"
+
+    private def renderExtension(ext: Extension) =
+      s"extension (${render(List(ext.field)).mkString})\n  ${render(ext.body)}\n"
 
     private def renderObject[T](obj: Object[T]): String =
       obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
@@ -51,12 +52,14 @@ given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
         // application
         case Term.TypeLevel.App1(qnt, tfun, targ) => s"${renderType(tfun.tail.value)}[${renderType(targ.tail.value)}]"
         case Term.TypeLevel.App2(qnt, tfun, ta, tb) => s"${renderType(ta.tail.value)} ${renderType(tfun.tail.value)} ${renderType(tb.tail.value)}"
+        case Term.TypeLevel.App3(qnt, tfun, ta1, ta2, tb) => s"${renderType(ta1.tail.value)} ${renderType(tfun.tail.value)} ${renderType(tb.tail.value)}"
         // primitive
         case Term.TypeLevel.Var.BooleanType(_) => "Boolean"
         case Term.TypeLevel.Var.IntType(_) => "Int"
         case Term.TypeLevel.Var.StringType(_) => "String"
         // complex
         case Term.TypeLevel.Var.Function1Type(_) => "=>"
+        case Term.TypeLevel.Var.Function2Type(_) => "=>"
         case Term.TypeLevel.Var.ListType(_) => "List"
         case Term.TypeLevel.Var.OptionType(_) => "Option"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i) => s
@@ -64,11 +67,13 @@ given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
     private def renderValue[T, X](value: Term.ValueLevel[T, X]): String =
       value match 
         // application
-        case Term.ValueLevel.App1(q, f, a) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
-        case Term.ValueLevel.AppCtor1(q, t, a) => s"${renderType(t.tail.value)}(${renderValue(a.tail.value)})"
-        case Term.ValueLevel.AppVargs(q, f, as*) => s"${renderValue(f.tail.value)}(${as.map(a => renderValue(a.tail.value)).mkString(", ")})"
+        case Term.ValueLevel.App.App1(q, f, a) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
+        case Term.ValueLevel.App.AppCtor1(q, t, a) => s"${renderType(t.tail.value)}(${renderValue(a.tail.value)})"
+        case Term.ValueLevel.App.AppVargs(q, f, as*) => s"${renderValue(f.tail.value)}(${as.map(a => renderValue(a.tail.value)).mkString(", ")})"
+        case Term.ValueLevel.App.Dot1(q, f, a, b) => s"${renderValue(a.tail.value)}.${renderValue(f.tail.value)}(${renderValue(b.tail.value)})"
         // function
-        case Term.ValueLevel.Lam1(q, a, b) => s"${renderValue(a.tail.value)} => ${renderValue(b.tail.value)}"
+        case Term.ValueLevel.Lam.Lam1(q, a, b) => s"${renderValue(a.tail.value)} => ${renderValue(b.tail.value)}"
+        case Term.ValueLevel.Lam.Lam2(q, a1, a2, b) => s"(${renderValue(a1.tail.value)}, ${renderValue(a2.tail.value)}) => ${renderValue(b.tail.value)}"
         // primitive
         case Term.ValueLevel.Var.BooleanLiteral(q, b) => s"$b"
         case Term.ValueLevel.Var.IntLiteral(q, i) => s"$i"
@@ -86,6 +91,13 @@ given `3.3.1`: Renderer["scala-3.3.1", CompilerError, List[Statement]] =
             s"def ${d.value.nme}(${renderValue(d.arg.tail.value)}: ${renderType(d.arg.tail.value.tpe.tail.value)}): ${renderType(d.tpe.tail.value)}"
           )(
             i => s"def ${d.value.nme}(${renderValue(d.arg.tail.value)}: ${renderType(d.arg.tail.value.tpe.tail.value)}): ${renderType(d.tpe.tail.value)} = ${renderValue(i.tail.value)}"
+          )
+        case d@ValueDef.Fld(_, _)  =>
+          d.value.impl.fold(
+            s"${d.value.nme}: ${renderType(d.value.tpe.tail.value)}"
+          )(
+            i =>
+              s"${d.value.nme}: ${renderType(d.value.tpe.tail.value)} = ${renderValue(i.tail.value)}"
           )
         case d@ValueDef.Val(_, _)  =>
           d.value.impl.fold(

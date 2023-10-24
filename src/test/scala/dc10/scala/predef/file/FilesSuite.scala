@@ -3,8 +3,7 @@ package dc10.scala.predef.file
 import _root_.scala.language.implicitConversions
 
 import munit.FunSuite
-import dc10.scala.ctx.CompilerError
-import dc10.scala.dsl
+import dc10.scala.{ScalaError, dsl}
 
 class PrimitiveTypeSuite extends FunSuite:
   
@@ -27,11 +26,11 @@ class PrimitiveTypeSuite extends FunSuite:
         _ <- VAL("farewell", STRING)
       yield ()
     )
-    val obtained: Either[List[CompilerError], List[String]] =
+    val obtained: Either[List[ScalaError], List[String]] =
       ast.compile.toVirtualFile["scala-3.3.1"]
         .map(fs => fs.map(vf => vf.contents))
       
-    val expected: Either[List[CompilerError], List[String]] =
+    val expected: Either[List[ScalaError], List[String]] =
       Right(scala.List("""|val t: Boolean
                           |val f: Boolean
                           |val age: Int
