@@ -4,11 +4,39 @@ import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
 import cats.implicits.*
-import dc10.scala.{ErrorF, Statement}
+import dc10.scala.{Statement}
+import dc10.scala.ErrorF
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.TypeLevel.__
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
+import dc10.scala.Symbol.Term.ValueLevel.App.App1
+// import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1
+// import dc10.scala.Symbol.Term.ValueLevel.App.AppVargs
+import dc10.scala.Symbol.Term.ValueLevel.App.Dot1
+// import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1
+// import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2
+// import dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral
+// import dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral
+// import dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor
+// import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor
+// import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor.SomeCtor
+// import dc10.scala.Symbol.Term.ValueLevel.Var.Println
+// import dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue
+import dc10.scala.TooManyExtensionArguments
+import dc10.scala.Symbol.Term.TypeLevel.App1
+import dc10.scala.Symbol.Term.TypeLevel.App2
+import dc10.scala.Symbol.Term.TypeLevel.App3
+// import dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType
+// import dc10.scala.Symbol.Term.TypeLevel.Var.IntType
+// import dc10.scala.Symbol.Term.TypeLevel.Var.StringType
+import dc10.scala.Symbol.Term.TypeLevel.Var.Function1Type
+// import dc10.scala.Symbol.Term.TypeLevel.Var.Function2Type
+// import dc10.scala.Symbol.Term.TypeLevel.Var.ListType
+// import dc10.scala.Symbol.Term.TypeLevel.Var.OptionType
+// import dc10.scala.Symbol.Term.TypeLevel.Var.OptionType.SomeType
+import dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType
 
 trait Applications[F[_]]:
 
@@ -59,7 +87,15 @@ object Applications:
         for
           f <- function
           a <- args
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.App1(None, f.value, a.value))))
+          t <- StateT.liftF[ErrorF, List[Statement], Term.Type[B]](f.value.tail.value.tpe.tail.value match
+            case Term.TypeLevel.App1(qnt, tfun, targ) => Left(List(TooManyExtensionArguments())) 
+            case Term.TypeLevel.App2(qnt, tfun, ta, tb) => Right(tb)
+            case Term.TypeLevel.App3(qnt, tfun, ta1, ta2, tb) => Left(List(TooManyExtensionArguments())) 
+            case Term.TypeLevel.Var.Function1Type(qnt) => Left(List(TooManyExtensionArguments())) 
+            case Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl) => Left(List(TooManyExtensionArguments())) 
+         
+          )
+        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.App1(None, f.value, a.value, t))))
 
     extension [A, B] (arg1: StateT[ErrorF, List[Statement], ValueExpr[A]])
       @scala.annotation.targetName("dot1V_fa")
@@ -68,7 +104,7 @@ object Applications:
           f <- func
           a1 <- StateT.liftF(arg1.runEmptyA)
           a2 <- StateT.liftF(arg2.runEmptyA)
-          v <- StateT.pure(Cofree((), Eval.now(Term.ValueLevel.dot1(None, f.value, a1.value, a2.value))))
+          v <- StateT.pure[ErrorF, List[Statement], Term.Value[B]](Cofree((), Eval.now(Term.ValueLevel.App.Dot1(None, f.value, a1.value, a2.value))))
         yield ValueExpr(v)
 
     extension [B] (arg1: String)
@@ -77,7 +113,7 @@ object Applications:
         for
           f <- func
           a2 <- StateT.liftF(arg2.runEmptyA)
-          v <- StateT.pure(Cofree((), Eval.now(Term.ValueLevel.dot1(None, f.value, Cofree((), Eval.now(Term.ValueLevel.Var.StringLiteral(None, arg1))), a2.value))))
+          v <- StateT.pure[ErrorF, List[Statement], Term.Value[B]](Cofree((), Eval.now(Term.ValueLevel.App.Dot1(None, f.value, Cofree((), Eval.now(Term.ValueLevel.Var.StringLiteral(None, arg1))), a2.value))))
         yield ValueExpr(v)
     
     extension [A, B] (arg1: StateT[ErrorF, List[Statement], ValueExpr[A]] | ValueExpr[A])
@@ -90,5 +126,5 @@ object Applications:
             case v: ValueExpr[A] => StateT.pure[ErrorF, List[Statement], ValueExpr[A]](v)
           }
           a2 <- StateT.liftF(arg2.runEmptyA)
-          v <- StateT.pure(Cofree((), Eval.now(Term.ValueLevel.dot1(None, f.value, a1.value, a2.value))))
+          v <- StateT.pure[ErrorF, List[Statement], Term.Value[B]](Cofree((), Eval.now(Term.ValueLevel.App.Dot1(None, f.value, a1.value, a2.value))))
         yield ValueExpr(v)

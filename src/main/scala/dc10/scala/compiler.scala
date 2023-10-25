@@ -6,9 +6,9 @@ import dc10.compile.{Compiler, Renderer, VirtualFile}
 implicit object compiler extends Compiler[
   ErrorF,
   List,
-  ScalaError,
+  Error,
   Statement,
-  ScalaFile
+  File
 ]:
 
   type Ctx[F[_], L, A] = StateT[F, L, A]
@@ -19,19 +19,19 @@ implicit object compiler extends Compiler[
 
   extension (res: ErrorF[List[Statement]])
     def toString[V](
-      using R: Renderer[V, ScalaError, List[Statement]]
+      using R: Renderer[V, Error, List[Statement]]
     ): String =
       res.fold(R.renderErrors, R.render)
 
   extension (res: ErrorF[List[Statement]])
     def toStringOrError[V](
-      using R: Renderer[V, ScalaError, List[Statement]]
+      using R: Renderer[V, Error, List[Statement]]
     ): ErrorF[String] =
       res.map(R.render)
 
-  extension (res: ErrorF[List[ScalaFile]])
+  extension (res: ErrorF[List[File]])
     def toVirtualFile[V](
-      using R: Renderer[V, ScalaError, List[Statement]]
+      using R: Renderer[V, Error, List[Statement]]
     ): ErrorF[List[VirtualFile]] =
       for
         fds <- res

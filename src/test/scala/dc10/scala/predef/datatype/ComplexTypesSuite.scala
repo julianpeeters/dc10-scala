@@ -91,6 +91,7 @@ class ComplexTypesSuite extends FunSuite:
     
     def ast =
       for
+        s <- VAL("s1", OPTION(INT), Some(1))
         _ <- VAL("l1", OPTION(INT), Option(1))
         a <- VAL("l2", OPTION(STRING), Option("1"))
         l <- VAL("l3", OPTION(OPTION(STRING)), Option(Option("1")))
@@ -101,9 +102,10 @@ class ComplexTypesSuite extends FunSuite:
       ast.compile.toString["scala-3.3.1"]
       
     val expected: String =
-      """|val l1: Option[Int] = Option[Int](1)
-         |val l2: Option[String] = Option[String]("1")
-         |val l3: Option[Option[String]] = Option[Option[String]](Option[String]("1"))
-         |val l4: Option[Option[Option[String]]] = Option[Option[Option[String]]](l3)""".stripMargin
+      """|val s1: Option[Int] = Some(1)
+         |val l1: Option[Int] = Option(1)
+         |val l2: Option[String] = Option("1")
+         |val l3: Option[Option[String]] = Option(Option("1"))
+         |val l4: Option[Option[Option[String]]] = Option(l3)""".stripMargin
       
     assertEquals(obtained, expected)

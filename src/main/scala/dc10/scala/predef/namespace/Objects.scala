@@ -1,10 +1,9 @@
 package dc10.scala.predef.namespace
 
 import cats.data.StateT
-import dc10.scala.{Statement, Symbol}
+import dc10.scala.{ErrorF, Statement, Symbol}
 import dc10.scala.Statement.{ObjectDef, TypeExpr}
 import dc10.scala.ctx.ext
-import dc10.scala.ErrorF
 
 trait Objects[F[_]]:
   def OBJECT[T, A](name: String, contents: F[A]): F[List[Statement]]

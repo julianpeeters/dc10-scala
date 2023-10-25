@@ -8,7 +8,7 @@ import dc10.scala.Statement
 import dc10.scala.Statement.{TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.{CaseClass, Term}
 import dc10.scala.ctx.ext
-import dc10.scala.{ErrorF, IdentifierSymbolExpected, ScalaError}
+import dc10.scala.{Error, ErrorF, IdentifierSymbolExpected}
 import org.tpolecat.sourcepos.SourcePos
 
 trait TemplateTypes[F[_], G[_]]:
@@ -39,7 +39,7 @@ object TemplateTypes:
           Cofree((), Eval.now(Term.ValueLevel.Lam.Lam1(None, a.value, Cofree((), Eval.now(Term.ValueLevel.App.AppCtor1(None, c.tpe, a.value))))))))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A => T]](
           a.value.tail.value match
-            case Term.ValueLevel.App.App1(_, _, _)          => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
+            case Term.ValueLevel.App.App1(_, _, _, _)        => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.AppCtor1(_, _, _)      => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.AppVargs(_, _, vargs*) => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.Dot1(_, _, _, _)       => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
@@ -50,8 +50,9 @@ object TemplateTypes:
             case Term.ValueLevel.Var.StringLiteral(_, _)    => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.Var.ListCtor(_)            => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.Var.OptionCtor(_)          => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
+            case Term.ValueLevel.Var.OptionCtor.SomeCtor(_) => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.Var.Println(_, _)          => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
-            case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => Right[List[ScalaError], Statement.ValueExpr[A => T]](ValueExpr[A => T](
+            case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => Right[List[Error], Statement.ValueExpr[A => T]](ValueExpr[A => T](
               Cofree((), Eval.now(Term.ValueLevel.Var.UserDefinedValue(qnt, name, Cofree((), Eval.now(Term.TypeLevel.App2(None, Cofree((), Eval.now(Term.TypeLevel.Var.Function1Type(None))), tpe, c.tpe))), Some(f.value))))))
         )
         d <- StateT.pure(Statement.CaseClassDef(c, 0))

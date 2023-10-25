@@ -2,7 +2,7 @@ package dc10.scala.predef.namespace
 
 import cats.implicits.*
 import cats.data.StateT
-import dc10.scala.{ErrorF, Statement, ScalaFile, Symbol}
+import dc10.scala.{ErrorF, File, Statement, Symbol}
 import dc10.scala.ctx.ext
 import java.nio.file.Path
 import org.tpolecat.sourcepos.SourcePos
@@ -14,14 +14,14 @@ trait Packages[F[_]]:
 object Packages:
 
   trait Mixins extends Packages[
-    [A] =>> StateT[ErrorF, List[ScalaFile], A],
+    [A] =>> StateT[ErrorF, List[File], A],
   ]:
-    def PACKAGE[A](nme: String, files: StateT[ErrorF, List[ScalaFile], A])(using sp: SourcePos): StateT[ErrorF, List[ScalaFile], A] =
+    def PACKAGE[A](nme: String, files: StateT[ErrorF, List[File], A])(using sp: SourcePos): StateT[ErrorF, List[File], A] =
       for
-        (ms, a) <- StateT.liftF[ErrorF, List[ScalaFile], (List[ScalaFile], A)](files.runEmpty)
+        (ms, a) <- StateT.liftF[ErrorF, List[File], (List[File], A)](files.runEmpty)
         ss = ms.map(s => s.copy(
           path = Path.of(nme).resolve(s.path),
           contents = List[Statement](Statement.PackageDef(Symbol.Package.Basic(nme, Statement.PackageDef(Symbol.Package.Empty(s.contents), 0)), 0))
         ))
-        _ <- ss.traverse(d => StateT.modifyF[ErrorF, List[ScalaFile]](ctx => ctx.ext(d)))
+        _ <- ss.traverse(d => StateT.modifyF[ErrorF, List[File]](ctx => ctx.ext(d)))
       yield a

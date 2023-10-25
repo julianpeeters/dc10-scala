@@ -4,8 +4,7 @@ import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
 import cats.implicits.*
-import dc10.scala.{ErrorF, ScalaError, TooManyExtensionArguments}
-import dc10.scala.Statement
+import dc10.scala.{Error, ErrorF, Statement, TooManyExtensionArguments}
 import dc10.scala.Statement.{ExtensionDef, TypeExpr, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
 import dc10.scala.Symbol.Term.{Type, Value}
@@ -105,7 +104,7 @@ object Functions:
         (ms, f) <- StateT.liftF(func.runEmpty)
         e <- StateT.liftF(ms match
           case arg1 :: methods => Right(Extension(arg1, methods))
-          case Nil => Either.left[List[ScalaError], Extension](List(TooManyExtensionArguments()))
+          case Nil => Either.left[List[Error], Extension](List(TooManyExtensionArguments()))
         )
         d <- StateT.pure(ExtensionDef(e, 0))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))

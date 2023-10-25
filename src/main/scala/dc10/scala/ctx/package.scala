@@ -1,7 +1,7 @@
 package dc10.scala.ctx
 
 import cats.{Applicative, Functor}
-import dc10.scala.{ScalaFile, Statement}
+import dc10.scala.{File, Statement}
 import dc10.scala.Statement.PackageDef
 
 extension [F[_]: Applicative: Functor] (ctx: List[PackageDef])
@@ -25,9 +25,9 @@ extension [F[_]: Applicative: Functor](ctx: List[Statement.ValueDef])
     // TODO
     Applicative[F].pure(s)
 
-extension [F[_]: Applicative: Functor] (ctx: List[ScalaFile])
-  def ext(s: ScalaFile): F[List[ScalaFile]] =
+extension [F[_]: Applicative: Functor] (ctx: List[File])
+  def ext(s: File): F[List[File]] =
     Functor[F].map(namecheck(s))(ctx :+ _)
-  def namecheck(s: ScalaFile): F[ScalaFile] =
+  def namecheck(s: File): F[File] =
     // TODO
     Applicative[F].pure(s)

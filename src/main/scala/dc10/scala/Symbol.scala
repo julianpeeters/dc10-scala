@@ -3,6 +3,21 @@ package dc10.scala
 import cats.Eval
 import cats.free.Cofree
 import java.nio.file.Path
+import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1
+import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2
+import dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor.SomeCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.Println
+import dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue
+import dc10.scala.Symbol.Term.ValueLevel.App.App1
+import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1
+import dc10.scala.Symbol.Term.ValueLevel.App.AppVargs
+import dc10.scala.Symbol.Term.ValueLevel.App.Dot1
+import dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType
 
 sealed trait Symbol
 
@@ -98,30 +113,30 @@ object Symbol:
         case class StringType[X](qnt: Option[Long]) extends Var[String, X]
         case class Function1Type[X](qnt: Option[Long]) extends Var[__ => __, X]
         case class Function2Type[X](qnt: Option[Long]) extends Var[(__, __) => __, X]
-        case class ListType[X](qnt: Option[Long]) extends Var[List[__], X]
-        case class OptionType[X](qnt: Option[Long]) extends Var[Option[__], X]
-
+        case class ListType[G[_] <: List[?], X](qnt: Option[Long]) extends Var[G[__], X]
+        case class OptionType[G[_] <: Option[?], X](qnt: Option[Long]) extends Var[G[__], X]
+        object OptionType:
+          case class SomeType[X](qnt: Option[Long]) extends Var[Option[__], X]
         case class UserDefinedType[T, X <: TypeLevel[T, X]](qnt: Option[Long], nme: String, impl: Option[Type[T]]) extends Var[T, X]
     
     type Value[T] = Cofree[[X] =>> ValueLevel[T, X], Unit]
+   
     sealed trait ValueLevel[T, +X] extends Term:
       def tpe: Type[T]
 
     object ValueLevel:
-      def dot1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg1: Value[A], arg2: Value[B]): Term.ValueLevel[B, X] = App.Dot1(qnt, fun, arg1, arg2)
       sealed abstract class App[T, X] extends Term.ValueLevel[T, X]
       object App:
-        case class App1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg: Value[A]) extends Term.ValueLevel.App[B, X]:
-          def tpe: Type[B] = ???
+        case class App1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg: Value[A], tpe: Type[B]) extends Term.ValueLevel.App[B, X]
         case class AppCtor1[T, A, X](qnt: Option[Long], tpe: Type[T], arg: Value[A]) extends Term.ValueLevel.App[T, X]
         case class AppVargs[A, B, X](qnt: Option[Long], fun: Value[List[A] => B], vargs: Value[A]*) extends Term.ValueLevel.App[B, X]:
           def tpe: Type[B] = ???
-        case class Dot1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg1: Value[A], arg2: Value[B]) extends Term.ValueLevel.App[B, X]:
-          def tpe: Type[B] = ???
+        case class Dot1[A, B, C, D, X](qnt: Option[Long], fun: Value[D], arg1: Value[A], arg2: Value[B]) extends Term.ValueLevel.App[C, X]:
+          def tpe: Type[C] = ???
       sealed abstract class Lam[T, X] extends Term.ValueLevel[T, X]
       object Lam:
         case class Lam1[A, B, X](qnt: Option[Long], a: Value[A], b: Value[B]) extends Term.ValueLevel.Lam[A => B, X]:
-          def tpe: Type[A => B] = ???
+          def tpe: Type[A => B] = Cofree((), Eval.now(Term.TypeLevel.App2(None, Cofree((), Eval.now(Term.TypeLevel.Var.Function1Type(None))), a.tail.value.tpe, b.tail.value.tpe)))
         case class Lam2[A, B, X](qnt: Option[Long], a1: Value[A], a2: Value[A], b: Value[B]) extends Term.ValueLevel.Lam[(A, A) => B, X]:
           def tpe: Type[(A, A) => B] = ???
 
@@ -135,8 +150,11 @@ object Symbol:
           def tpe: Type[String] = Cofree((), Eval.now(Term.TypeLevel.Var.StringType(None)))
         case class ListCtor[A, X](qnt: Option[Long]) extends Var[List[A] => List[A], X]:
           def tpe: Type[List[A] => List[A]] = ???
-        case class OptionCtor[A, X](qnt: Option[Long]) extends Var[Option[A] => Option[A], X]:
-          def tpe: Type[Option[A] => Option[A]] = ???
+        case class OptionCtor[A, X](qnt: Option[Long]) extends Var[A => Option[A], X]:
+          def tpe: Type[A => Option[A]] = ???
+        object OptionCtor:
+          case class SomeCtor[A, X](qnt: Option[Long]) extends Var[A => Some[A], X]:
+            def tpe: Type[A => Some[A]] = Cofree((), Eval.now(Term.TypeLevel.App2(None, Cofree((), Eval.now(Term.TypeLevel.Var.Function1Type(None))), Cofree((), Eval.now(UserDefinedType(None, "A", None))), Cofree((), Eval.now(UserDefinedType(None, "A", None))))))
         case class Println[F[_], X](qnt: Option[Long], s: Value[String]) extends Var[F[Unit], X]:
           def tpe: Type[F[Unit]] = Cofree((), Eval.now(Term.TypeLevel.Var.UserDefinedType(None, "cats.effect.IO[Unit]", None)))
         case class UserDefinedValue[T, X <: ValueLevel[T, X]](qnt: Option[Long], nme: String, tpe: Type[T], impl: Option[Value[T]]) extends Var[T, X]

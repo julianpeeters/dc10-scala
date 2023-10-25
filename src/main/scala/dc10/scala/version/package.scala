@@ -5,10 +5,10 @@ import dc10.scala.Statement
 import dc10.scala.Statement.{CaseClassDef, ExtensionDef, PackageDef, TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import dc10.scala.Symbol.Term.ValueLevel.{App, Lam}
-import dc10.scala.ScalaError
+import dc10.scala.Error
 
-given `3.3.1`: Renderer["scala-3.3.1", ScalaError, List[Statement]] =
-  new Renderer["scala-3.3.1", ScalaError, List[Statement]]:
+given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
+  new Renderer["scala-3.3.1", Error, List[Statement]]:
 
     override def render(input: List[Statement]): String = input.map(stmt => stmt match
       case d@CaseClassDef(_, _)        => indent(d.indent) ++ renderCaseClass(d.caseclass)
@@ -22,7 +22,7 @@ given `3.3.1`: Renderer["scala-3.3.1", ScalaError, List[Statement]] =
       case e@ValueExpr(v)              => indent(e.indent) ++ renderValue(v.tail.value)
     ).mkString("\n")
 
-    override def renderErrors(errors: List[ScalaError]): String =
+    override def renderErrors(errors: List[Error]): String =
       errors.map(_.toString()).mkString("\n")
 
     override def version: "scala-3.3.1" =
@@ -62,12 +62,13 @@ given `3.3.1`: Renderer["scala-3.3.1", ScalaError, List[Statement]] =
         case Term.TypeLevel.Var.Function2Type(_) => "=>"
         case Term.TypeLevel.Var.ListType(_) => "List"
         case Term.TypeLevel.Var.OptionType(_) => "Option"
+        case Term.TypeLevel.Var.OptionType.SomeType(_) => "Some"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i) => s
 
     private def renderValue[T, X](value: Term.ValueLevel[T, X]): String =
       value match 
         // application
-        case Term.ValueLevel.App.App1(q, f, a) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
+        case Term.ValueLevel.App.App1(q, f, a, t) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
         case Term.ValueLevel.App.AppCtor1(q, t, a) => s"${renderType(t.tail.value)}(${renderValue(a.tail.value)})"
         case Term.ValueLevel.App.AppVargs(q, f, as*) => s"${renderValue(f.tail.value)}(${as.map(a => renderValue(a.tail.value)).mkString(", ")})"
         case Term.ValueLevel.App.Dot1(q, f, a, b) => s"${renderValue(a.tail.value)}.${renderValue(f.tail.value)}(${renderValue(b.tail.value)})"
@@ -81,6 +82,7 @@ given `3.3.1`: Renderer["scala-3.3.1", ScalaError, List[Statement]] =
         // complex
         case Term.ValueLevel.Var.ListCtor(q) => s"List"
         case Term.ValueLevel.Var.OptionCtor(q) => s"Option"
+        case Term.ValueLevel.Var.OptionCtor.SomeCtor(q) => s"Some"
         case Term.ValueLevel.Var.Println(q, s) => s"IO.println(${renderValue(s.tail.value)})"
         case Term.ValueLevel.Var.UserDefinedValue(q, s, t, i) => s
 

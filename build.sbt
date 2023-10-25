@@ -5,7 +5,7 @@ val SourcePosV = "1.1.0"
 
 inThisBuild(List(
   crossScalaVersions := Seq(scalaVersion.value),
-  description := "Scala code generation.",
+  description := "Opinionated Scala code generation.",
   organization := "com.julianpeeters",
   homepage := Some(url("https://github.com/julianpeeters/dc10-scala")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),

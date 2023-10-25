@@ -32,5 +32,5 @@ import dc10.scala.version.`3.3.1`
 val result: String = snippet.compile.toString["scala-3.3.1"]
 ```
 
-### `libraries`
+### Libraries
  - [`dc10-cats-effect`](https://github.com/julianpeeters/dc10-cats-effect)
