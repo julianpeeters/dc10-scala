@@ -39,8 +39,9 @@ object TemplateTypes:
           Cofree((), Eval.now(Term.ValueLevel.Lam.Lam1(None, a.value, Cofree((), Eval.now(Term.ValueLevel.App.AppCtor1(None, c.tpe, a.value))))))))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A => T]](
           a.value.tail.value match
-            case Term.ValueLevel.App.App1(_, _, _, _)        => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
+            case Term.ValueLevel.App.App1(_, _, _, _)       => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.AppCtor1(_, _, _)      => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
+            case Term.ValueLevel.App.AppPure(_, _, _, _)    => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.AppVargs(_, _, vargs*) => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.App.Dot1(_, _, _, _)       => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))
             case Term.ValueLevel.Lam.Lam1(_, _, _)          => Left(scala.List(IdentifierSymbolExpected(a.value.tail.value)))

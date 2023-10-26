@@ -8,7 +8,7 @@ import dc10.scala.{ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.TypeLevel.__
-import dc10.scala.Symbol.Term.ValueLevel.App.{App1, AppVargs}
+import dc10.scala.Symbol.Term.ValueLevel.App.{AppPure, AppVargs}
 import dc10.scala.Symbol.Term.ValueLevel.Var.{ListCtor, OptionCtor}
 
 trait ComplexTypes[F[_]]:
@@ -60,7 +60,7 @@ object ComplexTypes:
           a <- arg
           t <- StateT.pure[ErrorF, List[Statement], Term.Type[Option[A]]](Cofree((), Eval.now(Term.TypeLevel.App1(None, Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None))), a.value.tail.value.tpe))))
         // yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.Applicative(None, t, a.value))))      
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.App1(None, o.value, a.value, t))))      
+        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppPure(None, o.value, a.value, t))))      
 
     // extension [A] (option: StateT[ErrorF, List[Statement], ValueExpr[A => Option[A]]])
     //   @scala.annotation.targetName("appVOS")

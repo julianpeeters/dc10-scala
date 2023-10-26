@@ -11,7 +11,6 @@ import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.TypeLevel.__
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
 import dc10.scala.Symbol.Term.ValueLevel.App.App1
-// import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1
 // import dc10.scala.Symbol.Term.ValueLevel.App.AppVargs
 import dc10.scala.Symbol.Term.ValueLevel.App.Dot1
 // import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1

@@ -129,6 +129,7 @@ object Symbol:
       object App:
         case class App1[A, B, X](qnt: Option[Long], fun: Value[A => B], arg: Value[A], tpe: Type[B]) extends Term.ValueLevel.App[B, X]
         case class AppCtor1[T, A, X](qnt: Option[Long], tpe: Type[T], arg: Value[A]) extends Term.ValueLevel.App[T, X]
+        case class AppPure[G[_], A, X](qnt: Option[Long], fun: Value[A => G[A]], arg: Value[A], tpe: Type[G[A]]) extends Term.ValueLevel.App[G[A], X]
         case class AppVargs[A, B, X](qnt: Option[Long], fun: Value[List[A] => B], vargs: Value[A]*) extends Term.ValueLevel.App[B, X]:
           def tpe: Type[B] = ???
         case class Dot1[A, B, C, D, X](qnt: Option[Long], fun: Value[D], arg1: Value[A], arg2: Value[B]) extends Term.ValueLevel.App[C, X]:
