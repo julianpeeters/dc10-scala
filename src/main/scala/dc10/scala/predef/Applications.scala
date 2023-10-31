@@ -24,7 +24,7 @@ trait Applications[F[_]]:
 
   extension [A, B] (function: F[ValueExpr[Unit, A => B]])
     @scala.annotation.targetName("app1V")
-    def apply(args: F[ValueExpr[Unit, A]])(sp: SourcePos): F[ValueExpr[Unit, B]]
+    def apply(args: F[ValueExpr[Unit, A]])(using sp: SourcePos): F[ValueExpr[Unit, B]]
 
   extension [A, B] (arg1: F[ValueExpr[Unit, A]] | ValueExpr[Unit, A])
     @scala.annotation.targetName("dot1V_fa|a")
@@ -57,7 +57,7 @@ object Applications:
 
     extension [A, B] (function: StateT[ErrorF, List[Statement], ValueExpr[Unit, A => B]])
       @scala.annotation.targetName("app1V")
-      def apply(args: StateT[ErrorF, List[Statement], ValueExpr[Unit, A]])(sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Unit, B]] =
+      def apply(args: StateT[ErrorF, List[Statement], ValueExpr[Unit, A]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Unit, B]] =
         for
           f <- function
           a <- args
