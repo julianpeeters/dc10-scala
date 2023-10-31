@@ -14,7 +14,7 @@ class ComplexTypesSuite extends FunSuite:
 
     type Person
 
-    def ast = CASECLASS[Person, String]("Person", FIELD("name", STRING))
+    def ast = CASECLASS[Unit, Person, String]("Person", FIELD("name", STRING))
     
     val obtained: String =
       ast.compile.toString["scala-3.3.1"]

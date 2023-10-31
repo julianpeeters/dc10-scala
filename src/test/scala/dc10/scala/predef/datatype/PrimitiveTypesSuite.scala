@@ -52,20 +52,20 @@ class PrimitiveTypeSuite extends FunSuite:
 
   test("ext def"):
 
-    trait ExtensionR[A]:
-      extension (s: StateT[ErrorF, List[Statement], ValueExpr[A]] | ValueExpr[A])
-        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String]]): StateT[ErrorF, List[Statement], ValueExpr[String]]
+    trait ExtensionR[Z, A]:
+      extension (s: StateT[ErrorF, List[Statement], ValueExpr[Z, A]] | ValueExpr[Z, A])
+        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[Z, String]]): StateT[ErrorF, List[Statement], ValueExpr[Z, String]]
 
     object ExtensionR:
-      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[String => String]]): ExtensionR[String] =
-        new ExtensionR[String]:
-          extension (s: StateT[ErrorF, List[Statement], ValueExpr[String]] | ValueExpr[String])
-            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String]]): StateT[ErrorF, List[Statement], ValueExpr[String]] =
+      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[Unit, String => String]]): ExtensionR[Unit, String] =
+        new ExtensionR[Unit, String]:
+          extension (s: StateT[ErrorF, List[Statement], ValueExpr[Unit, String]] | ValueExpr[Unit, String])
+            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[Unit, String]]): StateT[ErrorF, List[Statement], ValueExpr[Unit, String]] =
               s.DOT(f)(n)
         
     def ast =
       for
-        given ExtensionR[String] <- EXT(
+        given ExtensionR[Unit, String] <- EXT(
           for
             _ <- EXTENSION("str", STRING)
             f <- DEF("replace", VAL("msg", STRING), STRING, b => b)

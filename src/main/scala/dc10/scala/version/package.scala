@@ -30,13 +30,13 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
     private def indent(i: Int): String =
       "  ".repeat(i)
 
-    private def renderCaseClass[T](cls: CaseClass[T]) =
+    private def renderCaseClass[Z, T](cls: CaseClass[Z, T]) =
       s"case class ${cls.nme}(${render(cls.fields).mkString})"
 
     private def renderExtension(ext: Extension) =
       s"extension (${render(List(ext.field)).mkString})\n  ${render(ext.body)}\n"
 
-    private def renderObject[T](obj: Object[T]): String =
+    private def renderObject[Z, T](obj: Object[Z, T]): String =
       obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
         s"object ${obj.nme} extends ${renderType(p.tail.value)}:\n\n${render(obj.body)}"
       )
@@ -46,7 +46,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Package.Basic(nme, pkgdef) => s"package ${nme}\n\n${renderPackage(pkgdef.pkg)}"
         case Package.Empty(ms) => render(ms)
       
-    private def renderType[T, X](tpe: Term.TypeLevel[T, X]): String =
+    private def renderType[Z, T, X](tpe: Term.TypeLevel[T, X]): String =
       tpe match
         // application
         case Term.TypeLevel.App1(qnt, tfun, targ) => s"${renderType(tfun.tail.value)}[${renderType(targ.tail.value)}]"
@@ -64,7 +64,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.TypeLevel.Var.OptionType.SomeType(_) => "Some"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i) => s
 
-    private def renderValue[T, X](value: Term.ValueLevel[T, X]): String =
+    private def renderValue[Z, T, X](value: Term.ValueLevel[T, X]): String =
       value match 
         // application
         case Term.ValueLevel.App.App1(q, f, a, t) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
