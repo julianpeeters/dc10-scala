@@ -3,7 +3,7 @@ package dc10.scala.predef
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import cats.implicits.*
+import cats.implicits.given
 import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{ExtensionDef, TypeExpr, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
@@ -21,9 +21,9 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun2T")
     def ==>(codomain: F[TypeExpr[Z, B]]): F[TypeExpr[Z, (A, A) => B]]
 
-  extension [A, B] (fa: F[ValueExpr[Unit, A]])
+  extension [Z, A, B] (fa: F[ValueExpr[Z, A]])
     @scala.annotation.targetName("fun1V")
-    def ==>(f: ValueExpr[Unit, A] => F[ValueExpr[Unit, B]]): F[ValueExpr[Unit, A => B]]
+    def ==>(f: ValueExpr[Z, A] => F[ValueExpr[Z, B]]): F[ValueExpr[Z, A => B]]
 
   extension [A, B] (fa: F[(ValueExpr[Unit, A], ValueExpr[Unit, A])])
     @scala.annotation.targetName("fun2V")
@@ -72,16 +72,17 @@ object Functions:
           )
         yield TypeExpr(v)
 
-    extension [A, B] (fa: StateT[ErrorF, List[Statement], ValueExpr[Unit, A]])
+    extension [Z, A, B] (fa: StateT[ErrorF, List[Statement], ValueExpr[Z, A]])
       @scala.annotation.targetName("fun1V")
       def ==>(
-        f: ValueExpr[Unit, A] => StateT[ErrorF, List[Statement], ValueExpr[Unit, B]]
-      ): StateT[ErrorF, List[Statement], ValueExpr[Unit, A => B]] =
+        f: ValueExpr[Z, A] => StateT[ErrorF, List[Statement], ValueExpr[Z, B]]
+      ): StateT[ErrorF, List[Statement], ValueExpr[Z, A => B]] =
         for
           a <- StateT.liftF(fa.runEmptyA)
           b <- f(a)
-          v <- StateT.pure[ErrorF, List[Statement], Value[Unit, A => B]](
-            Cofree((), Eval.now(Term.ValueLevel.Lam.Lam1(None, a.value, b.value)))
+          v <- StateT.pure[ErrorF, List[Statement], Value[Z, A => B]](
+            // Cofree((), Eval.now(Term.ValueLevel.Lam.Lam1(None, a.value, b.value)))
+            Cofree(b.value.head, Eval.now(Term.ValueLevel.Lam.Lam1(None, a.value, b.value)))
           )
         yield ValueExpr(v)
 

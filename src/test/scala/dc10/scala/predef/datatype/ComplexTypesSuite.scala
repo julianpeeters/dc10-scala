@@ -1,7 +1,7 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
-import cats.implicits.*
+import cats.implicits.given
 import munit.FunSuite
 
 import dc10.scala.compiler.{compile, toString}

@@ -111,6 +111,50 @@ object Symbol:
         case class UserDefinedType[Z, T, X <: TypeLevel[T, X]](qnt: Option[Long], nme: String, impl: Option[Type[Z, T]]) extends Var[Z, T, X]
     
     type Value[Z, T] = Cofree[[X] =>> ValueLevel[T, X], Z]
+    object Value:
+      extension [Z, T] (v: Value[Z, T])
+        def findImpl: Option[Value[Z, T]] =
+          v.tail.value match
+            case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => Some(v)
+            case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => Some(v)
+            case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Some(v)
+            case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(v)
+            case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2) => Some(v)
+            case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2) => Some(v)
+            case Term.ValueLevel.Lam.Lam1(qnt, a, b) => Some(v)
+            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b) => Some(v)
+            case Term.ValueLevel.Var.BooleanLiteral(qnt, b) => Some(v)
+            case Term.ValueLevel.Var.IntLiteral(qnt, i) => Some(v)
+            case Term.ValueLevel.Var.StringLiteral(qnt, s) => Some(v)
+            case Term.ValueLevel.Var.ListCtor(qnt) => Some(v)
+            case Term.ValueLevel.Var.OptionCtor(qnt) => Some(v)
+            case Term.ValueLevel.Var.OptionCtor.SomeCtor(qnt) => Some(v)
+            case Term.ValueLevel.Var.Println(qnt, s) => Some(v)
+            case u@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => u.findImpl.asInstanceOf[Option[Value[Z, T]]]
+
+        def findVargs[Y, A]: Option[Seq[Value[Y, A]]] =
+          v.findImpl.fold(???)(i => i.tail.value match
+            case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => None 
+            case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => None
+            case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => None
+            case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Value[Y, A]]])
+            case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2) => None
+            case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2) => None
+            case Term.ValueLevel.Lam.Lam1(qnt, a, b) => None
+            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b) => None
+            case Term.ValueLevel.Var.BooleanLiteral(qnt, b) => None
+            case Term.ValueLevel.Var.IntLiteral(qnt, i) => None
+            case Term.ValueLevel.Var.StringLiteral(qnt, s) => None
+            case Term.ValueLevel.Var.ListCtor(qnt) => None
+            case Term.ValueLevel.Var.OptionCtor(qnt) => None
+            case Term.ValueLevel.Var.OptionCtor.SomeCtor(qnt) => None
+            case Term.ValueLevel.Var.Println(qnt, s) => None
+            case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => None
+          
+            
+          )
+          
+          
    
     sealed trait ValueLevel[T, +X] extends Term:
       type Zed
@@ -123,22 +167,23 @@ object Symbol:
           def map[A, B](fa: ValueLevel[T, A])(f: A => B): ValueLevel[T, B] =
             fa.asInstanceOf[ValueLevel[T, B]] 
 
+
       sealed abstract class App[Z, T, X] extends Term.ValueLevel[T, X]:
         type Zed = Z
       object App:
         case class App1[Z, A, B, X](qnt: Option[Long], fun: Value[Z, A => B], arg: Value[Z, A], tpe: Type[Z, B]) extends Term.ValueLevel.App[Z, B, X]
         case class AppCtor1[Z, T, A, X](qnt: Option[Long], tpe: Type[Z, T], arg: Value[Z, A]) extends Term.ValueLevel.App[Z, T, X]
         case class AppPure[G[_], Z, A, X](qnt: Option[Long], fun: Value[Z, A => G[A]], arg: Value[Z, A], tpe: Type[Z, G[A]]) extends Term.ValueLevel.App[Z, G[A], X]
-        case class AppVargs[G[_], Y, Z, A, B, X](qnt: Option[Long], fun: Value[Z, G[A] => G[A]], vargs: Value[Y, A]*) extends Term.ValueLevel.App[Z, G[A], X]:
-          def tpe: Type[Z, G[A]] = ???
-
+        case class AppVargs[G[_], Y, Z, A, B, X](qnt: Option[Long], fun: Value[Z, G[A] => G[A]], tpe: Type[Z, G[A]], vargs: Value[Y, A]*) extends Term.ValueLevel.App[Z, G[A], X]
         case class Dot1[Z, A, B, C, D, X](qnt: Option[Long], fun: Value[Z, D], arg1: Value[Z, A], arg2: Value[Z, B]) extends Term.ValueLevel.App[Z, C, X]:
+          def tpe: Type[Z, C] = ???
+        case class Dotless[Z, A, B, C, D, X](qnt: Option[Long], fun: Value[Z, D], arg1: Value[Z, A], arg2: Value[Z, B]) extends Term.ValueLevel.App[Z, C, X]:
           def tpe: Type[Z, C] = ???
       sealed abstract class Lam[Z, T, X] extends Term.ValueLevel[T, X]:
         type Zed = Z
       object Lam:
         case class Lam1[Z, A, B, X](qnt: Option[Long], a: Value[Z, A], b: Value[Z, B]) extends Term.ValueLevel.Lam[Z, A => B, X]:
-          def tpe: Type[Z, A => B] = Cofree(???, Eval.now(Term.TypeLevel.App2(None, Cofree(???, Eval.now(Term.TypeLevel.Var.Function1Type(None))), a.tail.value.tpe, ???)))
+          def tpe: Type[Z, A => B] = Cofree(a.head, Eval.now(Term.TypeLevel.App2[Z, Function1, A, B, Nothing](None, Cofree(b.head, Eval.now(Term.TypeLevel.Var.Function1Type(None))), a.tail.value.tpe.asInstanceOf[Term.Type[Z, A]], b.tail.value.tpe.map(_ => a.head.asInstanceOf[Z]))))
         case class Lam2[Z, A, B, X](qnt: Option[Long], a1: Value[Z, A], a2: Value[Z, A], b: Value[Z, B]) extends Term.ValueLevel.Lam[Z, (A, A) => B, X]:
           def tpe: Type[Z, (A, A) => B] = ???
 
@@ -161,3 +206,25 @@ object Symbol:
         case class Println[Z, F[_], X](qnt: Option[Long], s: Value[Unit, String]) extends Var[Z, F[Unit], X]:
           def tpe: Type[Z, F[Unit]] = ???//Cofree((), Eval.now(Term.TypeLevel.Var.UserDefinedType(None, "cats.effect.IO[Unit]", None)))
         case class UserDefinedValue[Z, T, X <: ValueLevel[T, X]](qnt: Option[Long], nme: String, tpe: Type[Z, T], impl: Option[Value[Z, T]]) extends Var[Z, T, X]
+        object UserDefinedValue:
+          extension [Z, T, X <: ValueLevel[T, X]] (u: UserDefinedValue[Z, T, X])
+            def findImpl: Option[Value[Z, T]] =
+              u.impl.fold(None)(i => i.tail.value match
+                case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => u.impl 
+                case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => u.impl
+                case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => u.impl
+                case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => u.impl
+                case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2) => u.impl
+                case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2) => u.impl
+                case Term.ValueLevel.Lam.Lam1(qnt, a, b) => u.impl
+                case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b) => u.impl
+                case Term.ValueLevel.Var.BooleanLiteral(qnt, b) => u.impl
+                case Term.ValueLevel.Var.IntLiteral(qnt, i) => u.impl
+                case Term.ValueLevel.Var.StringLiteral(qnt, s) => u.impl
+                case Term.ValueLevel.Var.ListCtor(qnt) => u.impl
+                case Term.ValueLevel.Var.OptionCtor(qnt) => u.impl
+                case Term.ValueLevel.Var.OptionCtor.SomeCtor(qnt) => u.impl
+                case Term.ValueLevel.Var.Println(qnt, s) => u.impl
+                case v@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => v.findImpl.asInstanceOf[Option[Value[Z, T]]]
+              )
+              

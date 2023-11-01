@@ -3,7 +3,7 @@ package dc10.scala.predef
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import cats.implicits.*
+import cats.implicits.given
 import dc10.scala.{Error, Statement}
 import dc10.scala.ErrorF
 import dc10.scala.Statement.{TypeExpr, ValueExpr}

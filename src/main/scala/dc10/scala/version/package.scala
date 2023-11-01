@@ -70,8 +70,9 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.ValueLevel.App.App1(q, f, a, t) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
         case Term.ValueLevel.App.AppCtor1(q, t, a) => s"${renderType(t.tail.value)}(${renderValue(a.tail.value)})"
         case Term.ValueLevel.App.AppPure(q, f, a, t) => s"${renderValue(f.tail.value)}(${renderValue(a.tail.value)})"
-        case Term.ValueLevel.App.AppVargs(q, f, as*) => s"${renderValue(f.tail.value)}(${as.map(a => renderValue(a.tail.value)).mkString(", ")})"
+        case Term.ValueLevel.App.AppVargs(q, f, t, as*) => s"${renderValue(f.tail.value)}(${as.map(a => renderValue(a.tail.value)).mkString(", ")})"
         case Term.ValueLevel.App.Dot1(q, f, a, b) => s"${renderValue(a.tail.value)}.${renderValue(f.tail.value)}(${renderValue(b.tail.value)})"
+        case Term.ValueLevel.App.Dotless(q, f, a, b) => s"${renderValue(a.tail.value)} ${renderValue(f.tail.value)} ${renderValue(b.tail.value)}"
         // function
         case Term.ValueLevel.Lam.Lam1(q, a, b) => s"${renderValue(a.tail.value)} => ${renderValue(b.tail.value)}"
         case Term.ValueLevel.Lam.Lam2(q, a1, a2, b) => s"(${renderValue(a1.tail.value)}, ${renderValue(a2.tail.value)}) => ${renderValue(b.tail.value)}"

@@ -3,7 +3,7 @@ package dc10.scala.predef.datatype
 import cats.data.StateT
 import cats.Eval
 import cats.free.Cofree
-import cats.implicits.*
+import cats.implicits.given
 import dc10.scala.{ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
@@ -40,7 +40,10 @@ object ComplexTypes:
         for
           l <- list
           a <- args.toList.sequence
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppVargs(None, l.value, a.map(arg => arg.value)*))))
+          // t <- StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.App1(None, l.value.tail.value.tpe, a.head.value.tail.value.tpe)))))
+          t <- StateT.pure(TypeExpr[Unit, List[A]](Cofree((), Eval.now(Term.TypeLevel.App1(None, Cofree((), Eval.now(Term.TypeLevel.Var.ListType(None))), a.head.value.tail.value.tpe)))))
+          // ll <- LIST(TypeExpr(a.head.value.tail.value.tpe.asInstanceOf[Term.Type[Unit, A]]))
+        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppVargs(None, l.value, t.tpe, a.map(arg => arg.value)*))))
 
     def OPTION[G[_] <: Option[?]]: StateT[ErrorF, List[Statement], TypeExpr[Unit, G[__]]] =
       StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None)))))

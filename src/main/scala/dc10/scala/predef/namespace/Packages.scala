@@ -1,6 +1,6 @@
 package dc10.scala.predef.namespace
 
-import cats.implicits.*
+import cats.implicits.given
 import cats.data.StateT
 import dc10.scala.{ErrorF, File, Statement, Symbol}
 import dc10.scala.ctx.ext

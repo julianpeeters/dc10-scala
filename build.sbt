@@ -6,7 +6,7 @@ val TwiddlesV = "0.7.0"
 
 inThisBuild(List(
   crossScalaVersions := Seq(scalaVersion.value),
-  description := "Opinionated Scala code generation.",
+  description := "A definitional compiler for generating Scala code.",
   organization := "com.julianpeeters",
   homepage := Some(url("https://github.com/julianpeeters/dc10-scala")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -43,14 +43,12 @@ lazy val scala = (project in file("."))
     )
   )
 
-lazy val scalaq = (project in file("q"))
+lazy val scalaq = (project in file("scalaq"))
   .settings(
     name := "dc10-scalaq",
     libraryDependencies ++= Seq(
-      // main
-      "org.typelevel"     %% "twiddles-core" % TwiddlesV,
       // test
-      "org.scalameta"     %% "munit"         % MUnitV     % Test
+      "org.scalameta" %% "munit" % MUnitV % Test
     )
   ).dependsOn(scala)
 
@@ -62,6 +60,6 @@ lazy val docs = project.in(file("docs/gitignored"))
       "VERSION" -> version.value.takeWhile(_ != '+'),
     )
   )
-  .dependsOn(scala)
+  .dependsOn(scalaq)
   .enablePlugins(MdocPlugin)
   .enablePlugins(NoPublishPlugin)
