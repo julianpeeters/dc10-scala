@@ -4,7 +4,7 @@ A ***D**efinitional* ***C**ompiler* for generating Scala code.
  - Generates code for Scala 3
 
 ```scala
-"com.julianpeeters" %% "dc10-scala" % "0.3.0"
+"com.julianpeeters" %% "dc10-scala" % "0.4.0"
 ```
 
 ### `dc10-scala`
@@ -21,7 +21,7 @@ val snippet =
     s <- VAL("str", STRING, "hello, world")
     _ <- VAL("msg", STRING, s)
   yield ()
-// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@5e0e2d40
+// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@73d48fa4
 ```
 
 Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
@@ -36,7 +36,7 @@ val result: String = snippet.compile.toString["scala-3.3.1"]
 ```
 
 ### `dc10-scalaq`
-Use the optional dsl to define linear and dependent types:
+Experimental `dsl` that includes dependent vector types:
 
 ```scala
 import dc10.scalaq.dsl.{*, given}
@@ -47,10 +47,10 @@ val snippet =
     l <- VAL("l", VECTOR(3, INT), Vector.of(1, 2, 3))
     _ <- VAL("m", VECTOR(6, INT), l ++ l)
   yield ()
-// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@38673ba7
+// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@1e3c797c
 ```
 
-Use `dc10-scala` to check and render code `toString` or `toVirtualFile`:
+Use the `compiler` to typecheck, then render code as `List`:
 
 ```scala
 import dc10.scala.compiler.{compile, toString}
@@ -62,4 +62,5 @@ val result: String = snippet.compile.toString["scala-3.3.1"]
 ```
 
 ### Libraries
+ - [`dc10-cats`](https://github.com/julianpeeters/dc10-cats)
  - [`dc10-cats-effect`](https://github.com/julianpeeters/dc10-cats-effect)

@@ -33,7 +33,7 @@ val result: String = snippet.compile.toString["scala-3.3.1"]
 ```
 
 ### `dc10-scalaq`
-Experimental `dsl` that includes dependent types:
+Experimental `dsl` that includes dependent vector types:
 
 ```scala mdoc:reset
 import dc10.scalaq.dsl.{*, given}
@@ -46,7 +46,7 @@ val snippet =
   yield ()
 ```
 
-Use `dc10-scala` to check and render code `toString` or `toVirtualFile`:
+Use the `compiler` to typecheck, then render code as `List`:
 
 ```scala mdoc
 import dc10.scala.compiler.{compile, toString}
@@ -56,4 +56,5 @@ val result: String = snippet.compile.toString["scala-3.3.1"]
 ```
 
 ### Libraries
+ - [`dc10-cats`](https://github.com/julianpeeters/dc10-cats)
  - [`dc10-cats-effect`](https://github.com/julianpeeters/dc10-cats-effect)
