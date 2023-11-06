@@ -1,64 +1,92 @@
 package dc10.scala.predef.datatype
 
 import cats.data.StateT
-import cats.Eval
-import cats.free.Cofree
 import cats.implicits.given
 import dc10.scala.{ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
-import dc10.scala.Symbol.Term.TypeLevel.__
 import dc10.scala.Symbol.Term.ValueLevel.App.{AppPure, AppVargs}
 import dc10.scala.Symbol.Term.ValueLevel.Var.{ListCtor, OptionCtor}
 
 trait ComplexTypes[F[_]]:
-  def LIST[G[_] <: List[?]]: F[TypeExpr[Unit, G[__]]]
-  def List[A]: F[ValueExpr[Unit, List[A] => List[A]]]
-  extension [A] (list: F[ValueExpr[Unit, List[A] => List[A]]])
+  def LIST[A]: F[TypeExpr[List[A], Unit]]
+  def List[A]: F[ValueExpr[List[A], Unit]]
+  extension [A] (list: F[ValueExpr[List[A], Unit]])
     @scala.annotation.targetName("appVL")
-    def apply(args: F[ValueExpr[Unit, A]]*): F[ValueExpr[Unit, List[A]]]
-  def OPTION[G[_] <: Option[?]]: F[TypeExpr[Unit, G[__]]]
-  def Option[A]: F[ValueExpr[Unit, A => Option[A]]]
-  extension [A] (option: F[ValueExpr[Unit, A => Option[A]]])
+    def apply[Z](args: F[ValueExpr[A, Z]]*): F[ValueExpr[List[A], (Unit, Z)]]
+  def OPTION[A]: F[TypeExpr[Option[A], Unit]]
+  def Option[A]: F[ValueExpr[Option[A], Unit]]
+  extension [A] (option: F[ValueExpr[Option[A], Unit]])
     @scala.annotation.targetName("appVO")
-    def apply(arg: F[ValueExpr[Unit, A]]): F[ValueExpr[Unit, Option[A]]]
-  def Some[A]: F[ValueExpr[Unit, A => Some[A]]]
+    def apply[Z](arg: F[ValueExpr[A, Z]]): F[ValueExpr[Option[A], (Unit, Z)]]
+  extension [A] (option: F[ValueExpr[Some[A], Unit]])
+    @scala.annotation.targetName("appVOS")
+    def apply[Z](arg: F[ValueExpr[A, Z]]): F[ValueExpr[Some[A], (Unit, Z)]]
+  def Some[A]: F[ValueExpr[Option[A], Unit]]
 
 object ComplexTypes:
 
   trait Mixins extends ComplexTypes[[A] =>> StateT[ErrorF, List[Statement], A]]:
 
-    def LIST[G[_] <: List[?]]: StateT[ErrorF, List[Statement], TypeExpr[Unit, G[__]]] =
-      StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.Var.ListType(None)))))
+    def LIST[A]: StateT[ErrorF, List[Statement], TypeExpr[List[A], Unit]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.ListType(None, ())))
       
-    def List[A]: StateT[ErrorF, List[Statement], ValueExpr[Unit, List[A] => List[A]]] =
-      StateT.pure(ValueExpr(Cofree((), Eval.now(Term.ValueLevel.Var.ListCtor(None)))))
+    def List[A]: StateT[ErrorF, List[Statement], ValueExpr[List[A], Unit]] =
+      for
+        v <- StateT.pure[ErrorF, List[Statement], ValueExpr[List[A], Unit]](ValueExpr(Term.ValueLevel.Var.ListCtor(None, Term.TypeLevel.Var.ListType(None, ()))))
+      yield v
     
-    extension [A] (list: StateT[ErrorF, List[Statement], ValueExpr[Unit, List[A] => List[A]]])
+    extension [A] (list: StateT[ErrorF, List[Statement], ValueExpr[List[A], Unit]])
       @scala.annotation.targetName("appVL")
-      def apply(args: StateT[ErrorF, List[Statement], ValueExpr[Unit, A]]*): StateT[ErrorF, List[Statement], ValueExpr[Unit, List[A]]] =
+      def apply[Z](args: StateT[ErrorF, List[Statement], ValueExpr[A, Z]]*): StateT[ErrorF, List[Statement], ValueExpr[List[A], (Unit, Z)]] =
         for
           l <- list
           a <- args.toList.sequence
-          // t <- StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.App1(None, l.value.tail.value.tpe, a.head.value.tail.value.tpe)))))
-          t <- StateT.pure(TypeExpr[Unit, List[A]](Cofree((), Eval.now(Term.TypeLevel.App1(None, Cofree((), Eval.now(Term.TypeLevel.Var.ListType(None))), a.head.value.tail.value.tpe)))))
-          // ll <- LIST(TypeExpr(a.head.value.tail.value.tpe.asInstanceOf[Term.Type[Unit, A]]))
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppVargs(None, l.value, t.tpe, a.map(arg => arg.value)*))))
+          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[List[A], (Unit, Z)]](a.headOption.fold(
+              ??? // TODO: make a NOTHING type for empty
+            )(h =>
+              Term.ValueLevel.App.AppVargs(
+                None,
+                l.value,
+                Term.TypeLevel.Var.ListType(None, ((), h.value.tpe.dep)),
+                a.map(arg => arg.value)*)
+            )
+          )
+        yield ValueExpr(v)
 
-    def OPTION[G[_] <: Option[?]]: StateT[ErrorF, List[Statement], TypeExpr[Unit, G[__]]] =
-      StateT.pure(TypeExpr(Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None)))))
+    def OPTION[A]: StateT[ErrorF, List[Statement], TypeExpr[Option[A], Unit]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.OptionType(None, ())))
       
-    def Option[A]: StateT[ErrorF, List[Statement], ValueExpr[Unit, A => Option[A]]] =
-      StateT.pure(ValueExpr(Cofree((), Eval.now(Term.ValueLevel.Var.OptionCtor(None)))))
+    def Option[A]: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]] =
+      StateT.pure(ValueExpr(Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType(None, ()))))
     
-    extension [A] (option: StateT[ErrorF, List[Statement], ValueExpr[Unit, A => Option[A]]])
+    extension [A] (option: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]])
       @scala.annotation.targetName("appVO")
-      def apply(arg: StateT[ErrorF, List[Statement], ValueExpr[Unit, A]]): StateT[ErrorF, List[Statement], ValueExpr[Unit, Option[A]]] =
+      def apply[Z](arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]]): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Z)]] =
         for
           o <- option
           a <- arg
-          t <- StateT.pure[ErrorF, List[Statement], Term.Type[Unit, Option[A]]](Cofree((), Eval.now(Term.TypeLevel.App1(None, Cofree((), Eval.now(Term.TypeLevel.Var.OptionType(None))), a.value.tail.value.tpe))))
-        yield ValueExpr(Cofree((), Eval.now(Term.ValueLevel.App.AppPure(None, o.value, a.value, t))))      
+          t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Option[A], (Unit, Z)]](Term.TypeLevel.App.App1(
+            None,
+            Term.TypeLevel.Var.OptionType(None, ()),
+            a.value.tpe,
+            ((), a.value.tpe.dep)
+          ))
+        yield ValueExpr(Term.ValueLevel.App.AppPure(None, o.value, a.value, t))    
 
-    def Some[A]: StateT[ErrorF, List[Statement], ValueExpr[Unit, A => Some[A]]] =
-      StateT.pure(ValueExpr(Cofree((), Eval.now(Term.ValueLevel.Var.OptionCtor.SomeCtor(None)))))
+    extension [A] (option: StateT[ErrorF, List[Statement], ValueExpr[Some[A], Unit]])
+      @scala.annotation.targetName("appVOS")
+      def apply[Z](arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]]): StateT[ErrorF, List[Statement], ValueExpr[Some[A], (Unit, Z)]] =
+        for
+          o <- option
+          a <- arg
+          t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Some[A], (Unit, Z)]](Term.TypeLevel.App.App1(
+            None,
+            o.value.tpe,
+            a.value.tpe,
+            ((), a.value.tpe.dep)
+          ))
+        yield ValueExpr(Term.ValueLevel.App.AppPure(None, Term.ValueLevel.Var.SomeCtor(None, Term.TypeLevel.Var.SomeType(None, ())), a.value, t))
+       
+    def Some[A]: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]] =
+      StateT.pure(ValueExpr(Term.ValueLevel.Var.SomeCtor(None, Term.TypeLevel.Var.SomeType(None, ()))))
