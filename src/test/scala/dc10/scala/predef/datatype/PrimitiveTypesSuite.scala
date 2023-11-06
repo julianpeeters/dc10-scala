@@ -53,14 +53,14 @@ class PrimitiveTypeSuite extends FunSuite:
   test("ext def"):
 
     trait ExtensionR[Z, A]:
-      extension (s: StateT[ErrorF, List[Statement], ValueExpr[Z, A]] | ValueExpr[Z, A])
-        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[Z, String]]): StateT[ErrorF, List[Statement], ValueExpr[Z, String]]
+      extension (s: StateT[ErrorF, List[Statement], ValueExpr[A, Z]] | ValueExpr[A, Z])
+        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String, Z]]): StateT[ErrorF, List[Statement], ValueExpr[String, Z]]
 
     object ExtensionR:
-      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[Unit, String => String]]): ExtensionR[Unit, String] =
+      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[String => String, Unit]]): ExtensionR[Unit, String] =
         new ExtensionR[Unit, String]:
-          extension (s: StateT[ErrorF, List[Statement], ValueExpr[Unit, String]] | ValueExpr[Unit, String])
-            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[Unit, String]]): StateT[ErrorF, List[Statement], ValueExpr[Unit, String]] =
+          extension (s: StateT[ErrorF, List[Statement], ValueExpr[String, Unit]] | ValueExpr[String, Unit])
+            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String, Unit]]): StateT[ErrorF, List[Statement], ValueExpr[String, Unit]] =
               s.DOT(f)(n)
         
     def ast =
