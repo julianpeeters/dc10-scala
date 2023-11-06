@@ -15,7 +15,7 @@ trait Vectors[F[_]]:
   def Vector[A]: F[ValueExpr[VectorN[A], Unit]]
   extension [A] (tfunction: F[TypeExpr[VectorN[A], Unit]])
     @scala.annotation.targetName("app1TQ")
-    def apply1[Z](len: Int, targs: F[TypeExpr[A, Z]]): F[TypeExpr[VectorN[A], (Int, Z)]]
+    def apply[Z](len: Int, targs: F[TypeExpr[A, Z]]): F[TypeExpr[VectorN[A], (Int, Z)]]
   extension [A] (ctor: F[ValueExpr[VectorN[A], Unit]])
     @scala.annotation.targetName("appVQ1")
     def of[Z](args: F[ValueExpr[A, Z]]*)(using sp: SourcePos): F[ValueExpr[VectorN[A], (Int, Z)]]
@@ -37,7 +37,7 @@ object Vectors:
     
     extension [A] (tfunction: StateT[ErrorF, List[Statement], TypeExpr[VectorN[A], Unit]])
       @scala.annotation.targetName("app1TQ")
-      def apply1[Z](len: Int, targs: StateT[ErrorF, List[Statement], TypeExpr[A, Z]]): StateT[ErrorF, List[Statement], TypeExpr[VectorN[A], (Int, Z)]] =
+      def apply[Z](len: Int, targs: StateT[ErrorF, List[Statement], TypeExpr[A, Z]]): StateT[ErrorF, List[Statement], TypeExpr[VectorN[A], (Int, Z)]] =
         for
           f <- tfunction
           a <- targs
@@ -50,7 +50,7 @@ object Vectors:
           l <- ctor
           a <- args.toList.sequence
           h <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Z]](a.headOption.toRight(List(Error(s""))))
-          t <- VECTOR.apply1(a.length, StateT.pure(TypeExpr(h.value.tpe)))
+          t <- VECTOR.apply(a.length, StateT.pure(TypeExpr(h.value.tpe)))
           v <- StateT.liftF[ErrorF, List[Statement], Term.ValueLevel[VectorN[A], (Int, Z)]](
             if (a.forall(e => e.value.tpe.dep == h.value.tpe.dep))
             then Right(Term.ValueLevel.App.AppVargs[VectorN, A, Int, Z](
