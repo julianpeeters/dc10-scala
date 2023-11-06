@@ -37,6 +37,7 @@ lazy val scala = (project in file("."))
       // main
       "com.julianpeeters" %% "dc10-core" % Dc10V,
       "org.tpolecat"      %% "sourcepos" % SourcePosV,
+      "org.typelevel"     %% "cats-core" % CatsV,
       // test
       "org.scalameta"     %% "munit"     % MUnitV      % Test
     )
