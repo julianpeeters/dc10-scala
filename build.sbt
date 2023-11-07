@@ -43,15 +43,6 @@ lazy val scala = (project in file("."))
     )
   )
 
-lazy val scalaq = (project in file("scalaq"))
-  .settings(
-    name := "dc10-scalaq",
-    libraryDependencies ++= Seq(
-      // test
-      "org.scalameta" %% "munit" % MUnitV % Test
-    )
-  ).dependsOn(scala)
-
 lazy val docs = project.in(file("docs/gitignored"))
   .settings(
     mdocOut := scala.base,
@@ -60,6 +51,6 @@ lazy val docs = project.in(file("docs/gitignored"))
       "VERSION" -> version.value.takeWhile(_ != '+'),
     )
   )
-  .dependsOn(scalaq)
+  .dependsOn(scala)
   .enablePlugins(MdocPlugin)
   .enablePlugins(NoPublishPlugin)
