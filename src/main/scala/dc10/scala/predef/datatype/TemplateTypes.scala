@@ -12,6 +12,8 @@ import org.tpolecat.sourcepos.SourcePos
 trait TemplateTypes[F[_], G[_]]:
   @scala.annotation.targetName("caseClass1")
   def CASECLASS[T, A](name: String, fields: G[ValueExpr[A, Unit]])(using sp: SourcePos): F[(TypeExpr[T, Unit], ValueExpr[A => T, Unit])]
+  @scala.annotation.targetName("caseClass2")
+  def CASECLASS[T, A, B](name: String, fields: G[(ValueExpr[A, Unit], ValueExpr[B, Unit])])(using sp: SourcePos): F[(TypeExpr[T, Unit], ValueExpr[(A, B) => T, Unit])]
   def EXTENSION[T](nme: String, tpe: F[TypeExpr[T, Unit]])(using sp: SourcePos): F[ValueExpr[T, Unit]]
   def FIELD[T](nme: String, tpe: F[TypeExpr[T, Unit]])(using sp: SourcePos): G[ValueExpr[T, Unit]]
 
@@ -35,23 +37,10 @@ object TemplateTypes:
         c <- StateT.pure(CaseClass[T](None, name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, ()), a.value.tpe, c.tpe, ()))
         f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A => T, Unit]](ValueExpr(
-          Term.ValueLevel.Lam.Lam1(None, a.value, Term.ValueLevel.App.AppCtor1(None, c.tpe, a.value ), t)
+          Term.ValueLevel.Lam.Lam1(None, a.value, Term.ValueLevel.App.AppCtor1(None, c.tpe, a.value), t)
         ))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A => T, Unit]](
           a.value match
-            case Term.ValueLevel.App.App1(_, _, _, _)          => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.App.AppCtor1(_, _, _)         => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.App.AppPure(_, _, _, _)       => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.App.Dot1(_, _, _, _, _)       => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.App.Dotless(_, _, _, _, _)    => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Lam.Lam1(_, _, _, _)          => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Lam.Lam2(_, _, _, _, _)       => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.BooleanLiteral(_, _, _)   => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.IntLiteral(_, _, _)       => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.StringLiteral(_, _, _)    => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.ListCtor(_, _)            => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.OptionCtor(_, _)          => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
-            case Term.ValueLevel.Var.SomeCtor(_, _)    => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
             case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => Right[List[Error], Statement.ValueExpr[A => T, Unit]](ValueExpr[A => T, Unit](
               Term.ValueLevel.Var.UserDefinedValue(
                 qnt,
@@ -64,7 +53,49 @@ object TemplateTypes:
                     ()
                 ),
                 impl = Some(f.value))
-              )))
+            ))
+            case _ => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
+          )
+        d <- StateT.pure(Statement.CaseClassDef(c, 0))
+        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+      yield (TypeExpr(c.tpe), v)
+
+    @scala.annotation.targetName("caseClass2")
+    def CASECLASS[T, A, B](
+      name: String,
+      fields: StateT[ErrorF, List[Statement.ValueDef], (ValueExpr[A, Unit], ValueExpr[B, Unit])]
+    )(
+      using
+        sp: SourcePos
+    ): StateT[ErrorF, List[Statement], (TypeExpr[T, Unit], ValueExpr[(A, B) => T, Unit])] =
+      for
+        (fields, (a, b)) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], (ValueExpr[A, Unit], ValueExpr[B, Unit]))](fields.runEmpty)
+        c <- StateT.pure(CaseClass[T](None, name, fields))
+        t <- StateT.pure(Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, ()), a.value.tpe, b.value.tpe, c.tpe, ()))
+        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[(A, B) => T, Unit]](ValueExpr(
+          Term.ValueLevel.Lam.Lam2(None, a.value, b.value, Term.ValueLevel.App.AppCtor2(None, c.tpe, a.value, b.value), t)
+        ))
+        v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[(A, B) => T, Unit]](
+          (a.value, b.value) match
+            case (Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl), Term.ValueLevel.Var.UserDefinedValue(qnt2, nme2, tpe2, impl2)) =>
+              Right[List[Error], Statement.ValueExpr[(A, B) => T, Unit]](ValueExpr[(A, B) => T, Unit](
+                Term.ValueLevel.Var.UserDefinedValue(
+                  qnt,
+                  nme = name,
+                  tpe = Term.TypeLevel.App.App3(
+                      None,
+                      Term.TypeLevel.Lam.Function2Type(None, ()),
+                      a.value.tpe,
+                      b.value.tpe,
+                      c.tpe,
+                      ()
+                  ),
+                  impl = Some(f.value)
+                )
+              ))
+            case _ => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
+
+          )
         d <- StateT.pure(Statement.CaseClassDef(c, 0))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield (TypeExpr(c.tpe), v)
