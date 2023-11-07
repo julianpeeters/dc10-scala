@@ -5,6 +5,7 @@ import dc10.scala.Statement
 import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import dc10.scala.Symbol.Term.ValueLevel.{App, Lam}
 import dc10.scala.Error
+import dc10.scala.Statement.TypeDef.Alias
 
 given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
   new Renderer["scala-3.3.1", Error, List[Statement]]:
@@ -16,6 +17,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case d@Statement.ExtensionDef(_, _)        => indent(d.indent) ++ renderExtension(d.extension)
         case d@Statement.ObjectDef(_, _)           => indent(d.indent) ++ renderObject(d.obj)
         case d@Statement.PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
+        case d@Statement.TypeDef.Alias(_, _)       => indent(d.indent) ++ renderTypeDef(d)
         case d@Statement.ValueDef.Def(_, _)        => indent(d.indent) ++ renderValueDef(d)
         case d@Statement.ValueDef.Fld(_, _)        => indent(d.indent) ++ renderFieldDef(d, input)
         case d@Statement.ValueDef.Val(_, _)        => indent(d.indent) ++ renderValueDef(d)
@@ -74,6 +76,14 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.TypeLevel.Var.OptionType(_, z) => "Option"
         case Term.TypeLevel.Var.SomeType(_, z) => "Some"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i, z) => s
+
+    private def renderTypeDef(typeDef: Statement.TypeDef): String =
+      typeDef match
+        case d@Alias(i, s) => d.tpe.impl.fold(
+          s"type ${d.tpe.nme}"
+        )(i =>
+          s"type ${d.tpe.nme} = ${renderType(i)}"
+        )
 
     private def renderValue[Z, T, X](value: Term.ValueLevel[T, Z]): String =
       value match 
