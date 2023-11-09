@@ -4,10 +4,12 @@ import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.ctx.ext
 import dc10.scala.{Error, ErrorF, Statement}
-import dc10.scala.Statement.{ExtensionDef, TypeExpr, ValueExpr}
+import dc10.scala.Statement.{ExtensionDef, TypeDef, TypeExpr, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
+import dc10.scala.Symbol.Term.TypeLevel.App.App2
 import org.tpolecat.sourcepos.SourcePos
+import dc10.scala.Statement.TypeDef.Match
 
 trait Functions[F[_]]:
 
@@ -28,6 +30,11 @@ trait Functions[F[_]]:
     def ==>(f: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => F[ValueExpr[B, Unit]]): F[ValueExpr[(A, A) => B, Unit]]
 
   def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
+
+  @scala.annotation.targetName("matchT1")
+  def MATCHTYPES[T[_], A, B, Y](nme: String, arg: F[TypeExpr[A, Y]], cases: TypeExpr[A, Y] => F[B])(using sp: SourcePos): F[TypeExpr[T[A], Y]]
+  
+  def CASE[A, B, X, Z](f: F[TypeExpr[A => B, Z]])(using sp: SourcePos): F[Unit]
 
 object Functions:
 
@@ -110,3 +117,33 @@ object Functions:
         d <- StateT.pure(ExtensionDef(e, 0))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield f
+
+    @scala.annotation.targetName("matchT1")
+    def MATCHTYPES[T[_], A, B, Y](
+      nme: String,
+      arg: StateT[ErrorF, List[Statement], TypeExpr[A, Y]],
+      cases: TypeExpr[A, Y] => StateT[ErrorF, List[Statement], B]
+    )(using sp: SourcePos): StateT[ErrorF, List[Statement], TypeExpr[T[A], Y]] =
+      for
+        a <- StateT.liftF(arg.runEmptyA)
+        l <- StateT.liftF(cases(a).runEmptyS)
+        c <- StateT.liftF(l.map(s => s match
+          case TypeExpr(tpe) => tpe match
+            case App2(qnt, tfun, ta, tb, dep) => Right(App2(qnt, tfun, ta, tb, dep))
+            case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected function but found ${tpe}")))
+          case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected cases but found ${a.tpe}")))
+        ).sequence)
+        f <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T[A], Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, ()))
+        t <- StateT.liftF(a.tpe match
+          case u@Term.TypeLevel.Var.UserDefinedType(_, _, _, _) => Right(Term.TypeLevel.App.App1(None, f, a.tpe, (a.tpe.dep)))
+          case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected user-defined type but found ${a.tpe}")))
+        )
+        d <- StateT.liftF(c.toNel.fold(Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected at least one case"))))(nel => Right(TypeDef.Match(0, t, nel))))
+        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+      yield TypeExpr(t)
+
+    def CASE[A, B, X, Z](f: StateT[ErrorF, List[Statement], TypeExpr[A => B, Z]])(using sp: SourcePos): StateT[ErrorF, List[Statement], Unit] =
+      for
+        a <- f
+        _ <- f.modify(d => d :+ a)
+      yield ()

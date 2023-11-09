@@ -25,3 +25,22 @@ class VariableTypesSuite extends FunSuite:
          |type T = S""".stripMargin
       
     assertEquals(obtained, expected)
+
+  test("match types def"):
+ 
+    def ast = MATCHTYPES("Elem", TYPE("X"), x =>
+      for
+        _ <- CASE(STRING ==> STRING) 
+        _ <- CASE(x ==> x)
+      yield ()
+    )
+  
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|type Elem[X] = X match
+         |  case String => String
+         |  case X => X""".stripMargin
+      
+    assertEquals(obtained, expected)

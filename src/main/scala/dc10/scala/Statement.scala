@@ -1,5 +1,6 @@
 package dc10.scala
 
+import cats.data.NonEmptyList
 import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import org.tpolecat.sourcepos.SourcePos
 
@@ -19,6 +20,7 @@ object Statement:
         case TypeExpr(tpe) => ???
         case ValueExpr(value) => ???
         case d@TypeDef.Alias(i, sp) => TypeDef.Alias(i + 1, d.tpe)(using sp)
+        case d@TypeDef.Match(i, sp) => TypeDef.Match(i + 1, d.tpe, d.rhs)(using sp)
         case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)
         case d@ValueDef.Fld(i, sp) => ValueDef.Fld(i + 1, d.value)(using sp)
         case d@ValueDef.Val(i, sp) => ValueDef.Val(i + 1, d.value)(using sp)
@@ -97,7 +99,7 @@ object Statement:
   sealed trait TypeDef extends Statement:
     type Tpe
     type Zed
-    def tpe: Term.TypeLevel.Var.UserDefinedType[Tpe, Zed]
+    // def tpe: Term.TypeLevel.Var.UserDefinedType[Tpe, Zed]
     def indent: Int
     def sp: SourcePos
 
@@ -111,6 +113,8 @@ object Statement:
       type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
+      def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z]
+
 
     object Alias:
       def apply[T, Z](
@@ -121,9 +125,29 @@ object Statement:
       ): TypeDef =
         new Alias[T, Z](i, sp):
           def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z] = t
-          // def tpe: Term.TypeLevel[T, Z] = v.tpe
-   
 
+    abstract case class Match[T[_], A, B, X, Y, Z](
+      i: Int,
+      s: SourcePos   
+    ) extends TypeDef:
+      type Tpe = T[A]
+      type Zed = Z
+      def indent: Int = i
+      def sp: SourcePos = s
+      def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z]
+      def rhs: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]]
+
+    object Match:
+      def apply[T[_], A, B, X, Y, Z](
+        i: Int,
+        t: Term.TypeLevel.App.App1[T, A, X, Y, Z],
+        f: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]]
+      )(
+        using sp: SourcePos
+      ): TypeDef =
+        new Match[T, A, B, X, Y, Z](i, sp):
+          def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z] = t
+          def rhs: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]] = f
 
   sealed trait ValueDef extends Statement:
     type Tpe

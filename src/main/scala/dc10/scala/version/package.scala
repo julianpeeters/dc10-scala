@@ -2,10 +2,10 @@ package dc10.scala.version
 
 import dc10.compile.Renderer
 import dc10.scala.Statement
+import dc10.scala.Statement.TypeDef.{Alias, Match}
 import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import dc10.scala.Symbol.Term.ValueLevel.{App, Lam}
 import dc10.scala.Error
-import dc10.scala.Statement.TypeDef.Alias
 
 given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
   new Renderer["scala-3.3.1", Error, List[Statement]]:
@@ -18,6 +18,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case d@Statement.ObjectDef(_, _)           => indent(d.indent) ++ renderObject(d.obj)
         case d@Statement.PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
         case d@Statement.TypeDef.Alias(_, _)       => indent(d.indent) ++ renderTypeDef(d)
+        case d@Statement.TypeDef.Match(_, _)       => indent(d.indent) ++ renderTypeDef(d)
         case d@Statement.ValueDef.Def(_, _)        => indent(d.indent) ++ renderValueDef(d)
         case d@Statement.ValueDef.Fld(_, _)        => indent(d.indent) ++ renderFieldDef(d, input)
         case d@Statement.ValueDef.Val(_, _)        => indent(d.indent) ++ renderValueDef(d)
@@ -84,7 +85,10 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         )(i =>
           s"type ${d.tpe.nme} = ${renderType(i)}"
         )
-
+        case d@Match(i, s) =>
+          s"""|type ${renderType(d.tpe)} = ${renderType(d.tpe.targ)} match
+              |${d.rhs.map(app => indent(d.indent + 1) ++ "case " ++ renderType(app)).toList.mkString("\n")}""".stripMargin
+          
     private def renderValue[Z, T, X](value: Term.ValueLevel[T, Z]): String =
       value match 
         // application
