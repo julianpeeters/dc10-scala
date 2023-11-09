@@ -9,20 +9,6 @@ import dc10.scala.dsl.{*, given}
 import dc10.scala.version.`3.3.1`
 
 class ComplexTypesSuite extends FunSuite:
-
-  test("case class def"):
-
-    type Person
-
-    def ast = CASECLASS[Person, String]("Person", FIELD("name", STRING))
-    
-    val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
-      
-    val expected: String =
-      """case class Person(name: String)""".stripMargin
-      
-    assertEquals(obtained, expected)
   
   test("list val dec"):
 

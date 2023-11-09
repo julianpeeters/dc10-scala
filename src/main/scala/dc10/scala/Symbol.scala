@@ -125,12 +125,13 @@ object Symbol:
           v match
             case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => tpe
             case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => tpe 
+            case Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => tpe 
             case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => tpe
             case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => tpe
             case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => tpe
             case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => tpe
             case Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => tpe
-            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b, tpe) => tpe
+            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => tpe
             case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => tpe
             case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => tpe
             case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => tpe
@@ -143,6 +144,7 @@ object Symbol:
       object App:
         case class App1[A, B, Z](qnt: Option[Long], fun: ValueLevel[A => B, Z], arg: ValueLevel[A, Z], tpe: TypeLevel[B, Z]) extends Term.ValueLevel.App[B, Z]
         case class AppCtor1[T, A, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg: ValueLevel[A, Z]) extends Term.ValueLevel.App[T, Z]
+        case class AppCtor2[T, A, B, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
         case class AppPure[G[_], A, X, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], X], arg: ValueLevel[A, Y], tpe: TypeLevel[G[A], Z]) extends Term.ValueLevel.App[G[A], Z]
         case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], (Y, Z)], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], (Y, Z)]
         case class Dot1[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
@@ -150,7 +152,7 @@ object Symbol:
       sealed abstract class Lam[T, Z] extends Term.ValueLevel[T, Z]
       object Lam:
         case class Lam1[A, B, Z](qnt: Option[Long], a: ValueLevel[A, Z], b: ValueLevel[B, Z], tpe: TypeLevel[A => B, Z]) extends Term.ValueLevel.Lam[A => B, Z]
-        case class Lam2[A, B, Z](qnt: Option[Long], a1: ValueLevel[A, Z], a2: ValueLevel[A, Z], b: ValueLevel[B, Z], tpe: TypeLevel[(A, A) => B, Z]) extends Term.ValueLevel.Lam[(A, A) => B, Z]
+        case class Lam2[A, B, C, Z](qnt: Option[Long], a1: ValueLevel[A, Z], a2: ValueLevel[B, Z], c: ValueLevel[C, Z], tpe: TypeLevel[(A, B) => C, Z]) extends Term.ValueLevel.Lam[(A, B) => C, Z]
       sealed abstract class Var[T, Z] extends Term.ValueLevel[T, Z]
       object Var:
         case class BooleanLiteral[Z](qnt: Option[Long], tpe: TypeLevel[Boolean, Z], b: Boolean) extends Var[Boolean, Z]
