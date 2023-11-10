@@ -135,19 +135,19 @@ object Statement:
       def indent: Int = i
       def sp: SourcePos = s
       def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z]
-      def rhs: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]]
+      def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
 
     object Match:
       def apply[T[_], A, B, X, Y, Z](
         i: Int,
         t: Term.TypeLevel.App.App1[T, A, X, Y, Z],
-        f: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]]
+        f: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
       )(
         using sp: SourcePos
       ): TypeDef =
         new Match[T, A, B, X, Y, Z](i, sp):
           def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z] = t
-          def rhs: NonEmptyList[Term.TypeLevel.App.App2[?, ?, ?, Nothing, ?]] = f
+          def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]] = f
 
   sealed trait ValueDef extends Statement:
     type Tpe
