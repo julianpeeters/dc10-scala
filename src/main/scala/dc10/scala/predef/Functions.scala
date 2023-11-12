@@ -7,23 +7,23 @@ import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{ExtensionDef, TypeDef, TypeExpr, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
-import dc10.scala.Symbol.Term.TypeLevel.App.App2
+import dc10.scala.Symbol.Term.TypeLevel.App.Infix
 import org.tpolecat.sourcepos.SourcePos
 import dc10.scala.Statement.TypeDef.Match
 
 trait Functions[F[_]]:
 
-  extension [A, B] (domain: F[TypeExpr[A, Unit]])
+  extension [A, B, Y, Z] (domain: F[TypeExpr[A, Y]])
     @scala.annotation.targetName("fun1T")
-    def ==>(codomain: F[TypeExpr[B, Unit]]): F[TypeExpr[A => B, Unit]]
+    def ==>(codomain: F[TypeExpr[B, Z]]): F[TypeExpr[A => B, Unit]]
 
   extension [Z, A, B] (domain: F[(TypeExpr[A, Z], TypeExpr[A, Z])])
     @scala.annotation.targetName("fun2T")
     def ==>(codomain: F[TypeExpr[B, Z]]): F[TypeExpr[(A, A) => B, Z]]
 
-  extension [Z, A, B] (fa: F[ValueExpr[A, Z]])
+  extension [A, B, X, Y] (fa: F[ValueExpr[A, Y]])
     @scala.annotation.targetName("fun1V")
-    def ==>(f: ValueExpr[A, Z] => F[ValueExpr[B, Z]]): F[ValueExpr[A => B, Z]]
+    def ==>(f: ValueExpr[A, Y] => F[ValueExpr[B, X]]): F[ValueExpr[A => B, Unit]]
 
   extension [A, B] (fa: F[(ValueExpr[A, Unit], ValueExpr[A, Unit])])
     @scala.annotation.targetName("fun2V")
@@ -40,16 +40,16 @@ object Functions:
 
   trait Mixins extends Functions[[A] =>> StateT[ErrorF, List[Statement], A]]:
  
-    extension [A, B] (domain: StateT[ErrorF, List[Statement], TypeExpr[A, Unit]])
+    extension [A, B, Y, Z] (domain: StateT[ErrorF, List[Statement], TypeExpr[A, Y]])
       @scala.annotation.targetName("fun1T")
       def ==>(
-        codomain: StateT[ErrorF, List[Statement], TypeExpr[B, Unit]]
+        codomain: StateT[ErrorF, List[Statement], TypeExpr[B, Z]]
       ): StateT[ErrorF, List[Statement], TypeExpr[A => B, Unit]] =
         for
           a <- domain
           b <- codomain
           v <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Unit]](
-            Term.TypeLevel.App.App2(
+            Term.TypeLevel.App.Infix(
               None,
               Term.TypeLevel.Lam.Function1Type(None, ()),
               a.tpe,
@@ -81,16 +81,18 @@ object Functions:
     
         yield TypeExpr(v)
 
-    extension [Z, A, B] (fa: StateT[ErrorF, List[Statement], ValueExpr[A, Z]])
+    extension [A, B, X, Y] (fa: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])
       @scala.annotation.targetName("fun1V")
       def ==>(
-        f: ValueExpr[A, Z] => StateT[ErrorF, List[Statement], ValueExpr[B, Z]]
-      ): StateT[ErrorF, List[Statement], ValueExpr[A => B, Z]] =
+        f: ValueExpr[A, Y] => StateT[ErrorF, List[Statement], ValueExpr[B, X]]
+      ): StateT[ErrorF, List[Statement], ValueExpr[A => B, Unit]] =
         for
-          a <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Z]](fa.runEmptyA)
+          a <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Y]](fa.runEmptyA)
           b <- f(a)
-          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Z]](Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, a.value.tpe.dep))
-          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, Z]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
+          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Unit]](
+            Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
+          )
+          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, Unit]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
         yield ValueExpr(v)
 
     extension [A, B] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A, Unit], ValueExpr[A, Unit])])
@@ -129,7 +131,7 @@ object Functions:
         l <- StateT.liftF(cases(a).runEmptyS)
         c <- StateT.liftF(l.map(s => s match
           case TypeExpr(tpe) => tpe match
-            case App2(qnt, tfun, ta, tb, dep) => Right(App2(qnt, tfun, ta, tb, dep))
+            case Infix(qnt, tfun, ta, tb, dep) => Right(Infix(qnt, tfun, ta, tb, dep))
             case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected function but found ${tpe}")))
           case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected cases but found ${a.tpe}")))
         ).sequence)

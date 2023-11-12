@@ -32,9 +32,7 @@ object ComplexTypes:
       StateT.pure(TypeExpr(Term.TypeLevel.Var.ListType(None, ())))
       
     def List[A]: StateT[ErrorF, List[Statement], ValueExpr[List[A], Unit]] =
-      for
-        v <- StateT.pure[ErrorF, List[Statement], ValueExpr[List[A], Unit]](ValueExpr(Term.ValueLevel.Var.ListCtor(None, Term.TypeLevel.Var.ListType(None, ()))))
-      yield v
+      StateT.pure[ErrorF, List[Statement], ValueExpr[List[A], Unit]](ValueExpr(Term.ValueLevel.Var.ListCtor(None, Term.TypeLevel.Var.ListType(None, ()))))
     
     extension [A] (list: StateT[ErrorF, List[Statement], ValueExpr[List[A], Unit]])
       @scala.annotation.targetName("appVL")

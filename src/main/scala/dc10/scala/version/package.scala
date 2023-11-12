@@ -64,8 +64,9 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
       tpe match
         // application
         case Term.TypeLevel.App.App1(qnt, tfun, targ, z) => s"${renderType(tfun)}[${renderType(targ)}]"
-        case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, z) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+        case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, z) => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
         case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
+        case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, z) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
         // primitive
         case Term.TypeLevel.Var.BooleanType(_, z) => "Boolean"
         case Term.TypeLevel.Var.IntType(_, z) => "Int"
