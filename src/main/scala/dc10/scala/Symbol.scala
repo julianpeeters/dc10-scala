@@ -8,6 +8,10 @@ object Symbol:
   // Templates ////////////////////////////////////////////////////////////////
   sealed trait Template extends Symbol
   case class Extension(field: Statement, body: List[Statement]) extends Template
+  // case class ForComprehension(enumerators: List[ForComprehension.Enumerator]) extends Template
+  // object ForComprehension:
+  //   sealed trait Enumerator
+  //   case class Generator(f: String) extends Enumerator
   sealed abstract class CaseClass[T, Z] extends Template:
     def nme: String
     def tpe: Term.TypeLevel[T, Z]
@@ -132,6 +136,7 @@ object Symbol:
             case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => tpe
             case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => tpe
             case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => tpe
+            case Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe) => tpe
             case Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => tpe
             case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => tpe
             case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => tpe
@@ -151,6 +156,9 @@ object Symbol:
         case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], (Y, Z)], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], (Y, Z)]
         case class Dot1[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
         case class Dotless[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
+      sealed abstract class Blc[T, Z] extends Term.ValueLevel[T, Z]
+      object Blc:
+        case class ForComp[A, T, X, Z](qnt: Option[Long], gens: List[Statement], ret: ValueLevel[A, X], tpe: TypeLevel[T, Z]) extends Blc[T, Z]
       sealed abstract class Lam[T, Z] extends Term.ValueLevel[T, Z]
       object Lam:
         case class Lam1[A, B, X, Y, Z](qnt: Option[Long], a: ValueLevel[A, X], b: ValueLevel[B, Y], tpe: TypeLevel[A => B, Z]) extends Term.ValueLevel.Lam[A => B, Z]
@@ -193,6 +201,7 @@ object Symbol:
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => ???
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => Term.ValueLevel.App.Dot1(qnt, fun.manageDep(f), arg1.manageDep(f), arg2.manageDep(f), tpe.manageDep(f))
           case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => Term.ValueLevel.App.Dotless(qnt, fun.manageDep(f), arg1.manageDep(f), arg2.manageDep(f), tpe.manageDep(f))
+          case Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe) => Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe.manageDep(f))
           case Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe.manageDep(f))
           case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b, tpe) => ???
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => Term.ValueLevel.Var.BooleanLiteral(qnt, tpe.manageDep(f), b)
@@ -212,6 +221,7 @@ object Symbol:
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(v)
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => Some(v)
           case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => Some(v)
+          case Term.ValueLevel.Blc.ForComp(qnt, l, r, t) => Some(v)
           case Term.ValueLevel.Lam.Lam1(qnt, a, b, t) => Some(v)
           case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b, t) => Some(v)
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => Some(v)
@@ -231,6 +241,7 @@ object Symbol:
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Term.ValueLevel[U, A]]])
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => None
           case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => None
+          case Term.ValueLevel.Blc.ForComp(qnt, l, r, t) => None
           case Term.ValueLevel.Lam.Lam1(qnt, a, b, t) => None
           case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, b, t) => None
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => None

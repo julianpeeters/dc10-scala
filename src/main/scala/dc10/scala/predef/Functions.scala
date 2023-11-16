@@ -4,12 +4,29 @@ import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.ctx.ext
 import dc10.scala.{Error, ErrorF, Statement}
-import dc10.scala.Statement.{ExtensionDef, TypeDef, TypeExpr, ValueExpr}
+import dc10.scala.Statement.{ExtensionDef, TypeDef, TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
 import dc10.scala.Symbol.Term.TypeLevel.App.Infix
 import org.tpolecat.sourcepos.SourcePos
 import dc10.scala.Statement.TypeDef.Match
+import dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp
+import dc10.scala.Symbol.Term.ValueLevel.App.App1
+import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1
+import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2
+import dc10.scala.Symbol.Term.ValueLevel.App.AppPure
+import dc10.scala.Symbol.Term.ValueLevel.App.AppVargs
+import dc10.scala.Symbol.Term.ValueLevel.App.Dot1
+import dc10.scala.Symbol.Term.ValueLevel.App.Dotless
+import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1
+import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2
+import dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral
+import dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.SomeCtor
+import dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue
 
 trait Functions[F[_]]:
 
@@ -29,7 +46,13 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun2V")
     def ==>(f: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => F[ValueExpr[B, Unit]]): F[ValueExpr[(A, A) => B, Unit]]
 
-  def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
+  def FOR[G[_], A, X, Y](f: F[ValueExpr[G[A], (X, Y)]])(using sp: SourcePos): F[ValueExpr[G[A], (X, Y)]]
+
+  extension [G[_], A, X, Y] (nme: String)
+    def <--(ff: F[ValueExpr[G[A], (X,Y)]]): F[ValueExpr[A, Y]]
+  
+  @scala.annotation.targetName("yieldOption")
+  def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)]
 
   @scala.annotation.targetName("matchT1")
   def MATCHTYPES[T[_], A, B, Y](nme: String, arg: F[TypeExpr[A, Y]], cases: TypeExpr[A, Y] => F[B])(using sp: SourcePos): F[TypeExpr[T[A], Y]]
@@ -119,6 +142,164 @@ object Functions:
         d <- StateT.pure(ExtensionDef(e, 0))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield f
+
+    def FOR[G[_], A, X, Y](f: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]] =
+      for
+        (l, v) <- StateT.liftF(f.runEmpty)
+        a <- StateT.liftF(v.value.findImpl.fold(Left(List(Error("Expected a pure application"))))(i => i match
+            case App1(qnt, fun, arg, tpe) => ??? 
+            case AppCtor1(qnt, tpe, arg) => ???
+            case AppCtor2(qnt, tpe, arg1, arg2) => ???
+            case AppPure(qnt, fun, arg, tpe) => Right(arg)
+            case AppVargs(qnt, fun, tpe, vargs*) => ???
+            case Dot1(qnt, fun, arg1, arg2, tpe) => ???
+            case Dotless(qnt, fun, arg1, arg2, tpe) => ???
+            case ForComp(qnt, gens, ret, tpe) => ???
+            case Lam1(qnt, a, b, tpe) => ???
+            case Lam2(qnt, a1, a2, c, tpe) => ???
+            case BooleanLiteral(qnt, tpe, b) => ???
+            case IntLiteral(qnt, tpe, i) => ???
+            case StringLiteral(qnt, tpe, s) => ???
+            case ListCtor(qnt, tpe) => ???
+            case OptionCtor(qnt, tpe) => ???
+            case SomeCtor(qnt, tpe) => ???
+            case UserDefinedValue(qnt, nme, tpe, impl) => ???
+          )
+        )
+
+        v <- StateT.pure(ValueExpr(ForComp(None, l, a, v.value.tpe)))
+        // _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+
+        // in this model of a for comprehension, we'll let the use define some generators, and write tiem into a
+        // a model of the for, which is a type of value
+      yield v
+
+    extension [G[_], A, X, Y] (nme: String)
+      def <--(ff: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]]): StateT[ErrorF, List[Statement], ValueExpr[A, Y]] =
+        for
+          g <- ff
+          t <- StateT.liftF[ErrorF, List[Statement], TypeLevel[A, Y]](g.value.tpe match
+            case dc10.scala.Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => Right(targ.asInstanceOf[TypeLevel[A, Y]])
+            case dc10.scala.Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function1Type(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function2Type(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.IntType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.StringType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => ???
+          )
+          i <- StateT.liftF[ErrorF, List[Statement], ValueLevel[A, Y]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
+            case dc10.scala.Symbol.Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => ??? 
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Right(arg.asInstanceOf[ValueLevel[A, Y]])
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor(qnt, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor(qnt, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.SomeCtor(qnt, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => ???
+          )
+          )
+          
+          
+          // a <- fa
+
+            //   for
+        // t <- tpe
+        // i <- impl
+          v <- StateT.liftF[ErrorF, List[Statement], Term.ValueLevel.Var.UserDefinedValue[A, Y]](
+            // if (t.dep == i.value.tpe.dep)
+              // then 
+                Right(Term.ValueLevel.Var.UserDefinedValue(None, nme, t, Some(i))))
+              // else Left(List(Error(s"${sp.file}:${sp.line}\nDependent type error: ${t.tpe.dep} =/= ${i.value.tpe.dep}"))))
+          d <- StateT.pure(ValueDef.Gen(0, v, g.value))
+          _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+
+        yield ValueExpr(v)
+
+    // def VAL[Z, T](
+    //   nme: String,
+    //   tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Z]], 
+    //   impl: StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
+    // )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[T, Z]] =
+    //   for
+    //     t <- tpe
+    //     i <- impl
+    //     v <- StateT.liftF(
+    //       if (t.tpe.dep == i.value.tpe.dep)
+    //         then Right(Term.ValueLevel.Var.UserDefinedValue(None, nme, t.tpe, Some(i.value)))
+    //         else Left(List(Error(s"${sp.file}:${sp.line}\nDependent type error: ${t.tpe.dep} =/= ${i.value.tpe.dep}"))))
+    //     d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Val(0, v))
+    //     _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+    //   yield ValueExpr[T, Z](v)
+
+
+    // def YIELD[B, Y, Z](f: F[ValueExpr[B, Y]])(using sp: SourcePos): F[ValueExpr[Option[B], (Unit, Y)]]
+
+    @scala.annotation.targetName("yieldOption")
+    def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)] =
+      // for
+      //   o <- StateT.pure(ValueExpr(Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ()))))
+      //   a <- arg
+      //   t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Option[B], (Unit, Y)]](Term.TypeLevel.App.App1(
+      //     None,
+      //     Term.TypeLevel.Var.OptionType(None, ()),
+      //     a.value.tpe,
+      //     ((), a.value.tpe.dep)
+      //   ))
+      // yield 
+      ValueExpr(Term.ValueLevel.App.AppPure(None, Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ())), arg.value, Term.TypeLevel.App.App1(
+          None,
+          Term.TypeLevel.Var.OptionType(None, ()),
+          arg.value.tpe,
+          ((), arg.value.tpe.dep)
+        )))
+      // Option(f)
+      // for
+        // b <- f
+      //   o <- Option(f)
+      // yield o
+
+
+   
+    // def Option1[A]: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]] =
+    //   StateT.pure(ValueExpr(Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType(None, ()))))
+    
+    // extension [A] (option: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]])
+    //   @scala.annotation.targetName("appVO")
+    //   def apply1[Z](arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]]): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Z)]] =
+    //     for
+    //       o <- option
+    //       a <- arg
+    //       t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Option[A], (Unit, Z)]](Term.TypeLevel.App.App1(
+    //         None,
+    //         Term.TypeLevel.Var.OptionType(None, ()),
+    //         a.value.tpe,
+    //         ((), a.value.tpe.dep)
+    //       ))
+    //     yield ValueExpr(Term.ValueLevel.App.AppPure(None, o.value, a.value, t))
+
+
+
+
+
+
+
+
+
 
     @scala.annotation.targetName("matchT1")
     def MATCHTYPES[T[_], A, B, Y](

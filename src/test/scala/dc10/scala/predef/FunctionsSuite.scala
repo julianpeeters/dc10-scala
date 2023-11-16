@@ -44,3 +44,28 @@ class FunctionsSuite extends FunSuite:
          |val c: String = f1(b)""".stripMargin
       
     assertEquals(obtained, expected)
+
+  test("for"):
+    
+    def ast = VAL("f1", OPTION(STRING),
+        FOR(
+          for
+            s <- "s" <-- Option("wowie")
+            t <- "t" <-- Option(s)
+            // y <- YIELD(t)
+            // u <- Option(t)
+          yield YIELD(t)//FOR(s, t)
+        )
+    )
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|val f1: Option[String] = 
+         |  for
+         |    s <- Option("wowie")
+         |    t <- Option(s)
+         |  yield t""".stripMargin
+      
+    assertEquals(obtained, expected)

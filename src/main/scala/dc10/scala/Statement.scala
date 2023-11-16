@@ -23,6 +23,7 @@ object Statement:
         case d@TypeDef.Match(i, sp) => TypeDef.Match(i + 1, d.tpe, d.rhs)(using sp)
         case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)
         case d@ValueDef.Fld(i, sp) => ValueDef.Fld(i + 1, d.value)(using sp)
+        case d@ValueDef.Gen(i, sp) => ValueDef.Gen(i + 1, d.value, d.impl)(using sp)
         case d@ValueDef.Val(i, sp) => ValueDef.Val(i + 1, d.value)(using sp)
 
   sealed abstract case class CaseClassDef(
@@ -45,7 +46,6 @@ object Statement:
         type Zed = Z
         def caseclass: CaseClass[T, Z] = v
 
-  
   sealed abstract case class ExtensionDef(
     indent: Int,
     sp: SourcePos
@@ -185,7 +185,6 @@ object Statement:
           def tpe: Term.TypeLevel[B, Z] = t
           def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
 
-
     abstract case class Fld[T, Z](
       i: Int,
       s: SourcePos   
@@ -205,6 +204,29 @@ object Statement:
         new Fld[T, Z](i, sp):
           def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
    
+    
+    abstract case class Gen[G[_], A, Y, Z](
+      i: Int,
+      s: SourcePos   
+    ) extends ValueDef:
+      type Tpe = A
+      type Zed = Z
+      def indent: Int = i
+      def sp: SourcePos = s
+      def impl: Term.ValueLevel[G[A], (Y, Z)]
+
+    object Gen:
+      def apply[G[_], A, Y, Z](
+        i: Int,
+        u: Term.ValueLevel.Var.UserDefinedValue[A, Z],
+        v: Term.ValueLevel[G[A], (Y, Z)]
+
+      )(
+        using sp: SourcePos
+      ): ValueDef =
+        new Gen[G, A, Y, Z](i, sp):
+          def value: Term.ValueLevel.Var.UserDefinedValue[A, Z] = u     
+          def impl: Term.ValueLevel[G[A], (Y, Z)] = v
 
     abstract case class Val[T, Z](
       i: Int,
