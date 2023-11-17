@@ -21,6 +21,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case d@Statement.TypeDef.Match(_, _)       => indent(d.indent) ++ renderTypeDef(d)
         case d@Statement.ValueDef.Def(_, _)        => indent(d.indent) ++ renderValueDef(d)
         case d@Statement.ValueDef.Fld(_, _)        => indent(d.indent) ++ renderFieldDef(d, input)
+        case d@Statement.ValueDef.Gen(_, _)        => indent(d.indent) ++ renderValueDef(d)
         case d@Statement.ValueDef.Val(_, _)        => indent(d.indent) ++ renderValueDef(d)
         case e@Statement.TypeExpr(t)               => indent(e.indent) ++ renderType(t)
         case e@Statement.ValueExpr(v)              => indent(e.indent) ++ renderValue(v)
@@ -100,6 +101,8 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.ValueLevel.App.AppVargs(q, f, t, as*) => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
         case Term.ValueLevel.App.Dot1(q, f, a, b, t) => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
         case Term.ValueLevel.App.Dotless(q, f, a, b, t) => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
+        // block
+        case Term.ValueLevel.Blc.ForComp(q, l, v, t) => s"\n  for\n${render(l.map(s => s.addIndent))}\n  yield ${renderValue(v)}"
         // function
         case Term.ValueLevel.Lam.Lam1(q, a, b, t) => s"${renderValue(a)} => ${renderValue(b)}"
         case Term.ValueLevel.Lam.Lam2(q, a1, a2, b, t) => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(b)}"
@@ -128,6 +131,8 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
             i =>
               s"${d.value.nme}: ${renderType(d.value.tpe)} = ${renderValue(i)}"
           )
+        case d@Statement.ValueDef.Gen(_, _)  =>
+          s"  ${d.value.nme} <- ${renderValue(d.impl)}"
         case d@Statement.ValueDef.Val(_, _)  =>
           d.value.impl.fold(
             s"val ${d.value.nme}: ${renderType(d.value.tpe)}"
