@@ -158,7 +158,7 @@ object Symbol:
         case class Dotless[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
       sealed abstract class Blc[T, Z] extends Term.ValueLevel[T, Z]
       object Blc:
-        case class ForComp[A, T, X, Z](qnt: Option[Long], gens: List[Statement], ret: ValueLevel[A, X], tpe: TypeLevel[T, Z]) extends Blc[T, Z]
+        case class ForComp[G[_], A, X, Z](qnt: Option[Long], gens: List[Statement], ret: ValueLevel[A, X], tpe: TypeLevel[G[A], Z]) extends Blc[G[A], Z]
       sealed abstract class Lam[T, Z] extends Term.ValueLevel[T, Z]
       object Lam:
         case class Lam1[A, B, X, Y, Z](qnt: Option[Long], a: ValueLevel[A, X], b: ValueLevel[B, Y], tpe: TypeLevel[A => B, Z]) extends Term.ValueLevel.Lam[A => B, Z]

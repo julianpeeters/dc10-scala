@@ -54,7 +54,7 @@ class FunctionsSuite extends FunSuite:
             t <- "t" <-- Option(s)
             // y <- YIELD(t)
             // u <- Option(t)
-          yield YIELD(t)//FOR(s, t)
+          yield t//FOR(s, t)
         )
     )
     

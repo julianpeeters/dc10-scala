@@ -46,13 +46,14 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun2V")
     def ==>(f: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => F[ValueExpr[B, Unit]]): F[ValueExpr[(A, A) => B, Unit]]
 
-  def FOR[G[_], A, X, Y](f: F[ValueExpr[G[A], (X, Y)]])(using sp: SourcePos): F[ValueExpr[G[A], (X, Y)]]
+  @scala.annotation.targetName("forOption")
+  def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
 
   extension [G[_], A, X, Y] (nme: String)
     def <--(ff: F[ValueExpr[G[A], (X,Y)]]): F[ValueExpr[A, Y]]
   
-  @scala.annotation.targetName("yieldOption")
-  def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)]
+  // @scala.annotation.targetName("yieldOption")
+  // def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)]
 
   @scala.annotation.targetName("matchT1")
   def MATCHTYPES[T[_], A, B, Y](nme: String, arg: F[TypeExpr[A, Y]], cases: TypeExpr[A, Y] => F[B])(using sp: SourcePos): F[TypeExpr[T[A], Y]]
@@ -143,36 +144,39 @@ object Functions:
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield f
 
-    def FOR[G[_], A, X, Y](f: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]] =
+    @scala.annotation.targetName("forOption")
+    def FOR[A, Y](f: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Y)]] =
       for
-        (l, v) <- StateT.liftF(f.runEmpty)
-        a <- StateT.liftF(v.value.findImpl.fold(Left(List(Error("Expected a pure application"))))(i => i match
-            case App1(qnt, fun, arg, tpe) => ??? 
-            case AppCtor1(qnt, tpe, arg) => ???
-            case AppCtor2(qnt, tpe, arg1, arg2) => ???
-            case AppPure(qnt, fun, arg, tpe) => Right(arg)
-            case AppVargs(qnt, fun, tpe, vargs*) => ???
-            case Dot1(qnt, fun, arg1, arg2, tpe) => ???
-            case Dotless(qnt, fun, arg1, arg2, tpe) => ???
-            case ForComp(qnt, gens, ret, tpe) => ???
-            case Lam1(qnt, a, b, tpe) => ???
-            case Lam2(qnt, a1, a2, c, tpe) => ???
-            case BooleanLiteral(qnt, tpe, b) => ???
-            case IntLiteral(qnt, tpe, i) => ???
-            case StringLiteral(qnt, tpe, s) => ???
-            case ListCtor(qnt, tpe) => ???
-            case OptionCtor(qnt, tpe) => ???
-            case SomeCtor(qnt, tpe) => ???
-            case UserDefinedValue(qnt, nme, tpe, impl) => ???
-          )
-        )
+        (l, a) <- StateT.liftF(f.runEmpty)
+        // a <- StateT.liftF(v.value.findImpl.fold(Left(List(Error("Expected a pure application"))))(i => i match
+        //     case App1(qnt, fun, arg, tpe) => ??? 
+        //     case AppCtor1(qnt, tpe, arg) => ???
+        //     case AppCtor2(qnt, tpe, arg1, arg2) => ???
+        //     case AppPure(qnt, fun, arg, tpe) => Right(arg)
+        //     case AppVargs(qnt, fun, tpe, vargs*) => ???
+        //     case Dot1(qnt, fun, arg1, arg2, tpe) => ???
+        //     case Dotless(qnt, fun, arg1, arg2, tpe) => ???
+        //     case ForComp(qnt, gens, ret, tpe) => ???
+        //     case Lam1(qnt, a, b, tpe) => ???
+        //     case Lam2(qnt, a1, a2, c, tpe) => ???
+        //     case BooleanLiteral(qnt, tpe, b) => ???
+        //     case IntLiteral(qnt, tpe, i) => ???
+        //     case StringLiteral(qnt, tpe, s) => ???
+        //     case ListCtor(qnt, tpe) => ???
+        //     case OptionCtor(qnt, tpe) => ???
+        //     case SomeCtor(qnt, tpe) => ???
+        //     case UserDefinedValue(qnt, nme, tpe, impl) => ???
+        //   )
+        // )
 
-        v <- StateT.pure(ValueExpr(ForComp(None, l, a, v.value.tpe)))
+        v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A], (Unit, Y)]](ForComp(None, l, a.value, Term.TypeLevel.App.App1(None, Term.TypeLevel.Var.OptionType(None, ()), a.value.tpe, ((), a.value.tpe.dep))))
+        
         // _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
 
         // in this model of a for comprehension, we'll let the use define some generators, and write tiem into a
         // a model of the for, which is a type of value
-      yield v
+
+      yield ValueExpr(v)
 
     extension [G[_], A, X, Y] (nme: String)
       def <--(ff: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]]): StateT[ErrorF, List[Statement], ValueExpr[A, Y]] =
@@ -249,24 +253,24 @@ object Functions:
 
     // def YIELD[B, Y, Z](f: F[ValueExpr[B, Y]])(using sp: SourcePos): F[ValueExpr[Option[B], (Unit, Y)]]
 
-    @scala.annotation.targetName("yieldOption")
-    def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)] =
-      // for
-      //   o <- StateT.pure(ValueExpr(Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ()))))
-      //   a <- arg
-      //   t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Option[B], (Unit, Y)]](Term.TypeLevel.App.App1(
-      //     None,
-      //     Term.TypeLevel.Var.OptionType(None, ()),
-      //     a.value.tpe,
-      //     ((), a.value.tpe.dep)
-      //   ))
-      // yield 
-      ValueExpr(Term.ValueLevel.App.AppPure(None, Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ())), arg.value, Term.TypeLevel.App.App1(
-          None,
-          Term.TypeLevel.Var.OptionType(None, ()),
-          arg.value.tpe,
-          ((), arg.value.tpe.dep)
-        )))
+    // @scala.annotation.targetName("yieldOption")
+    // def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)] =
+    //   // for
+    //   //   o <- StateT.pure(ValueExpr(Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ()))))
+    //   //   a <- arg
+    //   //   t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Option[B], (Unit, Y)]](Term.TypeLevel.App.App1(
+    //   //     None,
+    //   //     Term.TypeLevel.Var.OptionType(None, ()),
+    //   //     a.value.tpe,
+    //   //     ((), a.value.tpe.dep)
+    //   //   ))
+    //   // yield 
+    //   ValueExpr(Term.ValueLevel.App.AppPure(None, Term.ValueLevel.Var.OptionCtor(None, Term.TypeLevel.Var.OptionType[Option[B], Unit](None, ())), arg.value, Term.TypeLevel.App.App1(
+    //       None,
+    //       Term.TypeLevel.Var.OptionType(None, ()),
+    //       arg.value.tpe,
+    //       ((), arg.value.tpe.dep)
+    //     )))
       // Option(f)
       // for
         // b <- f
