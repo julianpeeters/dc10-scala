@@ -66,12 +66,14 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         // application
         case Term.TypeLevel.App.App1(qnt, tfun, targ, z) => s"${renderType(tfun)}[${renderType(targ)}]"
         case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, z) => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
+        case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
         case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
         case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, z) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
         // primitive
         case Term.TypeLevel.Var.BooleanType(_, z) => "Boolean"
         case Term.TypeLevel.Var.IntType(_, z) => "Int"
         case Term.TypeLevel.Var.StringType(_, z) => "String"
+        case Term.TypeLevel.Var.UnitType(_, z) => "Unit"
         // complex
         case Term.TypeLevel.Lam.Function1Type(_, z) => "=>"
         case Term.TypeLevel.Lam.Function2Type(_, z) => "=>"
@@ -110,6 +112,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.ValueLevel.Var.BooleanLiteral(q, tpe, b) => s"$b"
         case Term.ValueLevel.Var.IntLiteral(q, tpe, i) => s"$i"
         case Term.ValueLevel.Var.StringLiteral(q, tpe, s) => s"\"${s}\""
+        case Term.ValueLevel.Var.UnitLiteral(q, tpe, u) => s"$u"
         // complex
         case Term.ValueLevel.Var.ListCtor(q, tpe) => s"List"
         case Term.ValueLevel.Var.OptionCtor(q, tpe) => s"Option"

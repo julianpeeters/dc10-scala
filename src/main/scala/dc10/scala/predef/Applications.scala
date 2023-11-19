@@ -62,6 +62,7 @@ object Applications:
           t <- StateT.liftF[ErrorF, List[Statement], Term.TypeLevel[B, Y]](f.value.tpe match
             case Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => Right(tb.asInstanceOf[Term.TypeLevel[B, Y]])
+            case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => Right(tb.asInstanceOf[Term.TypeLevel[B, Y]])
             case Term.TypeLevel.Lam.Function1Type(qnt, dep) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 

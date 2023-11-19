@@ -8,10 +8,6 @@ object Symbol:
   // Templates ////////////////////////////////////////////////////////////////
   sealed trait Template extends Symbol
   case class Extension(field: Statement, body: List[Statement]) extends Template
-  // case class ForComprehension(enumerators: List[ForComprehension.Enumerator]) extends Template
-  // object ForComprehension:
-  //   sealed trait Enumerator
-  //   case class Generator(f: String) extends Enumerator
   sealed abstract class CaseClass[T, Z] extends Template:
     def nme: String
     def tpe: Term.TypeLevel[T, Z]
@@ -91,6 +87,7 @@ object Symbol:
           t match
             case Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => dep 
             case Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => dep
+            case Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => dep
             case Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => dep
             case Symbol.Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => dep
             case Symbol.Term.TypeLevel.Lam.Function1Type(qnt, dep) => dep
@@ -98,6 +95,7 @@ object Symbol:
             case Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.IntType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.StringType(qnt, dep) => dep
+            case Symbol.Term.TypeLevel.Var.UnitType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => dep
@@ -107,6 +105,7 @@ object Symbol:
       object App:
         case class App1[T[_], A, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A], X], targ: TypeLevel[A, Y], dep: Z) extends App[T[A], Z]
         case class App2[T[_,_], A, B, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: Z) extends App[T[A, B], Z]
+        case class App2T[T[_[_],_,_], F[_], A, B, C, Y, X, Z](qnt: Option[Long], tfun: TypeLevel[T[F,A,B], Y], ta1: TypeLevel[F[C], Z], ta2: TypeLevel[A, Z], tb: TypeLevel[B, Z], dep: Z) extends App[T[F, A, B], Z]
         case class App3[T[_,_,_], A, B, C, X, Z](qnt: Option[Long], tfun: TypeLevel[T[A,B,C], Z], ta1: TypeLevel[A, Z], ta2: TypeLevel[B, Z], tb: TypeLevel[C, Z], dep: Z) extends App[T[A, B, C], Z]
         case class Infix[T[_,_], A, B, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: Z) extends App[T[A, B], Z]
       sealed trait Lam[T, Z] extends TypeLevel[T, Z]
@@ -118,6 +117,7 @@ object Symbol:
         case class BooleanType[Z](qnt: Option[Long], dep: Z) extends Var[Boolean, Z]
         case class IntType[Z](qnt: Option[Long], dep: Z) extends Var[Int, Z]
         case class StringType[Z](qnt: Option[Long], dep: Z) extends Var[String, Z]
+        case class UnitType[Z](qnt: Option[Long], dep: Z) extends Var[Unit, Z]
         case class ListType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
         case class OptionType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
         case class SomeType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
@@ -142,6 +142,7 @@ object Symbol:
             case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => tpe
             case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => tpe
             case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => tpe
+            case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, u) => tpe
             case Term.ValueLevel.Var.ListCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => tpe
@@ -168,6 +169,7 @@ object Symbol:
         case class BooleanLiteral[Z](qnt: Option[Long], tpe: TypeLevel[Boolean, Z], b: Boolean) extends Var[Boolean, Z]
         case class IntLiteral[Z](qnt: Option[Long], tpe: TypeLevel[Int, Z], i: Int) extends Var[Int, Z]
         case class StringLiteral[Z](qnt: Option[Long], tpe: TypeLevel[String, Z], s: String) extends Var[String, Z]
+        case class UnitLiteral[Z](qnt: Option[Long], tpe: TypeLevel[Unit, Z], u: Unit) extends Var[Unit, Z]
         case class ListCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class OptionCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class SomeCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
@@ -179,6 +181,7 @@ object Symbol:
         t match
           case Term.TypeLevel.App.App1(qnt, tfun, targ, dep) =>  Term.TypeLevel.App.App1(qnt, tfun, targ, f(dep)) 
           case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
+          case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App2T(qnt, tfun, ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))
           case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App3(qnt, tfun.manageDep(f), ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))
           case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
           case Term.TypeLevel.Lam.Function1Type(qnt, dep) => Term.TypeLevel.Lam.Function1Type(qnt, f(dep)).asInstanceOf[Term.TypeLevel[T, ZZ]]
@@ -186,6 +189,7 @@ object Symbol:
           case Term.TypeLevel.Var.BooleanType(qnt, dep) => Term.TypeLevel.Var.BooleanType(qnt, f(dep))
           case Term.TypeLevel.Var.IntType(qnt, dep) => Term.TypeLevel.Var.IntType(qnt, f(dep))
           case Term.TypeLevel.Var.StringType(qnt, dep) => Term.TypeLevel.Var.StringType(qnt, f(dep))
+          case Term.TypeLevel.Var.UnitType(qnt, dep) => Term.TypeLevel.Var.UnitType(qnt, f(dep))
           case Term.TypeLevel.Var.ListType(qnt, dep) => Term.TypeLevel.Var.ListType(qnt, f(dep))
           case Term.TypeLevel.Var.OptionType(qnt, dep) => Term.TypeLevel.Var.OptionType(qnt, f(dep))
           case Term.TypeLevel.Var.SomeType(qnt, dep) => Term.TypeLevel.Var.SomeType(qnt, f(dep))
@@ -207,6 +211,7 @@ object Symbol:
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => Term.ValueLevel.Var.BooleanLiteral(qnt, tpe.manageDep(f), b)
           case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => Term.ValueLevel.Var.IntLiteral(qnt, tpe.manageDep(f), i)
           case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => Term.ValueLevel.Var.StringLiteral(qnt, tpe.manageDep(f), s)
+          case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, s) => Term.ValueLevel.Var.UnitLiteral(qnt, tpe.manageDep(f), s)
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => Term.ValueLevel.Var.ListCtor(qnt, tpe.manageDep(f))
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => Term.ValueLevel.Var.OptionCtor(qnt, tpe.manageDep(f))
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => Term.ValueLevel.Var.SomeCtor(qnt, tpe.manageDep(f))
@@ -227,6 +232,7 @@ object Symbol:
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => Some(v)
           case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => Some(v)
           case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => Some(v)
+          case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, s) => Some(v)
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => Some(v)
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => Some(v)
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => Some(v)
@@ -247,6 +253,7 @@ object Symbol:
           case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => None
           case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => None
           case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => None
+          case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, s) => None
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => None
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => None
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => None

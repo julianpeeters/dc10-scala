@@ -16,6 +16,9 @@ trait PrimitiveTypes[F[_]]:
   
   def STRING: F[TypeExpr[String, Unit]]
   given sLit: Conversion[String, F[ValueExpr[String, Unit]]]
+
+  def UNIT: F[TypeExpr[Unit, Unit]]
+  given uLit: Conversion[Unit, F[ValueExpr[Unit, Unit]]]
   
 object PrimitiveTypes:
 
@@ -38,3 +41,9 @@ object PrimitiveTypes:
     
     given sLit: Conversion[String, StateT[ErrorF, List[Statement], ValueExpr[String, Unit]]] =
       v => StateT.pure(ValueExpr(Term.ValueLevel.Var.StringLiteral(None, Term.TypeLevel.Var.StringType(None, ()), v)))
+
+    def UNIT: StateT[ErrorF, List[Statement], TypeExpr[Unit, Unit]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.UnitType(None, ())))
+    
+    given uLit: Conversion[Unit, StateT[ErrorF, List[Statement], ValueExpr[Unit, Unit]]] =
+      v => StateT.pure(ValueExpr(Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None, ()), v)))
