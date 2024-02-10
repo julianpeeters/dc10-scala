@@ -42,9 +42,9 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun1V")
     def ==>(f: ValueExpr[A, Y] => F[ValueExpr[B, X]]): F[ValueExpr[A => B, Unit]]
 
-  extension [A, B] (fa: F[(ValueExpr[A, Unit], ValueExpr[A, Unit])])
+  extension [A, B, Z] (fa: F[(ValueExpr[A, Z], ValueExpr[A, Z])])
     @scala.annotation.targetName("fun2V")
-    def ==>(f: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => F[ValueExpr[B, Unit]]): F[ValueExpr[(A, A) => B, Unit]]
+    def ==>(f: (ValueExpr[A, Z], ValueExpr[A, Z]) => F[ValueExpr[B, Z]]): F[ValueExpr[(A, A) => B, Z]]
 
   @scala.annotation.targetName("forOption")
   def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
@@ -119,16 +119,16 @@ object Functions:
           v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, Unit]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
         yield ValueExpr(v)
 
-    extension [A, B] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A, Unit], ValueExpr[A, Unit])])
+    extension [A, B, Z] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A, Z], ValueExpr[A, Z])])
       @scala.annotation.targetName("fun2V")
       def ==>(
-        f: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => StateT[ErrorF, List[Statement], ValueExpr[B, Unit]]
-      ): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => B, Unit]] =
+        f: (ValueExpr[A, Z], ValueExpr[A, Z]) => StateT[ErrorF, List[Statement], ValueExpr[B, Z]]
+      ): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => B, Z]] =
         for
           a <- StateT.liftF(fa.runEmptyA)
           b <- f(a._1, a._2)
-          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, A) => B, Unit]](Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, ()), a._1.value.tpe, a._2.value.tpe, b.value.tpe, ()))
-          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[(A, A) => B, Unit]](Term.ValueLevel.Lam.Lam2(None, a._1.value, a._2.value, b.value, t))
+          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, A) => B, Z]](Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, a._1.value.tpe.dep), a._1.value.tpe, a._2.value.tpe, b.value.tpe, a._2.value.tpe.dep))
+          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[(A, A) => B, Z]](Term.ValueLevel.Lam.Lam2(None, a._1.value, a._2.value, b.value, t))
         yield ValueExpr(v)
 
     def EXT[G[_], B](

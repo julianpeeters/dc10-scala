@@ -9,9 +9,9 @@ import dc10.scala.Symbol.Term.TypeLevel.dep
 import org.tpolecat.sourcepos.SourcePos
 
 trait Variables[F[_]]:
-  def DEF[A, T](nme: String, arg: F[ValueExpr[A, Unit]], tpe: F[TypeExpr[T, Unit]])(using sp: SourcePos): F[ValueExpr[A => T, Unit]]
-  def DEF[A, T](nme: String, arg: F[ValueExpr[A, Unit]], tpe: F[TypeExpr[T, Unit]], impl: ValueExpr[A, Unit] => F[ValueExpr[T, Unit]])(using sp: SourcePos): F[ValueExpr[A => T, Unit]]
-  def DEF[A, T](nme: String, arg1: F[ValueExpr[A, Unit]], arg2: F[ValueExpr[A, Unit]], tpe: F[TypeExpr[T, Unit]], impl: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => F[ValueExpr[T, Unit]])(using sp: SourcePos): F[ValueExpr[(A, A) => T, Unit]]
+  def DEF[A, T, Z, Y](nme: String, arg: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Y]])(using sp: SourcePos): F[ValueExpr[A => T, Z]]
+  def DEF[A, T, Z, Y](nme: String, arg: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Y]], impl: ValueExpr[A, Z] => F[ValueExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[A => T, Z]]
+  def DEF[A, T, Z](nme: String, arg1: F[ValueExpr[A, Z]], arg2: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Z]], impl: (ValueExpr[A, Z], ValueExpr[A, Z]) => F[ValueExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[(A, A) => T, Z]]
   def TYPE[T](nme: String): F[TypeExpr[T, Unit]]
   def TYPE[T, Z](nme: String, impl: F[TypeExpr[T, Z]]): F[TypeExpr[T, Z]]
   def VAL[Z, T, A](nme: String, tpe: F[TypeExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[T, Z]]
@@ -25,53 +25,53 @@ object Variables:
     [A] =>> StateT[ErrorF, List[Statement], A]
   ] with Functions.Mixins:
 
-    def DEF[A, T](
+    def DEF[A, T, Z, Y](
       nme: String,
-      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Unit]], 
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Unit]]
+      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]], 
+      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Y]]
     )(
       using sp: SourcePos
-    ): StateT[ErrorF, List[Statement], ValueExpr[A => T, Unit]] =
+    ): StateT[ErrorF, List[Statement], ValueExpr[A => T, Z]] =
       for
         a <- StateT.liftF(arg.runEmptyA)
         r <- StateT.liftF(tpe.runEmptyA)
-        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Unit]](TypeExpr[A, Unit]((a.value.tpe))) ==> tpe
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T, Unit](None, nme, t.tpe, None))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe, None))
+        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Z]](TypeExpr[A, Z]((a.value.tpe))) ==> tpe
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T, Z](None, nme, t.tpe.manageDep(_ => a.value.tpe.dep), None))
+        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe.manageDep(_ => a.value.tpe.dep), None))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield ValueExpr(v)
 
-    def DEF[A, T](
+    def DEF[A, T, Z, Y](
       nme: String,
-      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Unit]],
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Unit]], 
-      impl: ValueExpr[A, Unit] => StateT[ErrorF, List[Statement], ValueExpr[T, Unit]]
-    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[A => T, Unit]] =
+      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
+      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Y]], 
+      impl: ValueExpr[A, Z] => StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
+    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[A => T, Z]] =
       for
         a <- StateT.liftF(arg.runEmptyA)
         r <- StateT.liftF(tpe.runEmptyA)
         i <- impl(a)
-        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Unit]](TypeExpr[A, Unit]((a.value.tpe))) ==> tpe
-        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A, Unit]](a) ==> impl
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(None, nme, t.tpe, Some(f.value)))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe, Some(i.value)))
+        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Z]](TypeExpr[A, Z]((a.value.tpe))) ==> tpe
+        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A, Z]](a) ==> impl
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T, Z](None, nme, t.tpe.manageDep(_ => a.value.tpe.dep), Some(f.value.manageDep(_ => a.value.tpe.dep))))
+        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe.manageDep(_ => a.value.tpe.dep), Some(i.value)))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield ValueExpr(v)
 
-    def DEF[A, T](
+    def DEF[A, T, Z](
       nme: String,
-      arg1: StateT[ErrorF, List[Statement], ValueExpr[A, Unit]],
-      arg2: StateT[ErrorF, List[Statement], ValueExpr[A, Unit]],
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Unit]], 
-      impl: (ValueExpr[A, Unit], ValueExpr[A, Unit]) => StateT[ErrorF, List[Statement], ValueExpr[T, Unit]]
-    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => T, Unit]] =
+      arg1: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
+      arg2: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
+      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Z]], 
+      impl: (ValueExpr[A, Z], ValueExpr[A, Z]) => StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
+    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => T, Z]] =
       for
         a <- StateT.liftF(arg1.runEmptyA)
         b <- StateT.liftF(arg2.runEmptyA)
         r <- StateT.liftF(tpe.runEmptyA)
-        i <- impl(a, a)
-        t <- StateT.pure[ErrorF, List[Statement], (TypeExpr[A, Unit], TypeExpr[A, Unit])]((TypeExpr[A, Unit](a.value.tpe), TypeExpr[A, Unit](b.value.tpe))) ==> tpe
-        f <- StateT.pure[ErrorF, List[Statement], (ValueExpr[A, Unit], ValueExpr[A, Unit])]((a, a)) ==> impl
+        i <- impl(a, b)
+        t <- StateT.pure[ErrorF, List[Statement], (TypeExpr[A, Z], TypeExpr[A, Z])]((TypeExpr[A, Z](a.value.tpe), TypeExpr[A, Z](b.value.tpe))) ==> tpe
+        f <- StateT.pure[ErrorF, List[Statement], (ValueExpr[A, Z], ValueExpr[A, Z])]((a, a)) ==> impl
         v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(None, nme, t.tpe, Some(f.value)))
         d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe, Some(i.value)))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))

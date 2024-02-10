@@ -15,6 +15,7 @@ object Statement:
       s match
         case d@CaseClassDef(i, sp) => CaseClassDef(d.caseclass, i + 1)(using sp)
         case d@ExtensionDef(i, sp) => ExtensionDef(d.extension, i + 1)(using sp)
+        case d@ImportDefs(i, sp) => ImportDefs(d.terms, i + 1)(using sp)
         case d@ObjectDef(i, sp) => ObjectDef(d.obj, i + 1)(using sp)
         case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
         case TypeExpr(tpe) => ???
@@ -62,6 +63,24 @@ object Statement:
       new ExtensionDef(i, sp):
         def extension: Extension = v
 
+  sealed abstract case class ImportDefs(
+    indent: Int,
+    sp: SourcePos
+  ) extends Statement:
+    type Tpe
+    def terms: List[Term]
+
+  object ImportDefs:
+    def apply[T](
+      ts: List[Term],
+      i: Int
+    )(
+      using sp: SourcePos
+    ): ImportDefs =
+      new ImportDefs(i, sp):
+        type Tpe = T
+        def terms: List[Term] = ts
+
   sealed abstract case class ObjectDef(
     indent: Int,
     sp: SourcePos
@@ -99,7 +118,6 @@ object Statement:
   sealed trait TypeDef extends Statement:
     type Tpe
     type Zed
-    // def tpe: Term.TypeLevel.Var.UserDefinedType[Tpe, Zed]
     def indent: Int
     def sp: SourcePos
 

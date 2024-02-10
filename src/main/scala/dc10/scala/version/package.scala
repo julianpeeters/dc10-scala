@@ -15,6 +15,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
       input.map(stmt => stmt match
         case d@Statement.CaseClassDef(_, _)        => indent(d.indent) ++ renderCaseClass(d.caseclass)
         case d@Statement.ExtensionDef(_, _)        => indent(d.indent) ++ renderExtension(d.extension)
+        case d@Statement.ImportDefs(_, _)          => indent(d.indent) ++ renderImports(d.terms)
         case d@Statement.ObjectDef(_, _)           => indent(d.indent) ++ renderObject(d.obj)
         case d@Statement.PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
         case d@Statement.TypeDef.Alias(_, _)       => indent(d.indent) ++ renderTypeDef(d)
@@ -50,6 +51,45 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
       if input.length <= 1
       then renderValueDef(d)
       else indent(d.indent + 1) ++ renderValueDef(d) ++ ","
+
+    private def renderImports(terms: List[Term]): String =
+      terms.map(t =>
+        t match
+          case trm@Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Lam.Function1Type(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Lam.Function2Type(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.BooleanType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.IntType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.StringType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.UnitType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.ListType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.OptionType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.SomeType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => s"import ${renderType(trm)}"
+
+          case trm@Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Blc.ForComp(qnt, gens, ret, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.UnitLiteral(qnt, tpe, u) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.ListCtor(qnt, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.OptionCtor(qnt, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.SomeCtor(qnt, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => s"import ${renderValue(trm)}"
+        ).mkString("\n") ++ "\n"
 
     private def renderObject[Z, T](obj: Object[Z, T]): String =
       obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
