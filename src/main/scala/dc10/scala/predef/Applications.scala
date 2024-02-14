@@ -51,7 +51,8 @@ object Applications:
           f <- tfunction
           a <- fta
           b <- ftb
-        yield TypeExpr(Term.TypeLevel.App.App2(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
+        // yield TypeExpr(Term.TypeLevel.App.App2(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
+        yield TypeExpr(Term.TypeLevel.App.Infix(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
 
     extension [A, B, Y, Z] (function: StateT[ErrorF, List[Statement], ValueExpr[A => B, Y]])
       @scala.annotation.targetName("app1V")

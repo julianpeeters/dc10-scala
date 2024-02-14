@@ -46,15 +46,14 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun2V")
     def ==>(f: (ValueExpr[A, Z], ValueExpr[A, Z]) => F[ValueExpr[B, Z]]): F[ValueExpr[(A, A) => B, Z]]
 
+  def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
+
   @scala.annotation.targetName("forOption")
   def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
 
   extension [G[_], A, X, Y] (nme: String)
     def <--(ff: F[ValueExpr[G[A], (X,Y)]]): F[ValueExpr[A, Y]]
   
-  // @scala.annotation.targetName("yieldOption")
-  // def YIELD[B, Y, Z](arg: ValueExpr[B, Y])(using sp: SourcePos): ValueExpr[Option[B], (Unit, Y)]
-
   @scala.annotation.targetName("matchT1")
   def MATCHTYPES[T[_], A, B, Y](nme: String, arg: F[TypeExpr[A, Y]], cases: TypeExpr[A, Y] => F[B])(using sp: SourcePos): F[TypeExpr[T[A], Y]]
   
@@ -114,7 +113,8 @@ object Functions:
           a <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Y]](fa.runEmptyA)
           b <- f(a)
           t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Unit]](
-            Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
+            // Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
+            Term.TypeLevel.App.Infix(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
           )
           v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, Unit]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
         yield ValueExpr(v)
@@ -130,6 +130,10 @@ object Functions:
           t <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, A) => B, Z]](Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, a._1.value.tpe.dep), a._1.value.tpe, a._2.value.tpe, b.value.tpe, a._2.value.tpe.dep))
           v <- StateT.pure[ErrorF, List[Statement], ValueLevel[(A, A) => B, Z]](Term.ValueLevel.Lam.Lam2(None, a._1.value, a._2.value, b.value, t))
         yield ValueExpr(v)
+
+
+
+
 
     def EXT[G[_], B](
       func: StateT[ErrorF, List[Statement], G[B]]

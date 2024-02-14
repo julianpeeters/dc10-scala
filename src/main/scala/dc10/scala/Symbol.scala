@@ -183,7 +183,7 @@ object Symbol:
           case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
           case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App2T(qnt, tfun, ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))
           case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App3(qnt, tfun.manageDep(f), ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))
-          case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
+          case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, f(dep))
           case Term.TypeLevel.Lam.Function1Type(qnt, dep) => Term.TypeLevel.Lam.Function1Type(qnt, f(dep)).asInstanceOf[Term.TypeLevel[T, ZZ]]
           case Term.TypeLevel.Lam.Function2Type(qnt, dep) => Term.TypeLevel.Lam.Function2Type(qnt, f(dep)).asInstanceOf[Term.TypeLevel[T, ZZ]]
           case Term.TypeLevel.Var.BooleanType(qnt, dep) => Term.TypeLevel.Var.BooleanType(qnt, f(dep))
