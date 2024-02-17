@@ -69,11 +69,12 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
           case trm@Term.TypeLevel.Var.ListType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.OptionType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.SomeType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.TupleType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => s"import ${renderType(trm)}"
 
           case trm@Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
@@ -88,6 +89,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
           case trm@Term.ValueLevel.Var.ListCtor(qnt, tpe) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.Var.OptionCtor(qnt, tpe) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.Var.SomeCtor(qnt, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.TupleCtor(qnt, tpe) => s"import ${renderValue(trm)}"
           case trm@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => s"import ${renderValue(trm)}"
         ).mkString("\n") ++ "\n"
 
@@ -120,6 +122,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.TypeLevel.Var.ListType(_, z) => "List"
         case Term.TypeLevel.Var.OptionType(_, z) => "Option"
         case Term.TypeLevel.Var.SomeType(_, z) => "Some"
+        case Term.TypeLevel.Var.TupleType(_, z) => "Tuple2"
         case Term.TypeLevel.Var.UserDefinedType(q, s, i, z) => s
 
     private def renderTypeDef(typeDef: Statement.TypeDef): String =
@@ -138,7 +141,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         // application
         case Term.ValueLevel.App.App1(q, f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
         case Term.ValueLevel.App.AppCtor1(q, t, a) => s"${renderType(t)}(${renderValue(a)})"
-        case Term.ValueLevel.App.AppCtor2(q, t, a, b) => s"${renderType(t)}(${renderValue(a)}, ${renderValue(b)})"
+        case Term.ValueLevel.App.AppCtor2(q, n, t, a, b) => s"$n(${renderValue(a)}, ${renderValue(b)})"
         case Term.ValueLevel.App.AppPure(q, f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
         case Term.ValueLevel.App.AppVargs(q, f, t, as*) => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
         case Term.ValueLevel.App.Dot1(q, f, a, b, t) => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
@@ -157,6 +160,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.ValueLevel.Var.ListCtor(q, tpe) => s"List"
         case Term.ValueLevel.Var.OptionCtor(q, tpe) => s"Option"
         case Term.ValueLevel.Var.SomeCtor(q, tpe) => s"Some"
+        case Term.ValueLevel.Var.TupleCtor(q, tpe) => s""
         case Term.ValueLevel.Var.UserDefinedValue(q, s, t, i) => s
 
     private def renderValueDef(valueDef: Statement.ValueDef): String =

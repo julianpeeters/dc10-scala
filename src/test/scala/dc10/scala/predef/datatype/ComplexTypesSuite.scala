@@ -95,3 +95,20 @@ class ComplexTypesSuite extends FunSuite:
          |val l4: Option[Option[Option[String]]] = Option(l3)""".stripMargin
       
     assertEquals(obtained, expected)
+
+  test("tuple val def"):
+    
+    def ast =
+      for
+        s <- VAL("s1", TUPLE(INT, STRING))
+        _ <- VAL("s2", TUPLE(INT, STRING), Tuple(1, "hello"))
+      yield ()
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.3.1"]
+      
+    val expected: String =
+      """|val s1: Tuple2[Int, String]
+         |val s2: Tuple2[Int, String] = (1, "hello")""".stripMargin
+      
+    assertEquals(obtained, expected)

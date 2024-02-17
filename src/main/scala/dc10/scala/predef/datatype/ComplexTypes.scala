@@ -8,6 +8,7 @@ import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.ValueLevel.App.{AppPure, AppVargs}
 import dc10.scala.Symbol.Term.ValueLevel.Var.{ListCtor, OptionCtor}
 
+
 trait ComplexTypes[F[_]]:
   def LIST[A]: F[TypeExpr[List[A], Unit]]
   def List[A]: F[ValueExpr[List[A], Unit]]
@@ -23,6 +24,12 @@ trait ComplexTypes[F[_]]:
     @scala.annotation.targetName("appVOS")
     def apply[Z](arg: F[ValueExpr[A, Z]]): F[ValueExpr[Some[A], (Unit, Z)]]
   def Some[A]: F[ValueExpr[Option[A], Unit]]
+  def TUPLE[A, B]: F[TypeExpr[Tuple2[A, B], Unit]]
+  def Tuple[A, B]: F[ValueExpr[Tuple2[A, B], Unit]]
+  extension [A, B] (list: F[ValueExpr[Tuple2[A, B], Unit]])
+    @scala.annotation.targetName("appVT")
+    def apply[Z](arg1: F[ValueExpr[A, Unit]], arg2: F[ValueExpr[B, Unit]]): F[ValueExpr[Tuple2[A, B], (Unit, (Unit, Unit))]]
+
 
 object ComplexTypes:
 
@@ -88,3 +95,20 @@ object ComplexTypes:
        
     def Some[A]: StateT[ErrorF, List[Statement], ValueExpr[Option[A], Unit]] =
       StateT.pure(ValueExpr(Term.ValueLevel.Var.SomeCtor(None, Term.TypeLevel.Var.SomeType(None, ()))))
+
+    def TUPLE[A, B]: StateT[ErrorF, List[Statement], TypeExpr[Tuple2[A, B], Unit]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.TupleType(None, ())))
+      
+    def Tuple[A, B]: StateT[ErrorF, List[Statement], ValueExpr[Tuple2[A, B], Unit]] =
+      StateT.pure[ErrorF, List[Statement], ValueExpr[Tuple2[A, B], Unit]](ValueExpr(Term.ValueLevel.Var.TupleCtor(None, Term.TypeLevel.Var.TupleType(None, ()))))
+    
+    extension [A, B] (list: StateT[ErrorF, List[Statement], ValueExpr[Tuple2[A, B], Unit]])
+      @scala.annotation.targetName("appVT")
+      def apply[Z](arg1: StateT[ErrorF, List[Statement], ValueExpr[A, Unit]], arg2: StateT[ErrorF, List[Statement], ValueExpr[B, Unit]]): StateT[ErrorF, List[Statement], ValueExpr[Tuple2[A, B], (Unit, (Unit, Unit))]] =
+        for
+          l <- list
+          a <- arg1
+          b <- arg2
+          t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[Tuple2[A, B], (Unit, (Unit, Unit))]](Term.TypeLevel.App.App2(None, Term.TypeLevel.Var.TupleType(None, ()), a.value.tpe, b.value.tpe, ((), ((),()))))
+          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B], (Unit, (Unit, Unit))]](Term.ValueLevel.App.AppCtor2(None, "", Term.TypeLevel.Var.TupleType(None, ((), ((), ()))), a.value.manageDep((_ => ((), ((), ())))), b.value.manageDep((_ => ((), ((), ()))))))
+        yield ValueExpr(v)

@@ -99,6 +99,7 @@ object Symbol:
             case Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => dep
+            case Symbol.Term.TypeLevel.Var.TupleType(qnt, dep) => dep
             case Symbol.Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => dep
             
       sealed trait App[T, Z] extends TypeLevel[T, Z]
@@ -121,38 +122,18 @@ object Symbol:
         case class ListType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
         case class OptionType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
         case class SomeType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
+        case class TupleType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
         case class UserDefinedType[T, Z](qnt: Option[Long], nme: String, impl: Option[TypeLevel[T, Z]], dep: Z) extends Var[T, Z]
           
     sealed trait ValueLevel[T, Z] extends Term
     object ValueLevel:
 
-      extension [T, Z] (v: ValueLevel[T, Z])
-        def tpe: TypeLevel[T, Z] =
-          v match
-            case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => tpe
-            case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => tpe 
-            case Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => tpe 
-            case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => tpe
-            case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => tpe
-            case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => tpe
-            case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => tpe
-            case Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe) => tpe
-            case Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => tpe
-            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => tpe
-            case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => tpe
-            case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => tpe
-            case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => tpe
-            case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, u) => tpe
-            case Term.ValueLevel.Var.ListCtor(qnt, tpe) => tpe
-            case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => tpe
-            case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => tpe
-            case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => tpe
-          
       sealed abstract class App[T, Z] extends Term.ValueLevel[T, Z]
       object App:
         case class App1[A, B, Z](qnt: Option[Long], fun: ValueLevel[A => B, Z], arg: ValueLevel[A, Z], tpe: TypeLevel[B, Z]) extends Term.ValueLevel.App[B, Z]
         case class AppCtor1[T, A, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg: ValueLevel[A, Z]) extends Term.ValueLevel.App[T, Z]
-        case class AppCtor2[T, A, B, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
+        // case class AppCtor2[T, A, B, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
+        case class AppCtor2[T, A, B, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
         case class AppPure[G[_], A, X, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], X], arg: ValueLevel[A, Y], tpe: TypeLevel[G[A], Z]) extends Term.ValueLevel.App[G[A], Z]
         case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], (Y, Z)], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], (Y, Z)]
         case class Dot1[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
@@ -173,9 +154,33 @@ object Symbol:
         case class ListCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class OptionCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class SomeCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
+        case class TupleCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class UserDefinedValue[T, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], impl: Option[ValueLevel[T, Z]]) extends Var[T, Z]
 
-    
+      extension [T, Z] (v: ValueLevel[T, Z])
+        def tpe: TypeLevel[T, Z] =
+          v match
+            case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => tpe
+            case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => tpe 
+            case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => tpe 
+            case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => tpe
+            case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => tpe
+            case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => tpe
+            case Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => tpe
+            case Term.ValueLevel.Blc.ForComp(qnt, l, r, tpe) => tpe
+            case Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => tpe
+            case Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => tpe
+            case Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => tpe
+            case Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => tpe
+            case Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => tpe
+            case Term.ValueLevel.Var.UnitLiteral(qnt, tpe, u) => tpe
+            case Term.ValueLevel.Var.ListCtor(qnt, tpe) => tpe
+            case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => tpe
+            case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => tpe
+            case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => tpe
+            case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => tpe
+          
+
     extension [T, Z] (t: Term.TypeLevel[T, Z])
       def manageDep[ZZ](f: Z => ZZ): Term.TypeLevel[T, ZZ] =
         t match
@@ -193,6 +198,7 @@ object Symbol:
           case Term.TypeLevel.Var.ListType(qnt, dep) => Term.TypeLevel.Var.ListType(qnt, f(dep))
           case Term.TypeLevel.Var.OptionType(qnt, dep) => Term.TypeLevel.Var.OptionType(qnt, f(dep))
           case Term.TypeLevel.Var.SomeType(qnt, dep) => Term.TypeLevel.Var.SomeType(qnt, f(dep))
+          case Term.TypeLevel.Var.TupleType(qnt, dep) => Term.TypeLevel.Var.TupleType(qnt, f(dep))
           case Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl.map(i => i.manageDep(f)), f(dep))
 
     extension [T, Z] (v: Term.ValueLevel[T, Z])
@@ -200,7 +206,7 @@ object Symbol:
         v match
           case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => Term.ValueLevel.App.App1(qnt, fun.manageDep(f), arg.manageDep(f), tpe.manageDep(f))
           case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => Term.ValueLevel.App.AppCtor1(qnt, tpe.manageDep(f), arg.manageDep(f))
-          case Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => Term.ValueLevel.App.AppCtor2(qnt, tpe.manageDep(f), arg1.manageDep(f), arg2.manageDep(f))
+          case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => Term.ValueLevel.App.AppCtor2(qnt, nme, tpe.manageDep(f), arg1.manageDep(f), arg2.manageDep(f))
           case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe.manageDep(f))
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => ???
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => Term.ValueLevel.App.Dot1(qnt, fun.manageDep(f), arg1.manageDep(f), arg2.manageDep(f), tpe.manageDep(f))
@@ -215,13 +221,14 @@ object Symbol:
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => Term.ValueLevel.Var.ListCtor(qnt, tpe.manageDep(f))
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => Term.ValueLevel.Var.OptionCtor(qnt, tpe.manageDep(f))
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => Term.ValueLevel.Var.SomeCtor(qnt, tpe.manageDep(f))
+          case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => Term.ValueLevel.Var.TupleCtor(qnt, tpe.manageDep(f))
           case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe.manageDep(f), impl.map(i => i.manageDep(f)))
 
       def findImpl: Option[Term.ValueLevel[T, Z]] =
         v match
           case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => Some(v)
           case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => Some(v)
-          case Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => Some(v)
+          case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => Some(v)
           case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Some(v)
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(v)
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => Some(v)
@@ -236,13 +243,14 @@ object Symbol:
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => Some(v)
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => Some(v)
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => Some(v)
+          case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => Some(v)
           case u@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => impl.fold(None)(i => i.findImpl)
 
       def findVargs[U, A]: Option[Seq[Term.ValueLevel[U, A]]] =
         v.findImpl.fold(None)(i => i match
           case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => None
           case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => None
-          case Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => None
+          case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => None
           case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => None
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Term.ValueLevel[U, A]]])
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => None
@@ -257,5 +265,6 @@ object Symbol:
           case Term.ValueLevel.Var.ListCtor(qnt, tpe) => None
           case Term.ValueLevel.Var.OptionCtor(qnt, tpe) => None
           case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => None
+          case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => None
           case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => None
         )

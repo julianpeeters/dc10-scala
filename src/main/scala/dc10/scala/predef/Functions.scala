@@ -175,12 +175,13 @@ object Functions:
             case dc10.scala.Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.TupleType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => ???
           )
           i <- StateT.liftF[ErrorF, List[Statement], ValueLevel[A, Y]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
             case dc10.scala.Symbol.Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => ??? 
             case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2(qnt, tpe, arg1, arg2) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Right(arg.asInstanceOf[ValueLevel[A, Y]])
             case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => ???
@@ -195,6 +196,7 @@ object Functions:
             case dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor(qnt, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor(qnt, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.SomeCtor(qnt, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.Var.TupleCtor(qnt, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => ???
           )
           )
