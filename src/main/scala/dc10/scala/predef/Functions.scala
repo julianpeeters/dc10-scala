@@ -32,7 +32,7 @@ trait Functions[F[_]]:
 
   extension [A, B, Y, Z] (domain: F[TypeExpr[A, Y]])
     @scala.annotation.targetName("fun1T")
-    def ==>(codomain: F[TypeExpr[B, Z]]): F[TypeExpr[A => B, Unit]]
+    def ==>(codomain: F[TypeExpr[B, Z]]): F[TypeExpr[A => B, Z]]
 
   extension [Z, A, B] (domain: F[(TypeExpr[A, Z], TypeExpr[A, Z])])
     @scala.annotation.targetName("fun2T")
@@ -40,7 +40,7 @@ trait Functions[F[_]]:
 
   extension [A, B, X, Y] (fa: F[ValueExpr[A, Y]])
     @scala.annotation.targetName("fun1V")
-    def ==>(f: ValueExpr[A, Y] => F[ValueExpr[B, X]]): F[ValueExpr[A => B, Unit]]
+    def ==>(f: ValueExpr[A, Y] => F[ValueExpr[B, X]]): F[ValueExpr[A => B, X]]
 
   extension [A, B, Z] (fa: F[(ValueExpr[A, Z], ValueExpr[A, Z])])
     @scala.annotation.targetName("fun2V")
@@ -48,8 +48,8 @@ trait Functions[F[_]]:
 
   def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
 
-  @scala.annotation.targetName("forOption")
-  def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
+  // @scala.annotation.targetName("forOption")
+  // def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
 
   extension [G[_], A, X, Y] (nme: String)
     def <--(ff: F[ValueExpr[G[A], (X,Y)]]): F[ValueExpr[A, Y]]
@@ -67,17 +67,17 @@ object Functions:
       @scala.annotation.targetName("fun1T")
       def ==>(
         codomain: StateT[ErrorF, List[Statement], TypeExpr[B, Z]]
-      ): StateT[ErrorF, List[Statement], TypeExpr[A => B, Unit]] =
+      ): StateT[ErrorF, List[Statement], TypeExpr[A => B, Z]] =
         for
           a <- domain
           b <- codomain
-          v <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Unit]](
+          v <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Z]](
             Term.TypeLevel.App.Infix(
               None,
-              Term.TypeLevel.Lam.Function1Type(None, ()),
+              Term.TypeLevel.Lam.Function1Type(None, b.tpe.dep),
               a.tpe,
               b.tpe,
-              ()
+              b.tpe.dep
             )
           )
   
@@ -108,15 +108,15 @@ object Functions:
       @scala.annotation.targetName("fun1V")
       def ==>(
         f: ValueExpr[A, Y] => StateT[ErrorF, List[Statement], ValueExpr[B, X]]
-      ): StateT[ErrorF, List[Statement], ValueExpr[A => B, Unit]] =
+      ): StateT[ErrorF, List[Statement], ValueExpr[A => B, X]] =
         for
           a <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Y]](fa.runEmptyA)
           b <- f(a)
-          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Unit]](
+          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, X]](
             // Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
-            Term.TypeLevel.App.Infix(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
+            Term.TypeLevel.App.Infix(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, b.value.tpe.dep)
           )
-          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, Unit]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
+          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, X]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
         yield ValueExpr(v)
 
     extension [A, B, Z] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A, Z], ValueExpr[A, Z])])
@@ -148,13 +148,13 @@ object Functions:
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield f
 
-    @scala.annotation.targetName("forOption")
-    def FOR[A, Y](f: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Y)]] =
-      for
-        (l, a) <- StateT.liftF(f.runEmpty)
-        v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A], (Unit, Y)]](
-          ForComp(None, l, a.value, Term.TypeLevel.App.App1(None, Term.TypeLevel.Var.OptionType(None, ()), a.value.tpe, ((), a.value.tpe.dep))))
-      yield ValueExpr(v)
+    // @scala.annotation.targetName("forOption")
+    // def FOR[A, Y](f: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Y)]] =
+    //   for
+    //     (l, a) <- StateT.liftF(f.runEmpty)
+    //     v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A], (Unit, Y)]](
+    //       ForComp(None, l, a.value, Term.TypeLevel.App.App1(None, Term.TypeLevel.Var.OptionType(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())), a.value.tpe, ((), a.value.tpe.dep))))
+    //   yield ValueExpr(v)
 
     extension [G[_], A, X, Y] (nme: String)
       def <--(ff: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]]): StateT[ErrorF, List[Statement], ValueExpr[A, Y]] =
@@ -171,7 +171,7 @@ object Functions:
             case dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.IntType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.StringType(qnt, dep) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.UnitType(qnt, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.UnitType(qnt) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => ???
@@ -221,7 +221,7 @@ object Functions:
             case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected function but found ${tpe}")))
           case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected cases but found ${a.tpe}")))
         ).sequence)
-        f <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T[A], Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, ()))
+        f <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T[A], Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())))
         t <- StateT.liftF(a.tpe match
           case u@Term.TypeLevel.Var.UserDefinedType(_, _, _, _) => Right(Term.TypeLevel.App.App1(None, f, a.tpe, (a.tpe.dep)))
           case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected user-defined type but found ${a.tpe}")))

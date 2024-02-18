@@ -22,7 +22,7 @@ object Symbol:
     ): CaseClass[T, Unit] =
       new CaseClass[T, Unit]:
         def nme = n
-        def tpe: Term.TypeLevel[T, Unit] = Term.TypeLevel.Var.UserDefinedType(q, n, None, ())
+        def tpe: Term.TypeLevel[T, Unit] = Term.TypeLevel.Var.UserDefinedType(q, n, None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()))
         def fields = fs
         def body = Nil
 
@@ -44,7 +44,7 @@ object Symbol:
         def nme = n
         def par = p
         def tpe: Term.TypeLevel[T, Unit] = p.fold(
-            Term.TypeLevel.Var.UserDefinedType(q, n, None, ())
+            Term.TypeLevel.Var.UserDefinedType(q, n, None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()))
           )(i => i)
         
         def body: List[Statement] = b
@@ -82,48 +82,28 @@ object Symbol:
     sealed trait TypeLevel[T, Z] extends Term
     object TypeLevel:
 
-      extension [T, Z] (t: TypeLevel[T, Z])
-        def dep: Z =
-          t match
-            case Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => dep 
-            case Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => dep
-            case Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => dep
-            case Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => dep
-            case Symbol.Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => dep
-            case Symbol.Term.TypeLevel.Lam.Function1Type(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Lam.Function2Type(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.IntType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.StringType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.UnitType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.TupleType(qnt, dep) => dep
-            case Symbol.Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => dep
-            
       sealed trait App[T, Z] extends TypeLevel[T, Z]
       object App:
-        case class App1[T[_], A, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A], X], targ: TypeLevel[A, Y], dep: Z) extends App[T[A], Z]
-        case class App2[T[_,_], A, B, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: Z) extends App[T[A, B], Z]
-        case class App2T[T[_[_],_,_], F[_], A, B, C, Y, X, Z](qnt: Option[Long], tfun: TypeLevel[T[F,A,B], Y], ta1: TypeLevel[F[C], Z], ta2: TypeLevel[A, Z], tb: TypeLevel[B, Z], dep: Z) extends App[T[F, A, B], Z]
-        case class App3[T[_,_,_], A, B, C, X, Z](qnt: Option[Long], tfun: TypeLevel[T[A,B,C], Z], ta1: TypeLevel[A, Z], ta2: TypeLevel[B, Z], tb: TypeLevel[C, Z], dep: Z) extends App[T[A, B, C], Z]
-        case class Infix[T[_,_], A, B, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: Z) extends App[T[A, B], Z]
+        case class App1[T[_], A, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A], X], targ: TypeLevel[A, Y], dep: ValueLevel[Z, Any]) extends App[T[A], Z]
+        case class App2[T[_,_], A, B, Q, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: ValueLevel[Z, Any]) extends App[T[A, B], Z]
+        case class App2T[T[_[_],_,_], F[_], A, B, C, Y, X, Z](qnt: Option[Long], tfun: TypeLevel[T[F,A,B], Y], ta1: TypeLevel[F[C], Z], ta2: TypeLevel[A, Z], tb: TypeLevel[B, Z], dep: ValueLevel[Z, Any]) extends App[T[F, A, B], Z]
+        case class App3[T[_,_,_], A, B, C, X, Z](qnt: Option[Long], tfun: TypeLevel[T[A,B,C], Z], ta1: TypeLevel[A, Z], ta2: TypeLevel[B, Z], tb: TypeLevel[C, Z], dep: ValueLevel[Z, Any]) extends App[T[A, B, C], Z]
+        case class Infix[T[_,_], A, B, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: ValueLevel[Z, Any]) extends App[T[A, B], Z]
       sealed trait Lam[T, Z] extends TypeLevel[T, Z]
       object Lam:
-        case class Function1Type[A, B, Z](qnt: Option[Long], dep: Z) extends Lam[A => B, Z]
-        case class Function2Type[A, B, C, Z](qnt: Option[Long], dep: Z) extends Lam[(A, B) => C, Z]
+        case class Function1Type[A, B, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Lam[A => B, Z]
+        case class Function2Type[A, B, C, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Lam[(A, B) => C, Z]
       sealed abstract class Var[T, Z] extends TypeLevel[T, Z]
       object Var:
-        case class BooleanType[Z](qnt: Option[Long], dep: Z) extends Var[Boolean, Z]
-        case class IntType[Z](qnt: Option[Long], dep: Z) extends Var[Int, Z]
-        case class StringType[Z](qnt: Option[Long], dep: Z) extends Var[String, Z]
-        case class UnitType[Z](qnt: Option[Long], dep: Z) extends Var[Unit, Z]
-        case class ListType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
-        case class OptionType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
-        case class SomeType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
-        case class TupleType[A, Z](qnt: Option[Long], dep: Z) extends Var[A, Z]
-        case class UserDefinedType[T, Z](qnt: Option[Long], nme: String, impl: Option[TypeLevel[T, Z]], dep: Z) extends Var[T, Z]
+        case class BooleanType[Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[Boolean, Z]
+        case class IntType[Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[Int, Z]
+        case class StringType[Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[String, Z]
+        case class UnitType[Z](qnt: Option[Long]) extends Var[Unit, Z]
+        case class ListType[A, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[A, Z]
+        case class OptionType[A, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[A, Z]
+        case class SomeType[A, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[A, Z]
+        case class TupleType[A, Z](qnt: Option[Long], dep: ValueLevel[Z, Any]) extends Var[A, Z]
+        case class UserDefinedType[T, Z](qnt: Option[Long], nme: String, impl: Option[TypeLevel[T, Z]], dep: ValueLevel[Z, Any]) extends Var[T, Z]
           
     sealed trait ValueLevel[T, Z] extends Term
     object ValueLevel:
@@ -133,9 +113,10 @@ object Symbol:
         case class App1[A, B, Z](qnt: Option[Long], fun: ValueLevel[A => B, Z], arg: ValueLevel[A, Z], tpe: TypeLevel[B, Z]) extends Term.ValueLevel.App[B, Z]
         case class AppCtor1[T, A, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg: ValueLevel[A, Z]) extends Term.ValueLevel.App[T, Z]
         // case class AppCtor2[T, A, B, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
-        case class AppCtor2[T, A, B, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
+        case class AppCtor2[T, A, B, X, Y, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], arg1: ValueLevel[A, X],  arg2: ValueLevel[B, Y]) extends Term.ValueLevel.App[T, Z]
         case class AppPure[G[_], A, X, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], X], arg: ValueLevel[A, Y], tpe: TypeLevel[G[A], Z]) extends Term.ValueLevel.App[G[A], Z]
         case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], (Y, Z)], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], (Y, Z)]
+        // case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], Z], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], Z]
         case class Dot1[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
         case class Dotless[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
       sealed abstract class Blc[T, Z] extends Term.ValueLevel[T, Z]
@@ -154,7 +135,7 @@ object Symbol:
         case class ListCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class OptionCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
         case class SomeCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
-        case class TupleCtor[A, Z](qnt: Option[Long], tpe: TypeLevel[A, Z]) extends Var[A, Z]
+        case class TupleCtor[A, B, Z](qnt: Option[Long], tpe: TypeLevel[Tuple2[A, B], Z]) extends Var[(A, B), Z]
         case class UserDefinedValue[T, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], impl: Option[ValueLevel[T, Z]]) extends Var[T, Z]
 
       extension [T, Z] (v: ValueLevel[T, Z])
@@ -179,10 +160,33 @@ object Symbol:
             case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => tpe
-          
+
+
+
+
+    extension [T, Z] (t: TypeLevel[T, Z])
+      def dep: ValueLevel[Z, Any] =
+        t match
+          case Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => dep
+          case Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => dep
+          case Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => dep
+          case Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => dep
+          case Symbol.Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => dep
+          case Symbol.Term.TypeLevel.Lam.Function1Type(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Lam.Function2Type(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.IntType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.StringType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.UnitType(qnt) => Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()).asInstanceOf[ValueLevel[Z, Any]]
+          case Symbol.Term.TypeLevel.Var.ListType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.OptionType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.SomeType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.TupleType(qnt, dep) => dep
+          case Symbol.Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => dep
+            
 
     extension [T, Z] (t: Term.TypeLevel[T, Z])
-      def manageDep[ZZ](f: Z => ZZ): Term.TypeLevel[T, ZZ] =
+      def manageDep[ZZ](f: ValueLevel[Z, Any] => ValueLevel[ZZ, Any]): Term.TypeLevel[T, ZZ] =
         t match
           case Term.TypeLevel.App.App1(qnt, tfun, targ, dep) =>  Term.TypeLevel.App.App1(qnt, tfun, targ, f(dep)) 
           case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
@@ -194,7 +198,7 @@ object Symbol:
           case Term.TypeLevel.Var.BooleanType(qnt, dep) => Term.TypeLevel.Var.BooleanType(qnt, f(dep))
           case Term.TypeLevel.Var.IntType(qnt, dep) => Term.TypeLevel.Var.IntType(qnt, f(dep))
           case Term.TypeLevel.Var.StringType(qnt, dep) => Term.TypeLevel.Var.StringType(qnt, f(dep))
-          case Term.TypeLevel.Var.UnitType(qnt, dep) => Term.TypeLevel.Var.UnitType(qnt, f(dep))
+          case Term.TypeLevel.Var.UnitType(qnt) => Term.TypeLevel.Var.UnitType(qnt)
           case Term.TypeLevel.Var.ListType(qnt, dep) => Term.TypeLevel.Var.ListType(qnt, f(dep))
           case Term.TypeLevel.Var.OptionType(qnt, dep) => Term.TypeLevel.Var.OptionType(qnt, f(dep))
           case Term.TypeLevel.Var.SomeType(qnt, dep) => Term.TypeLevel.Var.SomeType(qnt, f(dep))
@@ -202,11 +206,11 @@ object Symbol:
           case Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl.map(i => i.manageDep(f)), f(dep))
 
     extension [T, Z] (v: Term.ValueLevel[T, Z])
-      def manageDep[ZZ](f: Z => ZZ): Term.ValueLevel[T, ZZ] =
+      def manageDep[ZZ](f: ValueLevel[Z, Any] => ValueLevel[ZZ, Any]): Term.ValueLevel[T, ZZ] =
         v match
           case Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => Term.ValueLevel.App.App1(qnt, fun.manageDep(f), arg.manageDep(f), tpe.manageDep(f))
           case Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => Term.ValueLevel.App.AppCtor1(qnt, tpe.manageDep(f), arg.manageDep(f))
-          case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => Term.ValueLevel.App.AppCtor2(qnt, nme, tpe.manageDep(f), arg1.manageDep(f), arg2.manageDep(f))
+          case Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => Term.ValueLevel.App.AppCtor2(qnt, nme, tpe.manageDep(f), arg1, arg2)
           case Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe.manageDep(f))
           case Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => ???
           case Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => Term.ValueLevel.App.Dot1(qnt, fun.manageDep(f), arg1.manageDep(f), arg2.manageDep(f), tpe.manageDep(f))

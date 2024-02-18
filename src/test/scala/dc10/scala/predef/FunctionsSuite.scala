@@ -45,27 +45,27 @@ class FunctionsSuite extends FunSuite:
       
     assertEquals(obtained, expected)
 
-  test("for"):
+  // test("for"):
     
-    def ast = VAL("f1", OPTION(STRING),
-        FOR(
-          for
-            s <- "s" <-- Option("wowie")
-            t <- "t" <-- Option(s)
-            // y <- YIELD(t)
-            // u <- Option(t)
-          yield t//FOR(s, t)
-        )
-    )
+  //   def ast = VAL("f1", OPTION(STRING),
+  //       FOR(
+  //         for
+  //           s <- "s" <-- Option("wowie")
+  //           t <- "t" <-- Option(s)
+  //           // y <- YIELD(t)
+  //           // u <- Option(t)
+  //         yield t//FOR(s, t)
+  //       )
+  //   )
     
-    val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+  //   val obtained: String =
+  //     ast.compile.toString["scala-3.3.1"]
       
-    val expected: String =
-      """|val f1: Option[String] = 
-         |  for
-         |    s <- Option("wowie")
-         |    t <- Option(s)
-         |  yield t""".stripMargin
+  //   val expected: String =
+  //     """|val f1: Option[String] = 
+  //        |  for
+  //        |    s <- Option("wowie")
+  //        |    t <- Option(s)
+  //        |  yield t""".stripMargin
       
-    assertEquals(obtained, expected)
+  //   assertEquals(obtained, expected)

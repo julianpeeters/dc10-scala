@@ -7,7 +7,7 @@ import dc10.scala.ErrorF
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
-import dc10.scala.Symbol.Term.TypeLevel.dep
+import dc10.scala.Symbol.Term.dep
 import org.tpolecat.sourcepos.SourcePos
 
 trait Applications[F[_]]:
@@ -16,9 +16,9 @@ trait Applications[F[_]]:
     @scala.annotation.targetName("app1T")
     def apply[Z](args: F[TypeExpr[A, Z]]): F[TypeExpr[T[A], (Y, Z)]]
 
-  extension [T[_,_], A, B, X, Y, Z] (tfunction: F[TypeExpr[T[A, B], X]])
-    @scala.annotation.targetName("app2T")
-    def apply(fta: F[TypeExpr[A, Y]], ftb: F[TypeExpr[B, Z]]): F[TypeExpr[T[A, B], (X, (Y, Z))]]
+  // extension [T[_,_], A, B, X, Y, Z] (tfunction: F[TypeExpr[T[A, B], X]])
+  //   @scala.annotation.targetName("app2T")
+  //   def apply(fta: F[TypeExpr[A, Y]], ftb: F[TypeExpr[B, Z]]): F[TypeExpr[T[A, B], (X, (Y, Z))]]
 
   extension [A, B, Y, Z] (function: F[ValueExpr[A => B, Y]])
     @scala.annotation.targetName("app1V")
@@ -42,17 +42,36 @@ object Applications:
         for
           f <- tfunction
           a <- targs
-        yield TypeExpr(Term.TypeLevel.App.App1(None, f.tpe, a.tpe, (f.tpe.dep, a.tpe.dep)))
+        // yield TypeExpr(Term.TypeLevel.App.App1(None, f.tpe, a.tpe, (f.tpe.dep, a.tpe.dep)))
+        yield TypeExpr(Term.TypeLevel.App.App1(
+          None,
+          f.tpe,
+          a.tpe,
+          dep = Term.ValueLevel.App.AppCtor2(None, "",// Term.ValueLevel.Var.TupleCtor(
+          //  None,
+            Term.TypeLevel.App.App2(
+              None,
+              Term.TypeLevel.Var.TupleType(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())),
+              f.tpe.dep.tpe,
+              a.tpe.dep.tpe,
+              // Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())
+              f.tpe.dep.tpe.dep
+            ),
+            Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()),
+            Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())
+          )
+        ))
 
-    extension [T[_,_], A, B, X, Y, Z] (tfunction: StateT[ErrorF, List[Statement], TypeExpr[T[A, B], X]])
-      @scala.annotation.targetName("app2T")
-      def apply(fta: StateT[ErrorF, List[Statement], TypeExpr[A, Y]], ftb: StateT[ErrorF, List[Statement], TypeExpr[B, Z]]): StateT[ErrorF, List[Statement], TypeExpr[T[A, B], (X, (Y, Z))]] =
-        for
-          f <- tfunction
-          a <- fta
-          b <- ftb
-        yield TypeExpr(Term.TypeLevel.App.App2(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
-        // yield TypeExpr(Term.TypeLevel.App.Infix(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
+
+    // extension [T[_,_], A, B, X, Y, Z] (tfunction: StateT[ErrorF, List[Statement], TypeExpr[T[A, B], X]])
+    //   @scala.annotation.targetName("app2T")
+    //   def apply(fta: StateT[ErrorF, List[Statement], TypeExpr[A, Y]], ftb: StateT[ErrorF, List[Statement], TypeExpr[B, Z]]): StateT[ErrorF, List[Statement], TypeExpr[T[A, B], (X, (Y, Z))]] =
+    //     for
+    //       f <- tfunction
+    //       a <- fta
+    //       b <- ftb
+    //     yield TypeExpr(Term.TypeLevel.App.App2(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
+    //     // yield TypeExpr(Term.TypeLevel.App.Infix(None, f.tpe, a.tpe, b.tpe, (f.tpe.dep, (a.tpe.dep, b.tpe.dep))))
 
     extension [A, B, Y, Z] (function: StateT[ErrorF, List[Statement], ValueExpr[A => B, Y]])
       @scala.annotation.targetName("app1V")

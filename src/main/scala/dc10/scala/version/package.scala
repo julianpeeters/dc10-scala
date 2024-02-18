@@ -65,7 +65,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
           case trm@Term.TypeLevel.Var.BooleanType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.IntType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.StringType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.UnitType(qnt, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.UnitType(qnt) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.ListType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.OptionType(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.SomeType(qnt, dep) => s"import ${renderType(trm)}"
@@ -115,7 +115,7 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
         case Term.TypeLevel.Var.BooleanType(_, z) => "Boolean"
         case Term.TypeLevel.Var.IntType(_, z) => "Int"
         case Term.TypeLevel.Var.StringType(_, z) => "String"
-        case Term.TypeLevel.Var.UnitType(_, z) => "Unit"
+        case Term.TypeLevel.Var.UnitType(_) => "Unit"
         // complex
         case Term.TypeLevel.Lam.Function1Type(_, z) => "=>"
         case Term.TypeLevel.Lam.Function2Type(_, z) => "=>"

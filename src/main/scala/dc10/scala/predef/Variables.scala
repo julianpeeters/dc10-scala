@@ -5,7 +5,7 @@ import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{TypeDef, TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.ctx.ext
-import dc10.scala.Symbol.Term.TypeLevel.dep
+import dc10.scala.Symbol.Term.dep
 import org.tpolecat.sourcepos.SourcePos
 
 trait Variables[F[_]]:
@@ -79,7 +79,7 @@ object Variables:
 
     def TYPE[T](nme: String): StateT[ErrorF, List[Statement], TypeExpr[T, Unit]] =
       for
-        t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T, Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, ()))
+        t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T, Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())))
         d <- StateT.pure(TypeDef.Alias[T, Unit](0, t))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield TypeExpr(t)

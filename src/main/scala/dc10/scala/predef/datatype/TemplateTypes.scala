@@ -35,7 +35,7 @@ object TemplateTypes:
       for
         (fields, a) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], ValueExpr[A, Unit])](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](None, name, fields))
-        t <- StateT.pure(Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, ()), a.value.tpe, c.tpe, ()))
+        t <- StateT.pure(Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())), a.value.tpe, c.tpe, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())))
         f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A => T, Unit]](ValueExpr(
           Term.ValueLevel.Lam.Lam1(None, a.value, Term.ValueLevel.App.AppCtor1(None, c.tpe, a.value), t)
         ))
@@ -47,10 +47,10 @@ object TemplateTypes:
                 nme = name,
                 tpe = Term.TypeLevel.App.App2(
                     None,
-                    Term.TypeLevel.Lam.Function1Type(None, ()),
+                    Term.TypeLevel.Lam.Function1Type(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())),
                     a.value.tpe,
                     c.tpe,
-                    ()
+                    Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())
                 ),
                 impl = Some(f.value))
             ))
@@ -71,7 +71,7 @@ object TemplateTypes:
       for
         (fields, (a, b)) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], (ValueExpr[A, Unit], ValueExpr[B, Unit]))](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](None, name, fields))
-        t <- StateT.pure(Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, ()), a.value.tpe, b.value.tpe, c.tpe, ()))
+        t <- StateT.pure(Term.TypeLevel.App.App3(None, Term.TypeLevel.Lam.Function2Type(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())), a.value.tpe, b.value.tpe, c.tpe, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())))
         f <- StateT.pure[ErrorF, List[Statement], ValueExpr[(A, B) => T, Unit]](ValueExpr(
           Term.ValueLevel.Lam.Lam2(None, a.value, b.value, Term.ValueLevel.App.AppCtor2(None, name, c.tpe, a.value, b.value), t)
         ))
@@ -84,11 +84,11 @@ object TemplateTypes:
                   nme = name,
                   tpe = Term.TypeLevel.App.App3(
                       None,
-                      Term.TypeLevel.Lam.Function2Type(None, ()),
+                      Term.TypeLevel.Lam.Function2Type(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())),
                       a.value.tpe,
                       b.value.tpe,
                       c.tpe,
-                      ()
+                      Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())
                   ),
                   impl = Some(f.value)
                 )
