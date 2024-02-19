@@ -11,7 +11,7 @@ class ObjectSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, toString}
-  import dc10.scala.version.`3.3.1`
+  import dc10.scala.version.`3.4.0`
 
   test("obj def"):
 
@@ -23,7 +23,7 @@ class ObjectSuite extends FunSuite:
     )
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """object MyObject:

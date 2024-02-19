@@ -1,10 +1,9 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
-import cats.implicits.*
 import dc10.scala.compiler.{compile, toString}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.1`
+import dc10.scala.version.`3.4.0`
 import munit.FunSuite
 
 class VariableTypesSuite extends FunSuite:
@@ -18,7 +17,7 @@ class VariableTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|type S = String
@@ -36,7 +35,7 @@ class VariableTypesSuite extends FunSuite:
     )
   
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|type Elem[X] = X match

@@ -1,10 +1,9 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
-import cats.implicits.*
 import dc10.scala.compiler.{compile, toString}
 import dc10.scala.dsl.*
-import dc10.scala.version.`3.3.1`
+import dc10.scala.version.`3.4.0`
 import munit.FunSuite
 
 class TemplateTypesSuite extends FunSuite:
@@ -16,7 +15,7 @@ class TemplateTypesSuite extends FunSuite:
     def ast = CASECLASS[Person1, String]("Person1", FIELD("name", STRING))
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """case class Person1(name: String)""".stripMargin
@@ -37,7 +36,7 @@ class TemplateTypesSuite extends FunSuite:
       )
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|case class Person2(

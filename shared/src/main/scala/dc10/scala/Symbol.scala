@@ -112,11 +112,9 @@ object Symbol:
       object App:
         case class App1[A, B, Z](qnt: Option[Long], fun: ValueLevel[A => B, Z], arg: ValueLevel[A, Z], tpe: TypeLevel[B, Z]) extends Term.ValueLevel.App[B, Z]
         case class AppCtor1[T, A, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg: ValueLevel[A, Z]) extends Term.ValueLevel.App[T, Z]
-        // case class AppCtor2[T, A, B, Z](qnt: Option[Long], tpe: TypeLevel[T, Z], arg1: ValueLevel[A, Z],  arg2: ValueLevel[B, Z]) extends Term.ValueLevel.App[T, Z]
-        case class AppCtor2[T, A, B, X, Y, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], arg1: ValueLevel[A, X],  arg2: ValueLevel[B, Y]) extends Term.ValueLevel.App[T, Z]
+        case class AppCtor2[T, A, B, X, Y, Z](qnt: Option[Long], nme: String, tpe: TypeLevel[T, Z], arg1: ValueLevel[A, X], arg2: ValueLevel[B, Y]) extends Term.ValueLevel.App[T, Z]
         case class AppPure[G[_], A, X, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], X], arg: ValueLevel[A, Y], tpe: TypeLevel[G[A], Z]) extends Term.ValueLevel.App[G[A], Z]
         case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], (Y, Z)], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], (Y, Z)]
-        // case class AppVargs[G[_], A, Y, Z](qnt: Option[Long], fun: ValueLevel[G[A], Y], tpe: TypeLevel[G[A], Z], vargs: ValueLevel[A, Z]*) extends Term.ValueLevel.App[G[A], Z]
         case class Dot1[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
         case class Dotless[A, B, C, D, Z](qnt: Option[Long], fun: ValueLevel[D, Z], arg1: ValueLevel[A, Z], arg2: ValueLevel[B, Z], tpe: TypeLevel[C, Z]) extends Term.ValueLevel.App[C, Z]
       sealed abstract class Blc[T, Z] extends Term.ValueLevel[T, Z]
@@ -160,9 +158,6 @@ object Symbol:
             case Term.ValueLevel.Var.SomeCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.TupleCtor(qnt, tpe) => tpe
             case Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => tpe
-
-
-
 
     extension [T, Z] (t: TypeLevel[T, Z])
       def dep: ValueLevel[Z, Any] =

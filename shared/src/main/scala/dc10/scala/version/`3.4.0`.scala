@@ -7,8 +7,8 @@ import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
 import dc10.scala.Symbol.Term.ValueLevel.{App, Lam}
 import dc10.scala.Error
 
-given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
-  new Renderer["scala-3.3.1", Error, List[Statement]]:
+given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
+  new Renderer["scala-3.4.0", Error, List[Statement]]:
 
     override def render(input: List[Statement]): String =
       
@@ -31,8 +31,8 @@ given `3.3.1`: Renderer["scala-3.3.1", Error, List[Statement]] =
     override def renderErrors(errors: List[Error]): String =
       errors.map(_.toString()).mkString("\n")
 
-    override def version: "scala-3.3.1" =
-      "scala-3.3.1"
+    override def version: "scala-3.4.0" =
+      "scala-3.4.0"
 
     private def indent(i: Int): String =
       "  ".repeat(i)

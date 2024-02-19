@@ -6,7 +6,7 @@ import munit.FunSuite
 
 import dc10.scala.compiler.{compile, toString}
 import dc10.scala.dsl.{*}
-import dc10.scala.version.`3.3.1`
+import dc10.scala.version.`3.4.0`
 
 class ComplexTypesSuite extends FunSuite:
   
@@ -21,7 +21,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|val l1: List[Int]
@@ -42,7 +42,7 @@ class ComplexTypesSuite extends FunSuite:
   //     yield ()
     
   //   val obtained: String =
-  //     ast.compile.toString["scala-3.3.1"]
+  //     ast.compile.toString["scala-3.4.0"]
       
   //   val expected: String =
   //     """|val l1: List[Int] = List(1, 2, 3)
@@ -63,7 +63,7 @@ class ComplexTypesSuite extends FunSuite:
   //     yield ()
     
   //   val obtained: String =
-  //     ast.compile.toString["scala-3.3.1"]
+  //     ast.compile.toString["scala-3.4.0"]
       
   //   val expected: String =
   //     """|val l1: Option[Int]
@@ -85,7 +85,7 @@ class ComplexTypesSuite extends FunSuite:
   //     yield ()
     
   //   val obtained: String =
-  //     ast.compile.toString["scala-3.3.1"]
+  //     ast.compile.toString["scala-3.4.0"]
       
   //   val expected: String =
   //     """|val s1: Option[Int] = Some(1)
@@ -105,7 +105,7 @@ class ComplexTypesSuite extends FunSuite:
   //     yield ()
     
   //   val obtained: String =
-  //     ast.compile.toString["scala-3.3.1"]
+  //     ast.compile.toString["scala-3.4.0"]
       
   //   val expected: String =
   //     """|val s1: Tuple2[Int, String]

@@ -12,7 +12,7 @@ class PrimitiveTypeSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, toVirtualFile}
-  import dc10.scala.version.`3.3.1`
+  import dc10.scala.version.`3.4.0`
 
   test("val dec"):
 
@@ -27,7 +27,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     )
     val obtained: Either[List[Error], List[String]] =
-      ast.compile.toVirtualFile["scala-3.3.1"]
+      ast.compile.toVirtualFile["scala-3.4.0"]
         .map(fs => fs.map(vf => vf.contents))
       
     val expected: Either[List[Error], List[String]] =

@@ -14,7 +14,7 @@ class PrimitiveTypeSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, toString}
-  import dc10.scala.version.`3.3.1`
+  import dc10.scala.version.`3.4.0`
 
   test("def dec"):
 
@@ -25,7 +25,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|def greeting(str: String): String
@@ -42,7 +42,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|def f(str: String): String = str
@@ -75,7 +75,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|extension (str: String)
@@ -98,7 +98,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|val t: Boolean
@@ -123,7 +123,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.1"]
+      ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
       """|val t: Boolean = true
