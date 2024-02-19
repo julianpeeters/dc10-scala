@@ -30,7 +30,7 @@ inThisBuild(List(
 ))
 
 lazy val scala = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .in(file("."))
+  .in(file("modules/scala"))
   .settings(
     name := "dc10-scala",
     libraryDependencies ++= Seq(
