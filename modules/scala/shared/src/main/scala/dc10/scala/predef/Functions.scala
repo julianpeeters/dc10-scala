@@ -71,7 +71,7 @@ object Functions:
         for
           a <- domain
           b <- codomain
-          v <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Z]](
+          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, Z]](
             Term.TypeLevel.App.Infix(
               None,
               Term.TypeLevel.Lam.Function1Type(None, b.tpe.dep),
@@ -81,7 +81,7 @@ object Functions:
             )
           )
   
-        yield TypeExpr(v)
+        yield TypeExpr(t)
 
     extension [Z, A, B] (domain: StateT[ErrorF, List[Statement], (TypeExpr[A, Z], TypeExpr[A, Z])])
       @scala.annotation.targetName("fun2T")
@@ -113,7 +113,6 @@ object Functions:
           a <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A, Y]](fa.runEmptyA)
           b <- f(a)
           t <- StateT.pure[ErrorF, List[Statement], TypeLevel[A => B, X]](
-            // Term.TypeLevel.App.App2(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, ())
             Term.TypeLevel.App.Infix(None, Term.TypeLevel.Lam.Function1Type(None, a.value.tpe.dep), a.value.tpe, b.value.tpe, b.value.tpe.dep)
           )
           v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B, X]](Term.ValueLevel.Lam.Lam1(None, a.value, b.value, t))
@@ -166,6 +165,7 @@ object Functions:
             case dc10.scala.Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.App.InfixPi(qnt, tfun, a, tb, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Lam.Function1Type(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Lam.Function2Type(qnt, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType(qnt, dep) => ???

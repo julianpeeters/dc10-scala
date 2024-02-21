@@ -60,6 +60,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
           case trm@Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.InfixPi(qnt, tfun, a, tb, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Lam.Function1Type(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Lam.Function2Type(qnt, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.Var.BooleanType(qnt, dep) => s"import ${renderType(trm)}"
@@ -111,6 +112,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
         case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
         case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
         case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, z) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+        case Term.TypeLevel.App.InfixPi(qnt, tfun, a, tb, z) => s"${renderValue(a)} ${renderType(tfun)} ${renderType(tb)}"
         // primitive
         case Term.TypeLevel.Var.BooleanType(_, z) => "Boolean"
         case Term.TypeLevel.Var.IntType(_, z) => "Int"
