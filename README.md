@@ -1,10 +1,10 @@
 # dc10-scala
 A ***D**efinitional* ***C**ompiler* for generating Scala code.
- - Library for Scala 3 (JVM only)
+ - Library for Scala 3 (JS, JVM, and Native platforms)
  - Generates code for Scala 3
 
 ```scala
-"com.julianpeeters" %% "dc10-scala" % "0.6.0"
+"com.julianpeeters" %% "dc10-scala" % "0.7.0"
 ```
 
 ### `dc10-scala`
@@ -21,16 +21,16 @@ val snippet =
     s <- VAL("str", STRING, "hello, world")
     _ <- VAL("msg", STRING, s)
   yield ()
-// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@6f7d85d7
+// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@789797fd
 ```
 
 Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
 
 ```scala
 import dc10.scala.compiler.{compile, toString}
-import dc10.scala.version.`3.3.1`
+import dc10.scala.version.`3.4.0`
 
-val result: String = snippet.compile.toString["scala-3.3.1"]
+val result: String = snippet.compile.toString["scala-3.4.0"]
 // result: String = """val str: String = "hello, world"
 // val msg: String = str"""
 ```
