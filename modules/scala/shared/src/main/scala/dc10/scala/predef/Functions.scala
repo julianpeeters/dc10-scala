@@ -48,8 +48,8 @@ trait Functions[F[_]]:
 
   def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
 
-  // @scala.annotation.targetName("forOption")
-  // def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
+  @scala.annotation.targetName("forOption")
+  def FOR[A, Y](f: F[ValueExpr[A, Y]])(using sp: SourcePos): F[ValueExpr[Option[A], (Unit, Y)]]
 
   extension [G[_], A, X, Y] (nme: String)
     def <--(ff: F[ValueExpr[G[A], (X,Y)]]): F[ValueExpr[A, Y]]
@@ -147,13 +147,26 @@ object Functions:
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield f
 
-    // @scala.annotation.targetName("forOption")
-    // def FOR[A, Y](f: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Y)]] =
-    //   for
-    //     (l, a) <- StateT.liftF(f.runEmpty)
-    //     v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A], (Unit, Y)]](
-    //       ForComp(None, l, a.value, Term.TypeLevel.App.App1(None, Term.TypeLevel.Var.OptionType(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())), a.value.tpe, ((), a.value.tpe.dep))))
-    //   yield ValueExpr(v)
+    @scala.annotation.targetName("forOption")
+    def FOR[A, Y](f: StateT[ErrorF, List[Statement], ValueExpr[A, Y]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A], (Unit, Y)]] =
+      for
+        (l, a) <- StateT.liftF(f.runEmpty)
+        v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A], (Unit, Y)]](
+          ForComp(None, l, a.value, Term.TypeLevel.App.App1(None, Term.TypeLevel.Var.OptionType(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())), a.value.tpe,
+            Term.ValueLevel.App.AppCtor2(None, "",
+                Term.TypeLevel.App.App2(
+                  None,
+                  Term.TypeLevel.Var.TupleType(None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())),
+                  Term.TypeLevel.Var.UnitType(None),
+                  a.value.tpe.dep.tpe,
+                  a.value.tpe.dep.tpe.dep
+              ),
+              Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()),
+              Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ()),
+            )
+                
+          )))
+      yield ValueExpr(v)
 
     extension [G[_], A, X, Y] (nme: String)
       def <--(ff: StateT[ErrorF, List[Statement], ValueExpr[G[A], (X, Y)]]): StateT[ErrorF, List[Statement], ValueExpr[A, Y]] =
