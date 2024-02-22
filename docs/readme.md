@@ -1,6 +1,6 @@
 # dc10-scala
 A ***D**efinitional* ***C**ompiler* for generating Scala code.
- - Library for Scala @SCALA@ (JVM only)
+ - Library for Scala @SCALA@ (JS, JVM, and Native platforms)
  - Generates code for Scala @SCALA@
 
 ```scala
@@ -27,9 +27,9 @@ Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
 
 ```scala mdoc
 import dc10.scala.compiler.{compile, toString}
-import dc10.scala.version.`3.3.1`
+import dc10.scala.version.`3.4.0`
 
-val result: String = snippet.compile.toString["scala-3.3.1"]
+val result: String = snippet.compile.toString["scala-3.4.0"]
 ```
 
 ### Libraries
