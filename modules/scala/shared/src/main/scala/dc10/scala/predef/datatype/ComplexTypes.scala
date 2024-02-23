@@ -2,7 +2,7 @@ package dc10.scala.predef.datatype
 
 import cats.data.StateT
 import cats.implicits.given
-import dc10.scala.{ErrorF, Statement}
+import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 import dc10.scala.Symbol.Term.ValueLevel.Var.{ListCtor, OptionCtor}
@@ -138,6 +138,12 @@ object ComplexTypes:
           l <- tuple
           a <- arg1
           b <- arg2
+          _ <- StateT.liftF[ErrorF, List[Statement], Unit]((a.value, b.value) match
+            case (Term.ValueLevel.Var.UserDefinedValue(scala.Some(qnt1), nme1, tpe1, impl1), Term.ValueLevel.Var.UserDefinedValue(scala.Some(qnt2), nme2, tpe2, impl2)) =>
+              if nme1 == nme2 then Left(scala.List(Error("Linear type error")))
+              else Right(())
+            case _ => Right(())
+          )
           v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B], (Unit, (Y, Z))]](Term.ValueLevel.App.AppCtor2(
             None,
             "", 
@@ -155,7 +161,7 @@ object ComplexTypes:
                   a.value.tpe.dep.tpe.dep
                 ),
                 a.value.tpe.dep,
-                a.value.tpe.dep.tpe.dep
+                b.value.tpe.dep
               )
             ),
             a.value,

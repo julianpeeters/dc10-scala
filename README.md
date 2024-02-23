@@ -4,7 +4,7 @@ A ***D**efinitional* ***C**ompiler* for generating Scala code.
  - Generates code for Scala 3
 
 ```scala
-"com.julianpeeters" %% "dc10-scala" % "0.7.0"
+"com.julianpeeters" %% "dc10-scala" % "0.7.1"
 ```
 
 ### `dc10-scala`
@@ -21,7 +21,7 @@ val snippet =
     s <- VAL("str", STRING, "hello, world")
     _ <- VAL("msg", STRING, s)
   yield ()
-// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@789797fd
+// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@79ece636
 ```
 
 Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
