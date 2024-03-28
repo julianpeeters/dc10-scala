@@ -174,6 +174,7 @@ object Functions:
           g <- ff
           t <- StateT.liftF[ErrorF, List[Statement], TypeLevel[A, Y]](g.value.tpe match
             case dc10.scala.Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => Right(targ.asInstanceOf[TypeLevel[A, Y]])
+            case dc10.scala.Symbol.Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, dep) => Right(aarg.asInstanceOf[TypeLevel[A, Y]])
             case dc10.scala.Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => ???
             case dc10.scala.Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => ???

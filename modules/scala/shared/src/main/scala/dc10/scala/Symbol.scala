@@ -85,6 +85,7 @@ object Symbol:
       sealed trait App[T, Z] extends TypeLevel[T, Z]
       object App:
         case class App1[T[_], A, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A], X], targ: TypeLevel[A, Y], dep: ValueLevel[Z, Any]) extends App[T[A], Z]
+        case class App1T[T[_[_], _], F[_], A, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[F, A], X], farg: TypeLevel[F[A], Y], aarg: TypeLevel[A, Y],  dep: ValueLevel[Z, Any]) extends App[T[F, A], Z]
         case class App2[T[_,_], A, B, Q, W, X, Y, Z](qnt: Option[Long], tfun: TypeLevel[T[A, B], W], ta: TypeLevel[A, X], tb: TypeLevel[B, Y], dep: ValueLevel[Z, Any]) extends App[T[A, B], Z]
         case class App2T[T[_[_],_,_], F[_], A, B, C, Y, X, Z](qnt: Option[Long], tfun: TypeLevel[T[F,A,B], Y], ta1: TypeLevel[F[C], Z], ta2: TypeLevel[A, Z], tb: TypeLevel[B, Z], dep: ValueLevel[Z, Any]) extends App[T[F, A, B], Z]
         case class App3[T[_,_,_], A, B, C, X, Z](qnt: Option[Long], tfun: TypeLevel[T[A,B,C], Z], ta1: TypeLevel[A, Z], ta2: TypeLevel[B, Z], tb: TypeLevel[C, Z], dep: ValueLevel[Z, Any]) extends App[T[A, B, C], Z]
@@ -164,6 +165,7 @@ object Symbol:
       def dep: ValueLevel[Z, Any] =
         t match
           case Symbol.Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => dep
+          case Symbol.Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, dep) => dep
           case Symbol.Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => dep
           case Symbol.Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => dep
           case Symbol.Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => dep
@@ -185,7 +187,8 @@ object Symbol:
     extension [T, Z] (t: Term.TypeLevel[T, Z])
       def manageDep[ZZ](f: ValueLevel[Z, Any] => ValueLevel[ZZ, Any]): Term.TypeLevel[T, ZZ] =
         t match
-          case Term.TypeLevel.App.App1(qnt, tfun, targ, dep) =>  Term.TypeLevel.App.App1(qnt, tfun, targ, f(dep)) 
+          case Term.TypeLevel.App.App1(qnt, tfun, targ, dep) =>  Term.TypeLevel.App.App1(qnt, tfun, targ, f(dep))
+          case Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, dep) => Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, f(dep))
           case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => Term.TypeLevel.App.App2(qnt, tfun, ta, tb, f(dep))
           case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App2T(qnt, tfun, ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))
           case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => Term.TypeLevel.App.App3(qnt, tfun.manageDep(f), ta1.manageDep(f), ta2.manageDep(f), tb.manageDep(f), f(dep))

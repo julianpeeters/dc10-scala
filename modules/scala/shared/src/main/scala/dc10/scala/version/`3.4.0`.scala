@@ -56,6 +56,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
       terms.map(t =>
         t match
           case trm@Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
           case trm@Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
@@ -108,6 +109,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
       tpe match
         // application
         case Term.TypeLevel.App.App1(qnt, tfun, targ, z) => s"${renderType(tfun)}[${renderType(targ)}]"
+        case Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, z) => s"${renderType(tfun)}[${renderType(farg)}, ${renderType(aarg)}]"
         case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, z) => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
         case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
         case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
