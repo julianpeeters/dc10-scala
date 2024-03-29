@@ -9,24 +9,6 @@ import dc10.scala.Symbol.{Extension, Term}
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
 import dc10.scala.Symbol.Term.TypeLevel.App.Infix
 import org.tpolecat.sourcepos.SourcePos
-import dc10.scala.Statement.TypeDef.Match
-import dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp
-import dc10.scala.Symbol.Term.ValueLevel.App.App1
-import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1
-import dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2
-import dc10.scala.Symbol.Term.ValueLevel.App.AppPure
-import dc10.scala.Symbol.Term.ValueLevel.App.AppVargs
-import dc10.scala.Symbol.Term.ValueLevel.App.Dot1
-import dc10.scala.Symbol.Term.ValueLevel.App.Dotless
-import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1
-import dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2
-import dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral
-import dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral
-import dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral
-import dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor
-import dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor
-import dc10.scala.Symbol.Term.ValueLevel.Var.SomeCtor
-import dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue
 
 trait Functions[F[_]]:
 
@@ -34,17 +16,17 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("fun1T")
     def ==>(codomain: F[TypeExpr[B]]): F[TypeExpr[A => B]]
 
-  extension [A, B] (domain: F[(TypeExpr[A], TypeExpr[A])])
+  extension [A, B, C] (domain: F[(TypeExpr[A], TypeExpr[B])])
     @scala.annotation.targetName("fun2T")
-    def ==>(codomain: F[TypeExpr[B]]): F[TypeExpr[(A, A) => B]]
+    def ==>(codomain: F[TypeExpr[C]]): F[TypeExpr[(A, B) => C]]
 
   extension [A, B] (fa: F[ValueExpr[A]])
     @scala.annotation.targetName("fun1V")
     def ==>(f: ValueExpr[A] => F[ValueExpr[B]]): F[ValueExpr[A => B]]
 
-  extension [A, B] (fa: F[(ValueExpr[A], ValueExpr[A])])
+  extension [A, B, C] (fa: F[(ValueExpr[A], ValueExpr[B])])
     @scala.annotation.targetName("fun2V")
-    def ==>(f: (ValueExpr[A], ValueExpr[A]) => F[ValueExpr[B]]): F[ValueExpr[(A, A) => B]]
+    def ==>(f: (ValueExpr[A], ValueExpr[B]) => F[ValueExpr[C]]): F[ValueExpr[(A, B) => C]]
 
   def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
 
@@ -78,18 +60,17 @@ object Functions:
               b.tpe,
             )
           )
-  
         yield TypeExpr(t)
 
-    extension [A, B] (domain: StateT[ErrorF, List[Statement], (TypeExpr[A], TypeExpr[A])])
+    extension [A, B, C] (domain: StateT[ErrorF, List[Statement], (TypeExpr[A], TypeExpr[B])])
       @scala.annotation.targetName("fun2T")
       def ==>(
-        codomain: StateT[ErrorF, List[Statement], TypeExpr[B]]
-      ): StateT[ErrorF, List[Statement], TypeExpr[(A, A) => B]] =
+        codomain: StateT[ErrorF, List[Statement], TypeExpr[C]]
+      ): StateT[ErrorF, List[Statement], TypeExpr[(A, B) => C]] =
         for
           a <- domain
           b <- codomain
-          v <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, A) => B]](
+          v <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, B) => C]](
             Term.TypeLevel.App.App3(
               Term.TypeLevel.Lam.Function2Type(),
               a._1.tpe,
@@ -114,21 +95,17 @@ object Functions:
           v <- StateT.pure[ErrorF, List[Statement], ValueLevel[A => B]](Term.ValueLevel.Lam.Lam1(a.value, b.value, t))
         yield ValueExpr(v)
 
-    extension [A, B] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A], ValueExpr[A])])
+    extension [A, B, C] (fa: StateT[ErrorF, List[Statement], (ValueExpr[A], ValueExpr[B])])
       @scala.annotation.targetName("fun2V")
       def ==>(
-        f: (ValueExpr[A], ValueExpr[A]) => StateT[ErrorF, List[Statement], ValueExpr[B]]
-      ): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => B]] =
+        f: (ValueExpr[A], ValueExpr[B]) => StateT[ErrorF, List[Statement], ValueExpr[C]]
+      ): StateT[ErrorF, List[Statement], ValueExpr[(A, B) => C]] =
         for
           a <- StateT.liftF(fa.runEmptyA)
           b <- f(a._1, a._2)
-          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, A) => B]](Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a._1.value.tpe, a._2.value.tpe, b.value.tpe))
-          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[(A, A) => B]](Term.ValueLevel.Lam.Lam2(a._1.value, a._2.value, b.value, t))
+          t <- StateT.pure[ErrorF, List[Statement], TypeLevel[(A, B) => C]](Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a._1.value.tpe, a._2.value.tpe, b.value.tpe))
+          v <- StateT.pure[ErrorF, List[Statement], ValueLevel[(A, B) => C]](Term.ValueLevel.Lam.Lam2(a._1.value, a._2.value, b.value, t))
         yield ValueExpr(v)
-
-
-
-
 
     def EXT[G[_], B](
       func: StateT[ErrorF, List[Statement], G[B]]
@@ -148,8 +125,8 @@ object Functions:
       for
         (l, a) <- StateT.liftF(f.runEmpty)
         v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A]]](
-          ForComp(l, a.value, Term.TypeLevel.App.App1(Term.TypeLevel.Var.OptionType(), a.value.tpe,
-            )))
+          Term.ValueLevel.Blc.ForComp(l, a.value, Term.TypeLevel.App.App1(Term.TypeLevel.Var.OptionType(a.value.tpe), a.value.tpe,
+        )))
       yield ValueExpr(v)
 
     extension [G[_], A] (nme: String)
@@ -169,16 +146,16 @@ object Functions:
             case dc10.scala.Symbol.Term.TypeLevel.Var.IntType() => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.StringType() => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.UnitType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.ListType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.TupleType() => ???
+            case dc10.scala.Symbol.Term.TypeLevel.Var.ListType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
+            case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
+            case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
+            case dc10.scala.Symbol.Term.TypeLevel.Var.TupleType(arg1, arg2) => ???
             case dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType(nme, impl) => ???
           )
           i <- StateT.liftF[ErrorF, List[Statement], ValueLevel[A]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
-            case dc10.scala.Symbol.Term.ValueLevel.App.App1(fun, arg, tpe) => ??? 
+            case dc10.scala.Symbol.Term.ValueLevel.App.App1(fun, arg, tpe) => Right(arg.asInstanceOf[ValueLevel[A]]) 
+            case dc10.scala.Symbol.Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1(tpe, arg) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.AppPure(fun, arg, tpe) => Right(arg)
             case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => ???
@@ -190,10 +167,6 @@ object Functions:
             case dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral(tpe, i) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral(tpe, s) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.UnitLiteral(tpe, s) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.ListCtor(tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.OptionCtor(tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.SomeCtor(tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.TupleCtor(tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => ???
           )
           )

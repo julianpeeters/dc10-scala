@@ -100,10 +100,10 @@ object Symbol:
         case class IntType() extends Var[Int]
         case class StringType() extends Var[String]
         case class UnitType() extends Var[Unit]
-        case class ListType[A]() extends Var[A]
-        case class OptionType[A]() extends Var[A]
-        case class SomeType[A]() extends Var[A]
-        case class TupleType[A]() extends Var[A]
+        case class ListType[A](a: TypeLevel[A]) extends Var[List[A]]
+        case class OptionType[A](a: TypeLevel[A]) extends Var[Option[A]]
+        case class SomeType[A](a: TypeLevel[A]) extends Var[Option[A]]
+        case class TupleType[A, B](a: TypeLevel[A], b: TypeLevel[B]) extends Var[(A, B)]
         case class UserDefinedType[T](nme: String, impl: Option[TypeLevel[T]]) extends Var[T]
           
     sealed trait ValueLevel[T] extends Term
@@ -112,8 +112,8 @@ object Symbol:
       sealed abstract class App[T] extends Term.ValueLevel[T]
       object App:
         case class App1[A, B](fun: ValueLevel[A => B], arg: ValueLevel[A], tpe: TypeLevel[B]) extends Term.ValueLevel.App[B]
+        case class App2[A, B, C](fun: ValueLevel[(A, B) => C], arg: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
         case class AppCtor1[T, A](tpe: TypeLevel[T], arg: ValueLevel[A]) extends Term.ValueLevel.App[T]
-        case class AppCtor2[T, A, B](nme: String, tpe: TypeLevel[T], arg1: ValueLevel[A], arg2: ValueLevel[B]) extends Term.ValueLevel.App[T]
         case class AppPure[G[_], A](fun: ValueLevel[G[A]], arg: ValueLevel[A], tpe: TypeLevel[G[A]]) extends Term.ValueLevel.App[G[A]]
         case class AppVargs[G[_], A](fun: ValueLevel[G[A]], tpe: TypeLevel[G[A]], vargs: ValueLevel[A]*) extends Term.ValueLevel.App[G[A]]
         case class Dot1[A, B, C, D](fun: ValueLevel[D], arg1: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
@@ -131,18 +131,14 @@ object Symbol:
         case class IntLiteral(tpe: TypeLevel[Int], i: Int) extends Var[Int]
         case class StringLiteral(tpe: TypeLevel[String], s: String) extends Var[String]
         case class UnitLiteral(tpe: TypeLevel[Unit], u: Unit) extends Var[Unit]
-        case class ListCtor[A](tpe: TypeLevel[A]) extends Var[A]
-        case class OptionCtor[A](tpe: TypeLevel[A]) extends Var[A]
-        case class SomeCtor[A](tpe: TypeLevel[A]) extends Var[A]
-        case class TupleCtor[A, B](tpe: TypeLevel[Tuple2[A, B]]) extends Var[(A, B)]
         case class UserDefinedValue[T](nme: String, tpe: TypeLevel[T], impl: Option[ValueLevel[T]]) extends Var[T]
 
       extension [T] (v: ValueLevel[T])
         def tpe: TypeLevel[T] =
           v match
             case Term.ValueLevel.App.App1(fun, arg, tpe) => tpe
+            case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => tpe 
             case Term.ValueLevel.App.AppCtor1(tpe, arg) => tpe 
-            case Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2) => tpe 
             case Term.ValueLevel.App.AppPure(fun, arg, tpe) => tpe
             case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => tpe
             case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => tpe
@@ -154,10 +150,6 @@ object Symbol:
             case Term.ValueLevel.Var.IntLiteral(tpe, i) => tpe
             case Term.ValueLevel.Var.StringLiteral(tpe, s) => tpe
             case Term.ValueLevel.Var.UnitLiteral(tpe, u) => tpe
-            case Term.ValueLevel.Var.ListCtor(tpe) => tpe
-            case Term.ValueLevel.Var.OptionCtor(tpe) => tpe
-            case Term.ValueLevel.Var.SomeCtor(tpe) => tpe
-            case Term.ValueLevel.Var.TupleCtor(tpe) => tpe
             case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => tpe
             
     extension [T] (v: Term.ValueLevel[T])
@@ -165,8 +157,8 @@ object Symbol:
       def findImpl: Option[Term.ValueLevel[T]] =
         v match
           case Term.ValueLevel.App.App1(fun, arg, tpe) => Some(v)
+          case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => Some(v) 
           case Term.ValueLevel.App.AppCtor1(tpe, arg) => Some(v)
-          case Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2) => Some(v)
           case Term.ValueLevel.App.AppPure(fun, arg, tpe) => Some(v)
           case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(v)
           case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => Some(v)
@@ -178,17 +170,13 @@ object Symbol:
           case Term.ValueLevel.Var.IntLiteral(tpe, i) => Some(v)
           case Term.ValueLevel.Var.StringLiteral(tpe, s) => Some(v)
           case Term.ValueLevel.Var.UnitLiteral(tpe, s) => Some(v)
-          case Term.ValueLevel.Var.ListCtor(tpe) => Some(v)
-          case Term.ValueLevel.Var.OptionCtor(tpe) => Some(v)
-          case Term.ValueLevel.Var.SomeCtor(tpe) => Some(v)
-          case Term.ValueLevel.Var.TupleCtor(tpe) => Some(v)
           case u@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => impl.fold(None)(i => i.findImpl)
 
       def findVargs[A]: Option[Seq[Term.ValueLevel[A]]] =
         v.findImpl.fold(None)(i => i match
           case Term.ValueLevel.App.App1(fun, arg, tpe) => None
+          case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => None
           case Term.ValueLevel.App.AppCtor1(tpe, arg) => None
-          case Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2) => None
           case Term.ValueLevel.App.AppPure(fun, arg, tpe) => None
           case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Term.ValueLevel[A]]])
           case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => None
@@ -200,9 +188,5 @@ object Symbol:
           case Term.ValueLevel.Var.IntLiteral(tpe, i) => None
           case Term.ValueLevel.Var.StringLiteral(tpe, s) => None
           case Term.ValueLevel.Var.UnitLiteral(tpe, s) => None
-          case Term.ValueLevel.Var.ListCtor(tpe) => None
-          case Term.ValueLevel.Var.OptionCtor(tpe) => None
-          case Term.ValueLevel.Var.SomeCtor(tpe) => None
-          case Term.ValueLevel.Var.TupleCtor(tpe) => None
           case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => None
         )

@@ -70,7 +70,7 @@ object TemplateTypes:
         c <- StateT.pure(CaseClass[T](name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, c.tpe))
         f <- StateT.pure[ErrorF, List[Statement], ValueExpr[(A, B) => T]](ValueExpr(
-          Term.ValueLevel.Lam.Lam2(a.value, b.value, Term.ValueLevel.App.AppCtor2(name, c.tpe, a.value, b.value), t)
+          Term.ValueLevel.Lam.Lam2(a.value, b.value, Term.ValueLevel.App.App2(Term.ValueLevel.Var.UserDefinedValue("name", t, None), a.value, b.value, c.tpe), t)
         ))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[(A, B) => T]](
           (a.value, b.value) match

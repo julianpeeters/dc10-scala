@@ -45,7 +45,7 @@ object PrimitiveTypes:
         yield (a.value, b.value) match
           case (Term.ValueLevel.App.App1(fun, arg, tpe), _) => ???
           case (Term.ValueLevel.App.AppCtor1(tpe, arg), _) => ???
-          case (Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2), _) => ???
+          case (Term.ValueLevel.App.App2(fun, arg1, arg2, tpe), _) => ???
           case (Term.ValueLevel.App.AppPure(fun, arg, tpe), _) => ???
           case (Term.ValueLevel.App.AppVargs(fun, tpe, vargs*), _) => ???
           case (Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe), _) => ???
@@ -58,10 +58,6 @@ object PrimitiveTypes:
           case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), _) => ???
           case (Term.ValueLevel.Var.StringLiteral(tpe, s), _) => ???
           case (Term.ValueLevel.Var.UnitLiteral(tpe, u), _) => ???
-          case (Term.ValueLevel.Var.ListCtor(tpe), _) => ???
-          case (Term.ValueLevel.Var.OptionCtor(tpe), _) => ???
-          case (Term.ValueLevel.Var.SomeCtor(tpe), _) => ???
-          case (Term.ValueLevel.Var.TupleCtor(tpe), _) => ???
           case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), _) => ???
         
 

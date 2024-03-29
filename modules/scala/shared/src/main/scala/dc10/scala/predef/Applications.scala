@@ -83,10 +83,6 @@ object Applications:
             case Term.TypeLevel.App.Infix(tfun, ta, tb) => Right(tb.asInstanceOf[Term.TypeLevel[B]])
             case Term.TypeLevel.Lam.Function1Type() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.Var.UserDefinedType(nme, impl) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error")))
-            case Term.TypeLevel.Var.ListType() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
-            case Term.TypeLevel.Var.OptionType() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
-            case Term.TypeLevel.Var.SomeType() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
-            case Term.TypeLevel.Var.TupleType() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
           )
         yield ValueExpr(Term.ValueLevel.App.App1(f.value, a.value, t))
 
