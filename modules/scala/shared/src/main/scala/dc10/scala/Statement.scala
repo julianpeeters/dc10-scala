@@ -32,20 +32,18 @@ object Statement:
     sp: SourcePos
   ) extends Statement:
     type Tpe
-    type Zed
-    def caseclass: CaseClass[Tpe, Zed]
+    def caseclass: CaseClass[Tpe]
 
   object CaseClassDef:
-    def apply[T, Z](
-      v: CaseClass[T, Z],
+    def apply[T](
+      v: CaseClass[T],
       i: Int
     )(
       using sp: SourcePos
     ): CaseClassDef =
       new CaseClassDef(i, sp):
         type Tpe = T
-        type Zed = Z
-        def caseclass: CaseClass[T, Z] = v
+        def caseclass: CaseClass[T] = v
 
   sealed abstract case class ExtensionDef(
     indent: Int,
@@ -86,18 +84,18 @@ object Statement:
     sp: SourcePos
   ) extends Statement:
     type Tpe
-    def obj: Object[Tpe, Unit]
+    def obj: Object[Tpe]
 
   object ObjectDef:
     def apply[T](
-      o: Object[T, Unit],
+      o: Object[T],
       i: Int
     )(
       using sp: SourcePos
     ): ObjectDef =
       new ObjectDef(i, sp):
         type Tpe = T
-        def obj: Object[T, Unit] = o
+        def obj: Object[T] = o
 
   sealed abstract case class PackageDef(
     indent: Int,
@@ -123,153 +121,146 @@ object Statement:
 
   object TypeDef:
 
-    abstract case class Alias[T, Z](
+    abstract case class Alias[T](
       i: Int,
       s: SourcePos   
     ) extends TypeDef:
       type Tpe = T
-      type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
-      def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z]
+      def tpe: Term.TypeLevel.Var.UserDefinedType[T]
 
 
     object Alias:
-      def apply[T, Z](
+      def apply[T](
         i: Int,
-        t: Term.TypeLevel.Var.UserDefinedType[T, Z]
+        t: Term.TypeLevel.Var.UserDefinedType[T]
       )(
         using sp: SourcePos
       ): TypeDef =
-        new Alias[T, Z](i, sp):
-          def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z] = t
+        new Alias[T](i, sp):
+          def tpe: Term.TypeLevel.Var.UserDefinedType[T] = t
 
-    abstract case class Match[T[_], A, B, X, Y, Z](
+    abstract case class Match[T[_], A, B](
       i: Int,
       s: SourcePos   
     ) extends TypeDef:
       type Tpe = T[A]
-      type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
-      def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z]
-      def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
+      def tpe: Term.TypeLevel.App.App1[T, A]
+      def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?]]
 
     object Match:
-      def apply[T[_], A, B, X, Y, Z](
+      def apply[T[_], A, B](
         i: Int,
-        t: Term.TypeLevel.App.App1[T, A, X, Y, Z],
-        f: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
+        t: Term.TypeLevel.App.App1[T, A],
+        f: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?]]
       )(
         using sp: SourcePos
       ): TypeDef =
-        new Match[T, A, B, X, Y, Z](i, sp):
-          def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z] = t
-          def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]] = f
+        new Match[T, A, B](i, sp):
+          def tpe: Term.TypeLevel.App.App1[T, A] = t
+          def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?]] = f
 
   sealed trait ValueDef extends Statement:
     type Tpe
-    type Zed
-    def value: Term.ValueLevel.Var.UserDefinedValue[Tpe, Zed]
+    def value: Term.ValueLevel.Var.UserDefinedValue[Tpe]
     def indent: Int
     def sp: SourcePos
 
   object ValueDef:
 
-    abstract case class Def[T, A, B, Z](
+    abstract case class Def[T, A, B](
       i: Int,
       s: SourcePos
     ) extends ValueDef:
       type Tpe = T
-      type Zed = Z
-      def arg: Term.ValueLevel[A, Z]
-      def ret: Option[Term.ValueLevel[B, Z]]
-      def tpe: Term.TypeLevel[B, Z]
+      def arg: Term.ValueLevel[A]
+      def ret: Option[Term.ValueLevel[B]]
+      def tpe: Term.TypeLevel[B]
       def indent: Int = i
       def sp: SourcePos = s
     object Def:
-      def apply[T, A, B, Z](
+      def apply[T, A, B](
         i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z],
-        a: Term.ValueLevel[A, Z],
-        t: Term.TypeLevel[B, Z],
-        r: Option[Term.ValueLevel[B, Z]]
+        v: Term.ValueLevel.Var.UserDefinedValue[T],
+        a: Term.ValueLevel[A],
+        t: Term.TypeLevel[B],
+        r: Option[Term.ValueLevel[B]]
       )(
         using sp: SourcePos
       ): ValueDef =
-        new Def[T, A, B, Z](i, sp):
-          def arg: Term.ValueLevel[A, Z] = a
-          def ret: Option[Term.ValueLevel[B, Z]] = r
-          def tpe: Term.TypeLevel[B, Z] = t
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
+        new Def[T, A, B](i, sp):
+          def arg: Term.ValueLevel[A] = a
+          def ret: Option[Term.ValueLevel[B]] = r
+          def tpe: Term.TypeLevel[B] = t
+          def value: Term.ValueLevel.Var.UserDefinedValue[T] = v
 
-    abstract case class Fld[T, Z](
+    abstract case class Fld[T](
       i: Int,
       s: SourcePos   
     ) extends ValueDef:
       type Tpe = T
-      type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
 
     object Fld:
-      def apply[T, Z](
+      def apply[T](
         i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z]
+        v: Term.ValueLevel.Var.UserDefinedValue[T]
       )(
         using sp: SourcePos
       ): ValueDef =
-        new Fld[T, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
+        new Fld[T](i, sp):
+          def value: Term.ValueLevel.Var.UserDefinedValue[T] = v
    
     
-    abstract case class Gen[G[_], A, Y, Z](
+    abstract case class Gen[G[_], A](
       i: Int,
       s: SourcePos   
     ) extends ValueDef:
       type Tpe = A
-      type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
-      def impl: Term.ValueLevel[G[A], (Y, Z)]
+      def impl: Term.ValueLevel[G[A]]
 
     object Gen:
-      def apply[G[_], A, Y, Z](
+      def apply[G[_], A](
         i: Int,
-        u: Term.ValueLevel.Var.UserDefinedValue[A, Z],
-        v: Term.ValueLevel[G[A], (Y, Z)]
+        u: Term.ValueLevel.Var.UserDefinedValue[A],
+        v: Term.ValueLevel[G[A]]
 
       )(
         using sp: SourcePos
       ): ValueDef =
-        new Gen[G, A, Y, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[A, Z] = u     
-          def impl: Term.ValueLevel[G[A], (Y, Z)] = v
+        new Gen[G, A](i, sp):
+          def value: Term.ValueLevel.Var.UserDefinedValue[A] = u     
+          def impl: Term.ValueLevel[G[A]] = v
 
-    abstract case class Val[T, Z](
+    abstract case class Val[T](
       i: Int,
       s: SourcePos   
     ) extends ValueDef:
       type Tpe = T
-      type Zed = Z
       def indent: Int = i
       def sp: SourcePos = s
 
     object Val:
-      def apply[T, Z](
+      def apply[T](
         i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z]
+        v: Term.ValueLevel.Var.UserDefinedValue[T]
       )(
         using sp: SourcePos
       ): ValueDef =
-        new Val[T, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
-          def tpe: Term.TypeLevel[T, Z] = v.tpe
+        new Val[T](i, sp):
+          def value: Term.ValueLevel.Var.UserDefinedValue[T] = v
+          def tpe: Term.TypeLevel[T] = v.tpe
    
-  case class TypeExpr[T, Z](tpe: Term.TypeLevel[T, Z]) extends Statement:
+  case class TypeExpr[T](tpe: Term.TypeLevel[T]) extends Statement:
     def indent: Int = 0
     def sp: SourcePos = summon[SourcePos]
 
-  case class ValueExpr[T, Z](value: Term.ValueLevel[T, Z]) extends Statement:
+  case class ValueExpr[T](value: Term.ValueLevel[T]) extends Statement:
     def indent: Int = 0
     def sp: SourcePos = summon[SourcePos]

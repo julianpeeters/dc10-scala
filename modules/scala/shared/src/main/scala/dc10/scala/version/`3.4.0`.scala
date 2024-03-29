@@ -37,7 +37,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
     private def indent(i: Int): String =
       "  ".repeat(i)
 
-    private def renderCaseClass[Z, T](cls: CaseClass[Z, T]) =
+    private def renderCaseClass[T](cls: CaseClass[T]) =
       s"case class ${cls.nme}(${
         if cls.fields.length <= 1
         then render(cls.fields)
@@ -47,7 +47,7 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
     private def renderExtension(ext: Extension) =
       s"extension (${render(List(ext.field)).mkString})\n  ${render(ext.body)}\n"
 
-    private def renderFieldDef[T, Z](d: Statement.ValueDef.Fld[T, Z], input: List[Statement]): String =
+    private def renderFieldDef[T](d: Statement.ValueDef.Fld[T], input: List[Statement]): String =
       if input.length <= 1
       then renderValueDef(d)
       else indent(d.indent + 1) ++ renderValueDef(d) ++ ","
@@ -55,47 +55,46 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
     private def renderImports(terms: List[Term]): String =
       terms.map(t =>
         t match
-          case trm@Term.TypeLevel.App.App1(qnt, tfun, targ, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.App2(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.App.InfixPi(qnt, tfun, a, tb, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Lam.Function1Type(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Lam.Function2Type(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.BooleanType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.IntType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.StringType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.UnitType(qnt) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.ListType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.OptionType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.SomeType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.TupleType(qnt, dep) => s"import ${renderType(trm)}"
-          case trm@Term.TypeLevel.Var.UserDefinedType(qnt, nme, impl, dep) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App1(tfun, targ) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App1T(tfun, farg, aarg) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App2(tfun, ta, tb) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App2T(tfun, ta1, ta2, tb) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.App.Infix(tfun, ta, tb) => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Lam.Function1Type() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Lam.Function2Type() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.BooleanType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.IntType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.StringType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.UnitType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.ListType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.OptionType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.SomeType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.TupleType() => s"import ${renderType(trm)}"
+          case trm@Term.TypeLevel.Var.UserDefinedType(nme, impl) => s"import ${renderType(trm)}"
 
-          case trm@Term.ValueLevel.App.App1(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.AppCtor1(qnt, tpe, arg) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.AppCtor2(qnt, nme, tpe, arg1, arg2) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.AppPure(qnt, fun, arg, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.AppVargs(qnt, fun, tpe, vargs*) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.Dot1(qnt, fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.App.Dotless(qnt, fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Blc.ForComp(qnt, gens, ret, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Lam.Lam1(qnt, a, b, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Lam.Lam2(qnt, a1, a2, c, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.BooleanLiteral(qnt, tpe, b) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.IntLiteral(qnt, tpe, i) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.StringLiteral(qnt, tpe, s) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.UnitLiteral(qnt, tpe, u) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.ListCtor(qnt, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.OptionCtor(qnt, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.SomeCtor(qnt, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.TupleCtor(qnt, tpe) => s"import ${renderValue(trm)}"
-          case trm@Term.ValueLevel.Var.UserDefinedValue(qnt, nme, tpe, impl) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.App1(fun, arg, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppCtor1(tpe, arg) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppCtor2(nme, tpe, arg1, arg2) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppPure(fun, arg, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Blc.ForComp(gens, ret, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Lam.Lam1(a, b, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.BooleanLiteral(tpe, b) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.IntLiteral(tpe, i) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.StringLiteral(tpe, s) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.UnitLiteral(tpe, u) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.ListCtor(tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.OptionCtor(tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.SomeCtor(tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.TupleCtor(tpe) => s"import ${renderValue(trm)}"
+          case trm@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => s"import ${renderValue(trm)}"
         ).mkString("\n") ++ "\n"
 
-    private def renderObject[Z, T](obj: Object[Z, T]): String =
+    private def renderObject[T](obj: Object[T]): String =
       obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
         s"object ${obj.nme} extends ${renderType(p)}:\n\n${render(obj.body)}"
       )
@@ -105,29 +104,28 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
         case Package.Basic(nme, pkgdef) => s"package ${nme}\n\n${renderPackage(pkgdef.pkg)}"
         case Package.Empty(ms) => render(ms)
       
-    private def renderType[Z, T, X](tpe: Term.TypeLevel[T, X]): String =
+    private def renderType[T](tpe: Term.TypeLevel[T]): String =
       tpe match
         // application
-        case Term.TypeLevel.App.App1(qnt, tfun, targ, z) => s"${renderType(tfun)}[${renderType(targ)}]"
-        case Term.TypeLevel.App.App1T(qnt, tfun, farg, aarg, z) => s"${renderType(tfun)}[${renderType(farg)}, ${renderType(aarg)}]"
-        case Term.TypeLevel.App.App2(qnt, tfun, ta, tb, z) => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
-        case Term.TypeLevel.App.App2T(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
-        case Term.TypeLevel.App.App3(qnt, tfun, ta1, ta2, tb, z) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
-        case Term.TypeLevel.App.Infix(qnt, tfun, ta, tb, z) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-        case Term.TypeLevel.App.InfixPi(qnt, tfun, a, tb, z) => s"${renderValue(a)} ${renderType(tfun)} ${renderType(tb)}"
+        case Term.TypeLevel.App.App1(tfun, targ) => s"${renderType(tfun)}[${renderType(targ)}]"
+        case Term.TypeLevel.App.App1T(tfun, farg, aarg) => s"${renderType(tfun)}[${renderType(farg)}, ${renderType(aarg)}]"
+        case Term.TypeLevel.App.App2(tfun, ta, tb) => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
+        case Term.TypeLevel.App.App2T(tfun, ta1, ta2, tb) => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
+        case Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
+        case Term.TypeLevel.App.Infix(tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
         // primitive
-        case Term.TypeLevel.Var.BooleanType(_, z) => "Boolean"
-        case Term.TypeLevel.Var.IntType(_, z) => "Int"
-        case Term.TypeLevel.Var.StringType(_, z) => "String"
-        case Term.TypeLevel.Var.UnitType(_) => "Unit"
+        case Term.TypeLevel.Var.BooleanType() => "Boolean"
+        case Term.TypeLevel.Var.IntType() => "Int"
+        case Term.TypeLevel.Var.StringType() => "String"
+        case Term.TypeLevel.Var.UnitType() => "Unit"
         // complex
-        case Term.TypeLevel.Lam.Function1Type(_, z) => "=>"
-        case Term.TypeLevel.Lam.Function2Type(_, z) => "=>"
-        case Term.TypeLevel.Var.ListType(_, z) => "List"
-        case Term.TypeLevel.Var.OptionType(_, z) => "Option"
-        case Term.TypeLevel.Var.SomeType(_, z) => "Some"
-        case Term.TypeLevel.Var.TupleType(_, z) => "Tuple2"
-        case Term.TypeLevel.Var.UserDefinedType(q, s, i, z) => s
+        case Term.TypeLevel.Lam.Function1Type() => "=>"
+        case Term.TypeLevel.Lam.Function2Type() => "=>"
+        case Term.TypeLevel.Var.ListType() => "List"
+        case Term.TypeLevel.Var.OptionType() => "Option"
+        case Term.TypeLevel.Var.SomeType() => "Some"
+        case Term.TypeLevel.Var.TupleType() => "Tuple2"
+        case Term.TypeLevel.Var.UserDefinedType(s, i) => s
 
     private def renderTypeDef(typeDef: Statement.TypeDef): String =
       typeDef match
@@ -140,32 +138,32 @@ given `3.4.0`: Renderer["scala-3.4.0", Error, List[Statement]] =
           s"""|type ${renderType(d.tpe)} = ${renderType(d.tpe.targ)} match
               |${d.rhs.map(app => indent(d.indent + 1) ++ "case " ++ renderType(app)).toList.mkString("\n")}""".stripMargin
           
-    private def renderValue[Z, T, X](value: Term.ValueLevel[T, Z]): String =
+    private def renderValue[Z, T, X](value: Term.ValueLevel[T]): String =
       value match 
         // application
-        case Term.ValueLevel.App.App1(q, f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
-        case Term.ValueLevel.App.AppCtor1(q, t, a) => s"${renderType(t)}(${renderValue(a)})"
-        case Term.ValueLevel.App.AppCtor2(q, n, t, a, b) => s"$n(${renderValue(a)}, ${renderValue(b)})"
-        case Term.ValueLevel.App.AppPure(q, f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
-        case Term.ValueLevel.App.AppVargs(q, f, t, as*) => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
-        case Term.ValueLevel.App.Dot1(q, f, a, b, t) => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
-        case Term.ValueLevel.App.Dotless(q, f, a, b, t) => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
+        case Term.ValueLevel.App.App1(f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
+        case Term.ValueLevel.App.AppCtor1(t, a) => s"${renderType(t)}(${renderValue(a)})"
+        case Term.ValueLevel.App.AppCtor2(n, t, a, b) => s"$n(${renderValue(a)}, ${renderValue(b)})"
+        case Term.ValueLevel.App.AppPure(f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
+        case Term.ValueLevel.App.AppVargs(f, t, as*) => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
+        case Term.ValueLevel.App.Dot1(f, a, b, t) => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
+        case Term.ValueLevel.App.Dotless(f, a, b, t) => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
         // block
-        case Term.ValueLevel.Blc.ForComp(q, l, v, t) => s"\n  for\n${render(l.map(s => s.addIndent))}\n  yield ${renderValue(v)}"
+        case Term.ValueLevel.Blc.ForComp(l, v, t) => s"\n  for\n${render(l.map(s => s.addIndent))}\n  yield ${renderValue(v)}"
         // function
-        case Term.ValueLevel.Lam.Lam1(q, a, b, t) => s"${renderValue(a)} => ${renderValue(b)}"
-        case Term.ValueLevel.Lam.Lam2(q, a1, a2, b, t) => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(b)}"
+        case Term.ValueLevel.Lam.Lam1(a, b, t) => s"${renderValue(a)} => ${renderValue(b)}"
+        case Term.ValueLevel.Lam.Lam2(a1, a2, b, t) => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(b)}"
         // primitive
-        case Term.ValueLevel.Var.BooleanLiteral(q, tpe, b) => s"$b"
-        case Term.ValueLevel.Var.IntLiteral(q, tpe, i) => s"$i"
-        case Term.ValueLevel.Var.StringLiteral(q, tpe, s) => s"\"${s}\""
-        case Term.ValueLevel.Var.UnitLiteral(q, tpe, u) => s"$u"
+        case Term.ValueLevel.Var.BooleanLiteral(tpe, b) => s"$b"
+        case Term.ValueLevel.Var.IntLiteral(tpe, i) => s"$i"
+        case Term.ValueLevel.Var.StringLiteral(tpe, s) => s"\"${s}\""
+        case Term.ValueLevel.Var.UnitLiteral(tpe, u) => s"$u"
         // complex
-        case Term.ValueLevel.Var.ListCtor(q, tpe) => s"List"
-        case Term.ValueLevel.Var.OptionCtor(q, tpe) => s"Option"
-        case Term.ValueLevel.Var.SomeCtor(q, tpe) => s"Some"
-        case Term.ValueLevel.Var.TupleCtor(q, tpe) => s""
-        case Term.ValueLevel.Var.UserDefinedValue(q, s, t, i) => s
+        case Term.ValueLevel.Var.ListCtor(tpe) => s"List"
+        case Term.ValueLevel.Var.OptionCtor(tpe) => s"Option"
+        case Term.ValueLevel.Var.SomeCtor(tpe) => s"Some"
+        case Term.ValueLevel.Var.TupleCtor(tpe) => s""
+        case Term.ValueLevel.Var.UserDefinedValue(s, t, i) => s
 
     private def renderValueDef(valueDef: Statement.ValueDef): String =
       valueDef match
