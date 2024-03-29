@@ -95,10 +95,11 @@ object ComplexTypes:
           l <- tuple
           a <- arg1
           b <- arg2
-          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B]]](Term.ValueLevel.App.AppCtor2(
-            "", 
-            Term.TypeLevel.Var.TupleType(),
-            a.value,
-            b.value
+          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B]]](
+            Term.ValueLevel.App.AppCtor2(
+              "",
+              Term.TypeLevel.Var.TupleType(),
+              a.value,
+              b.value
           ))
         yield ValueExpr(v)
