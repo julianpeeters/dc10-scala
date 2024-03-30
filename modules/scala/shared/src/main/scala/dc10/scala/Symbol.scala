@@ -113,9 +113,9 @@ object Symbol:
       object App:
         case class App1[A, B](fun: ValueLevel[A => B], arg: ValueLevel[A], tpe: TypeLevel[B]) extends Term.ValueLevel.App[B]
         case class App2[A, B, C](fun: ValueLevel[(A, B) => C], arg: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
-        case class AppCtor1[T, A](tpe: TypeLevel[T], arg: ValueLevel[A]) extends Term.ValueLevel.App[T]
         case class AppPure[G[_], A](fun: ValueLevel[G[A]], arg: ValueLevel[A], tpe: TypeLevel[G[A]]) extends Term.ValueLevel.App[G[A]]
         case class AppVargs[G[_], A](fun: ValueLevel[G[A]], tpe: TypeLevel[G[A]], vargs: ValueLevel[A]*) extends Term.ValueLevel.App[G[A]]
+        case class Dot0[A, B, C](fun: ValueLevel[C], arg1: ValueLevel[A], tpe: TypeLevel[B]) extends Term.ValueLevel.App[B]
         case class Dot1[A, B, C, D](fun: ValueLevel[D], arg1: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
         case class Dotless[A, B, C, D](fun: ValueLevel[D], arg1: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
       sealed abstract class Blc[T] extends Term.ValueLevel[T]
@@ -138,9 +138,9 @@ object Symbol:
           v match
             case Term.ValueLevel.App.App1(fun, arg, tpe) => tpe
             case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => tpe 
-            case Term.ValueLevel.App.AppCtor1(tpe, arg) => tpe 
             case Term.ValueLevel.App.AppPure(fun, arg, tpe) => tpe
             case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => tpe
+            case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => tpe
             case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => tpe
             case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => tpe
             case Term.ValueLevel.Blc.ForComp(l, r, tpe) => tpe
@@ -158,9 +158,9 @@ object Symbol:
         v match
           case Term.ValueLevel.App.App1(fun, arg, tpe) => Some(v)
           case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => Some(v) 
-          case Term.ValueLevel.App.AppCtor1(tpe, arg) => Some(v)
           case Term.ValueLevel.App.AppPure(fun, arg, tpe) => Some(v)
           case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(v)
+          case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => Some(v)
           case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => Some(v)
           case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => Some(v)
           case Term.ValueLevel.Blc.ForComp(l, r, t) => Some(v)
@@ -176,9 +176,9 @@ object Symbol:
         v.findImpl.fold(None)(i => i match
           case Term.ValueLevel.App.App1(fun, arg, tpe) => None
           case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => None
-          case Term.ValueLevel.App.AppCtor1(tpe, arg) => None
           case Term.ValueLevel.App.AppPure(fun, arg, tpe) => None
           case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Term.ValueLevel[A]]])
+          case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => None
           case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => None
           case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => None
           case Term.ValueLevel.Blc.ForComp(l, r, t) => None

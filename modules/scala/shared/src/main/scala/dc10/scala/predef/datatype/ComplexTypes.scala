@@ -45,8 +45,8 @@ object ComplexTypes:
       for
         a <- arg
         v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Option[A]]](
-          Term.ValueLevel.App.App1(
-            Term.ValueLevel.Var.UserDefinedValue("Option", Term.TypeLevel.App.App2(Term.TypeLevel.Lam.Function1Type(), a.value.tpe, Term.TypeLevel.Var.OptionType(a.value.tpe)), None),
+          Term.ValueLevel.App.AppPure(
+            Term.ValueLevel.Var.UserDefinedValue("Option", Term.TypeLevel.Var.OptionType(a.value.tpe), None),
             a.value,
             Term.TypeLevel.Var.OptionType(a.value.tpe),
           )
@@ -57,8 +57,8 @@ object ComplexTypes:
       for
         a <- arg
         v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Option[A]]](
-          Term.ValueLevel.App.App1(
-            Term.ValueLevel.Var.UserDefinedValue("Some", Term.TypeLevel.App.App2(Term.TypeLevel.Lam.Function1Type(), a.value.tpe, Term.TypeLevel.Var.SomeType(a.value.tpe)), None),
+          Term.ValueLevel.App.AppPure(
+            Term.ValueLevel.Var.UserDefinedValue("Some", Term.TypeLevel.Var.SomeType(a.value.tpe), None),
             a.value,
             Term.TypeLevel.Var.SomeType(a.value.tpe),
           )

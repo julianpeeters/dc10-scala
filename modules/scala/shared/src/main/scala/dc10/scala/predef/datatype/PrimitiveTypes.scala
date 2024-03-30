@@ -44,10 +44,10 @@ object PrimitiveTypes:
           b <- fb
         yield (a.value, b.value) match
           case (Term.ValueLevel.App.App1(fun, arg, tpe), _) => ???
-          case (Term.ValueLevel.App.AppCtor1(tpe, arg), _) => ???
           case (Term.ValueLevel.App.App2(fun, arg1, arg2, tpe), _) => ???
           case (Term.ValueLevel.App.AppPure(fun, arg, tpe), _) => ???
           case (Term.ValueLevel.App.AppVargs(fun, tpe, vargs*), _) => ???
+          case (Term.ValueLevel.App.Dot0(fun, arg1, tpe), _) => ???
           case (Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe), _) => ???
           case (Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe), _) => ???
           case (Term.ValueLevel.Blc.ForComp(gens, ret, tpe), _) => ???

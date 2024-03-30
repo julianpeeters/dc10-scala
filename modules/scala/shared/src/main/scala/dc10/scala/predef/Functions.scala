@@ -155,9 +155,9 @@ object Functions:
           i <- StateT.liftF[ErrorF, List[Statement], ValueLevel[A]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
             case dc10.scala.Symbol.Term.ValueLevel.App.App1(fun, arg, tpe) => Right(arg.asInstanceOf[ValueLevel[A]]) 
             case dc10.scala.Symbol.Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.AppCtor1(tpe, arg) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.AppPure(fun, arg, tpe) => Right(arg)
             case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dot0(fun, arg1, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => ???
             case dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp(l, r, tpe) => ???

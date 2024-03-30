@@ -36,9 +36,6 @@ object TemplateTypes:
         (fields, a) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], ValueExpr[A])](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App2(Term.TypeLevel.Lam.Function1Type(), a.value.tpe, c.tpe))
-        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A => T]](ValueExpr(
-          Term.ValueLevel.Lam.Lam1(a.value, Term.ValueLevel.App.AppCtor1(c.tpe, a.value), t)
-        ))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A => T]](
           a.value match
             case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => Right[List[Error], Statement.ValueExpr[A => T]](ValueExpr[A => T](
@@ -49,7 +46,8 @@ object TemplateTypes:
                     a.value.tpe,
                     c.tpe
                 ),
-                impl = Some(f.value))
+                impl = None
+              )
             ))
             case _ => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
           )
@@ -69,9 +67,6 @@ object TemplateTypes:
         (fields, (a, b)) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], (ValueExpr[A], ValueExpr[B]))](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, c.tpe))
-        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[(A, B) => T]](ValueExpr(
-          Term.ValueLevel.Lam.Lam2(a.value, b.value, Term.ValueLevel.App.App2(Term.ValueLevel.Var.UserDefinedValue("name", t, None), a.value, b.value, c.tpe), t)
-        ))
         v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[(A, B) => T]](
           (a.value, b.value) match
             case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), Term.ValueLevel.Var.UserDefinedValue(nme2, tpe2, impl2)) =>
@@ -84,7 +79,7 @@ object TemplateTypes:
                       b.value.tpe,
                       c.tpe
                   ),
-                  impl = Some(f.value)
+                  impl = None
                 )
               ))
             case _ => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
