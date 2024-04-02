@@ -35,6 +35,7 @@ class ComplexTypesSuite extends FunSuite:
     
     def ast =
       for
+        _ <- VAL("l0", LIST(INT), List())
         _ <- VAL("l1", LIST(INT), List(1, 2, 3))
         a <- VAL("l2", LIST(STRING), List("1", "2", "3"))
         l <- VAL("l3", LIST(LIST(STRING)), List(List("1", "2", "3"), List("4", "5", "6")))
@@ -45,7 +46,8 @@ class ComplexTypesSuite extends FunSuite:
       ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
-      """|val l1: List[Int] = List(1, 2, 3)
+      """|val l0: List[Int] = List()
+         |val l1: List[Int] = List(1, 2, 3)
          |val l2: List[String] = List("1", "2", "3")
          |val l3: List[List[String]] = List(List("1", "2", "3"), List("4", "5", "6"))
          |val l4: List[List[List[String]]] = List(l3, l3)""".stripMargin

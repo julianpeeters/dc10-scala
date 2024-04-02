@@ -20,7 +20,7 @@ object Packages:
       for
         (ms, a) <- StateT.liftF[ErrorF, List[File], (List[File], A)](files.runEmpty)
         ss = ms.map(s => s.copy(
-          path = Path.of(nme).resolve(s.path),
+          path = Path.of(nme.replaceAll("""\.""", "\\")).resolve(s.path),
           contents = List[Statement](Statement.PackageDef(Symbol.Package.Basic(nme, Statement.PackageDef(Symbol.Package.Empty(s.contents), 0)), 0))
         ))
         _ <- ss.traverse(d => StateT.modifyF[ErrorF, List[File]](ctx => ctx.ext(d)))

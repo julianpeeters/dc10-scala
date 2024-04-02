@@ -22,33 +22,40 @@ object ComplexTypes:
     with Functions.Mixins with Variables.Mixins:
 
     def LIST[A](targ: StateT[ErrorF, List[Statement], TypeExpr[A]]): StateT[ErrorF, List[Statement], TypeExpr[List[A]]] =
-      targ.map(a => TypeExpr(Term.TypeLevel.Var.ListType(a.tpe)))
+      targ.map(a => TypeExpr(Term.TypeLevel.App.App1(Term.TypeLevel.Var.UserDefinedType("List", None), a.tpe)))
       
     def List[A](args: StateT[ErrorF, List[Statement], ValueExpr[A]]*): StateT[ErrorF, List[Statement], ValueExpr[List[A]]] =
       for
         a <- args.toList.sequence
-        v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[List[A]]](a.headOption.fold(
-            ??? // TODO: make a NOTHING type for empty
-          )(h =>
-            Term.ValueLevel.App.AppVargs(
-              Term.ValueLevel.Var.UserDefinedValue("List", Term.TypeLevel.Var.ListType(h.value.tpe), None),
-              Term.TypeLevel.Var.ListType(h.value.tpe),
-              a.map(arg => arg.value)*)
+        v <- a.headOption.fold[StateT[ErrorF, List[Statement], ValueExpr[List[A]]]](
+          LIST(StateT.pure[ErrorF, List[Statement], TypeExpr[A]](TypeExpr(Term.TypeLevel.Var.NothingType()))).map(l => 
+            ValueExpr(Term.ValueLevel.App.AppVargs(
+              Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, None),
+              l.tpe,
+              Nil*
+            ))
           )
+        )(h => LIST(StateT.pure(TypeExpr(h.value.tpe))).map(l => 
+          ValueExpr(Term.ValueLevel.App.AppVargs(
+            Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, None),
+            l.tpe,
+            a.map(arg => arg.value)*)
+          ))
         )
-      yield ValueExpr(v)
+      yield v
 
     def OPTION[A](targ: StateT[ErrorF, List[Statement], TypeExpr[A]]): StateT[ErrorF, List[Statement], TypeExpr[Option[A]]] =
-      targ.map(a => TypeExpr(Term.TypeLevel.Var.OptionType(a.tpe)))
+      targ.map(a => TypeExpr(Term.TypeLevel.App.App1(Term.TypeLevel.Var.UserDefinedType("Option", None), a.tpe)))
     
     def Option[A](arg: StateT[ErrorF, List[Statement], ValueExpr[A]]): StateT[ErrorF, List[Statement], ValueExpr[Option[A]]] =
       for
         a <- arg
+        t <- OPTION(StateT.pure(TypeExpr(a.value.tpe)))
         v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Option[A]]](
           Term.ValueLevel.App.AppPure(
-            Term.ValueLevel.Var.UserDefinedValue("Option", Term.TypeLevel.Var.OptionType(a.value.tpe), None),
+            Term.ValueLevel.Var.UserDefinedValue("Option", t.tpe, None),
             a.value,
-            Term.TypeLevel.Var.OptionType(a.value.tpe),
+            t.tpe,
           )
         )
       yield ValueExpr(v)
@@ -56,11 +63,12 @@ object ComplexTypes:
     def Some[A](arg: StateT[ErrorF, List[Statement], ValueExpr[A]]): StateT[ErrorF, List[Statement], ValueExpr[Option[A]]] =
       for
         a <- arg
+        t <- OPTION(StateT.pure(TypeExpr(a.value.tpe)))
         v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Option[A]]](
           Term.ValueLevel.App.AppPure(
-            Term.ValueLevel.Var.UserDefinedValue("Some", Term.TypeLevel.Var.SomeType(a.value.tpe), None),
+            Term.ValueLevel.Var.UserDefinedValue("Some", t.tpe, None),
             a.value,
-            Term.TypeLevel.Var.SomeType(a.value.tpe),
+            t.tpe,
           )
         )
       yield ValueExpr(v)
@@ -69,20 +77,20 @@ object ComplexTypes:
       for 
         a <- arg1
         b <- arg2
-      yield TypeExpr(Term.TypeLevel.Var.TupleType(a.tpe, b.tpe))
+      yield TypeExpr(Term.TypeLevel.App.App2(Term.TypeLevel.Var.UserDefinedType("Tuple2", None), a.tpe, b.tpe))
       
     def Tuple[A, B]: (StateT[ErrorF, List[Statement], ValueExpr[A]], StateT[ErrorF, List[Statement], ValueExpr[B]]) => StateT[ErrorF, List[Statement], ValueExpr[Tuple2[A, B]]] =
       (arg1, arg2) =>
         for
           a <- arg1
           b <- arg2
-          t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel[(A, B) => Tuple2[A, B]]](Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, Term.TypeLevel.Var.TupleType(a.value.tpe, b.value.tpe)))
-          c <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B]]](
+          t <- TUPLE(StateT.pure(TypeExpr(a.value.tpe)), StateT.pure(TypeExpr(b.value.tpe)))
+          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[Tuple2[A, B]]](
             Term.ValueLevel.App.App2(
-              Term.ValueLevel.Var.UserDefinedValue("", t, None),
+              Term.ValueLevel.Var.UserDefinedValue("", Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, t.tpe), None),
               a.value,
               b.value,
-              Term.TypeLevel.App.App2(Term.TypeLevel.Var.TupleType(a.value.tpe, b.value.tpe), a.value.tpe, b.value.tpe)
+              t.tpe
             )
           )
-        yield ValueExpr(c)
+        yield ValueExpr(v)

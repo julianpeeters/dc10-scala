@@ -65,12 +65,9 @@ object version:
             case trm@Term.TypeLevel.Lam.Function2Type() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.BooleanType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.IntType() => s"import ${renderType(trm)}"
+            case trm@Term.TypeLevel.Var.NothingType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.StringType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.UnitType() => s"import ${renderType(trm)}"
-            case trm@Term.TypeLevel.Var.ListType(_) => s"import ${renderType(trm)}"
-            case trm@Term.TypeLevel.Var.OptionType(_) => s"import ${renderType(trm)}"
-            case trm@Term.TypeLevel.Var.SomeType(_) => s"import ${renderType(trm)}"
-            case trm@Term.TypeLevel.Var.TupleType(_,_) => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.UserDefinedType(nme, impl) => s"import ${renderType(trm)}"
             case trm@Term.ValueLevel.App.App1(fun, arg, tpe) => s"import ${renderValue(trm)}"
             case trm@Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
@@ -111,15 +108,12 @@ object version:
           // primitive
           case Term.TypeLevel.Var.BooleanType() => "Boolean"
           case Term.TypeLevel.Var.IntType() => "Int"
+          case Term.TypeLevel.Var.NothingType() => "Nothing"
           case Term.TypeLevel.Var.StringType() => "String"
           case Term.TypeLevel.Var.UnitType() => "Unit"
           // complex
           case Term.TypeLevel.Lam.Function1Type() => "=>"
           case Term.TypeLevel.Lam.Function2Type() => "=>"
-          case Term.TypeLevel.Var.ListType(a) => s"List[${renderType(a)}]"
-          case Term.TypeLevel.Var.OptionType(a) => s"Option[${renderType(a)}]"
-          case Term.TypeLevel.Var.SomeType(a) => s"Some[${renderType(a)}]"
-          case Term.TypeLevel.Var.TupleType(a, b) => s"Tuple2[${renderType(a)}, ${renderType(b)}]"
           case Term.TypeLevel.Var.UserDefinedType(s, i) => s
 
       private def renderTypeDef(typeDef: Statement.TypeDef): String =

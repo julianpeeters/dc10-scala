@@ -79,7 +79,7 @@ object Symbol:
 
   object Term:
 
-    sealed trait TypeLevel[T] extends Term
+    sealed trait TypeLevel[+T] extends Term
     object TypeLevel:
 
       sealed trait App[T] extends TypeLevel[T]
@@ -98,12 +98,9 @@ object Symbol:
       object Var:
         case class BooleanType() extends Var[Boolean]
         case class IntType() extends Var[Int]
+        case class NothingType() extends Var[Nothing]
         case class StringType() extends Var[String]
         case class UnitType() extends Var[Unit]
-        case class ListType[A](a: TypeLevel[A]) extends Var[List[A]]
-        case class OptionType[A](a: TypeLevel[A]) extends Var[Option[A]]
-        case class SomeType[A](a: TypeLevel[A]) extends Var[Option[A]]
-        case class TupleType[A, B](a: TypeLevel[A], b: TypeLevel[B]) extends Var[(A, B)]
         case class UserDefinedType[T](nme: String, impl: Option[TypeLevel[T]]) extends Var[T]
           
     sealed trait ValueLevel[T] extends Term

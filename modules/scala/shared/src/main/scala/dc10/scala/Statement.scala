@@ -18,8 +18,8 @@ object Statement:
         case d@ImportDefs(i, sp) => ImportDefs(d.terms, i + 1)(using sp)
         case d@ObjectDef(i, sp) => ObjectDef(d.obj, i + 1)(using sp)
         case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
-        case TypeExpr(tpe) => ???
-        case ValueExpr(value) => ???
+        case d@TypeExpr(tpe) => d
+        case d@ValueExpr(value) => d
         case d@TypeDef.Alias(i, sp) => TypeDef.Alias(i + 1, d.tpe)(using sp)
         case d@TypeDef.Match(i, sp) => TypeDef.Match(i + 1, d.tpe, d.rhs)(using sp)
         case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)

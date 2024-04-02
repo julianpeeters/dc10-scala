@@ -3,6 +3,7 @@ package dc10.scala.predef
 import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.ctx.ext
+import dc10.scala.dsl.OPTION
 import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{ExtensionDef, TypeDef, TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.{Extension, Term}
@@ -124,9 +125,8 @@ object Functions:
     def FOR[A](f: StateT[ErrorF, List[Statement], ValueExpr[A]])(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[Option[A]]] =
       for
         (l, a) <- StateT.liftF(f.runEmpty)
-        v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A]]](
-          Term.ValueLevel.Blc.ForComp(l, a.value, Term.TypeLevel.App.App1(Term.TypeLevel.Var.OptionType(a.value.tpe), a.value.tpe,
-        )))
+        t <- OPTION(StateT.pure(TypeExpr(a.value.tpe)))
+        v <- StateT.pure[ErrorF, List[Statement], ValueLevel[Option[A]]](Term.ValueLevel.Blc.ForComp(l, a.value, t.tpe))
       yield ValueExpr(v)
 
     extension [G[_], A] (nme: String)
@@ -136,38 +136,35 @@ object Functions:
           t <- StateT.liftF[ErrorF, List[Statement], TypeLevel[A]](g.value.tpe match
             case dc10.scala.Symbol.Term.TypeLevel.App.App1(tfun, targ) => Right(targ)
             case dc10.scala.Symbol.Term.TypeLevel.App.App1T(tfun, farg, aarg) => Right(aarg.asInstanceOf[TypeLevel[A]])
-            case dc10.scala.Symbol.Term.TypeLevel.App.App2(tfun, ta, tb) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.App.App2T(tfun, ta1, ta2, tb) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.App.Infix(tfun, ta, tb) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function1Type() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function2Type() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.IntType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.StringType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.UnitType() => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.ListType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
-            case dc10.scala.Symbol.Term.TypeLevel.Var.OptionType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
-            case dc10.scala.Symbol.Term.TypeLevel.Var.SomeType(arg) => Right(arg.asInstanceOf[TypeLevel[A]])
-            case dc10.scala.Symbol.Term.TypeLevel.Var.TupleType(arg1, arg2) => ???
-            case dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType(nme, impl) => ???
+            case dc10.scala.Symbol.Term.TypeLevel.App.App2(tfun, ta, tb) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.App.App2T(tfun, ta1, ta2, tb) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.App.Infix(tfun, ta, tb) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function1Type() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Lam.Function2Type() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.BooleanType() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.IntType() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.NothingType() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.StringType() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.UnitType() => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.TypeLevel.Var.UserDefinedType(nme, impl) => Left(List(Error("Not of kind type -> type")))
           )
           i <- StateT.liftF[ErrorF, List[Statement], ValueLevel[A]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
             case dc10.scala.Symbol.Term.ValueLevel.App.App1(fun, arg, tpe) => Right(arg.asInstanceOf[ValueLevel[A]]) 
-            case dc10.scala.Symbol.Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => Left(List(Error("Not of kind type -> type")))
             case dc10.scala.Symbol.Term.ValueLevel.App.AppPure(fun, arg, tpe) => Right(arg)
-            case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.Dot0(fun, arg1, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp(l, r, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1(a, b, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral(tpe, b) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral(tpe, i) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral(tpe, s) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.UnitLiteral(tpe, s) => ???
-            case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => ???
+            case dc10.scala.Symbol.Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dot0(fun, arg1, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Blc.ForComp(l, r, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam1(a, b, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.BooleanLiteral(tpe, b) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.IntLiteral(tpe, i) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral(tpe, s) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.UnitLiteral(tpe, s) => Left(List(Error("Not of kind type -> type")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => Left(List(Error("Not of kind type -> type")))
           )
           )
           v <- StateT.liftF[ErrorF, List[Statement], Term.ValueLevel.Var.UserDefinedValue[A]](

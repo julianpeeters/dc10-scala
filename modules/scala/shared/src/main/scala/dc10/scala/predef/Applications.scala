@@ -82,6 +82,7 @@ object Applications:
             case Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.App.Infix(tfun, ta, tb) => Right(tb.asInstanceOf[Term.TypeLevel[B]])
             case Term.TypeLevel.Lam.Function1Type() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
+            case Term.TypeLevel.Var.NothingType() => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error"))) 
             case Term.TypeLevel.Var.UserDefinedType(nme, impl) => Left(List(Error(s"${sp.file}:${sp.line}\nApplication Error")))
           )
         yield ValueExpr(Term.ValueLevel.App.App1(f.value, a.value, t))
@@ -93,7 +94,7 @@ object Applications:
           f <- func
           a1 <- StateT.liftF(arg1.runEmptyA)
           a2 <- StateT.liftF(arg2.runEmptyA)
-          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[B]](Term.ValueLevel.App.Dot1(f.value, a1.value, a2.value, ???))
+          v <- StateT.pure[ErrorF, List[Statement], Term.ValueLevel[B]](Term.ValueLevel.App.Dot1(f.value, a1.value, a2.value, a2.value.tpe))
         yield ValueExpr(v)
     
     extension [A, B] (arg1: StateT[ErrorF, List[Statement], ValueExpr[A]] | ValueExpr[A])

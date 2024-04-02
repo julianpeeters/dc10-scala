@@ -35,4 +35,3 @@ val result: String = snippet.compile.toString["scala-3.4.0"]
 ### Libraries
  - [`dc10-cats`](https://github.com/julianpeeters/dc10-cats)
  - [`dc10-cats-effect`](https://github.com/julianpeeters/dc10-cats-effect)
- - [`dc10-scalaq`](https://github.com/julianpeeters/dc10-scalaq)

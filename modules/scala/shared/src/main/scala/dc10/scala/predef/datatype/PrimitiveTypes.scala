@@ -1,7 +1,7 @@
 package dc10.scala.predef.datatype
 
 import cats.data.StateT
-import dc10.scala.{ErrorF, Statement}
+import dc10.scala.{Error, ErrorF, Statement}
 import dc10.scala.Statement.{TypeExpr, ValueExpr}
 import dc10.scala.Symbol.Term
 
@@ -15,6 +15,8 @@ trait PrimitiveTypes[F[_]]:
   extension (fa: F[ValueExpr[Int]])
     def +:(fb: F[ValueExpr[Int]]): F[ValueExpr[Int]]
     
+  def NOTHING: F[TypeExpr[Nothing]]
+
   def STRING: F[TypeExpr[String]]
   given sLit: Conversion[String, F[ValueExpr[String]]]
 
@@ -42,24 +44,28 @@ object PrimitiveTypes:
         for
           a <- fa
           b <- fb
-        yield (a.value, b.value) match
-          case (Term.ValueLevel.App.App1(fun, arg, tpe), _) => ???
-          case (Term.ValueLevel.App.App2(fun, arg1, arg2, tpe), _) => ???
-          case (Term.ValueLevel.App.AppPure(fun, arg, tpe), _) => ???
-          case (Term.ValueLevel.App.AppVargs(fun, tpe, vargs*), _) => ???
-          case (Term.ValueLevel.App.Dot0(fun, arg1, tpe), _) => ???
-          case (Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe), _) => ???
-          case (Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe), _) => ???
-          case (Term.ValueLevel.Blc.ForComp(gens, ret, tpe), _) => ???
-          case (Term.ValueLevel.Lam.Lam1(a, b, tpe), _) => ???
-          case (Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe), _) => ???
-          case (Term.ValueLevel.Var.BooleanLiteral(tpe, b), _) => ???
-          case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), Term.ValueLevel.Var.IntLiteral(tpe2, i2)) => ValueExpr(Term.ValueLevel.Var.IntLiteral(tpe1, i1 + i2))
-          case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), _) => ???
-          case (Term.ValueLevel.Var.StringLiteral(tpe, s), _) => ???
-          case (Term.ValueLevel.Var.UnitLiteral(tpe, u), _) => ???
-          case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), _) => ???
+          r <- StateT.liftF[ErrorF, List[Statement], ValueExpr[Int]]((a.value, b.value) match
+            case (Term.ValueLevel.App.App1(fun, arg, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.App2(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.AppPure(fun, arg, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.AppVargs(fun, tpe, vargs*), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.Dot0(fun, arg1, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Blc.ForComp(gens, ret, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Lam.Lam1(a, b, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.BooleanLiteral(tpe, b), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), Term.ValueLevel.Var.IntLiteral(tpe2, i2)) => Right(ValueExpr(Term.ValueLevel.Var.IntLiteral(tpe1, i1 + i2)))
+            case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.StringLiteral(tpe, s), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.UnitLiteral(tpe, u), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), _) => Left(List(Error("Not a value of Int")))
+          )
+        yield r
         
+    def NOTHING: StateT[ErrorF, List[Statement], TypeExpr[Nothing]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.NothingType()))
 
     def STRING: StateT[ErrorF, List[Statement], TypeExpr[String]] =
       StateT.pure(TypeExpr(Term.TypeLevel.Var.StringType()))
