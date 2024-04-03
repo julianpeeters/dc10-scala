@@ -18,6 +18,7 @@ object version:
           case d@Statement.ImportDefs(_, _)          => indent(d.indent) ++ renderImports(d.terms)
           case d@Statement.ObjectDef(_, _)           => indent(d.indent) ++ renderObject(d.obj)
           case d@Statement.PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
+          case d@Statement.TraitDef(_, _)            => indent(d.indent) ++ renderTraitDef(d)
           case d@Statement.TypeDef.Alias(_, _)       => indent(d.indent) ++ renderTypeDef(d)
           case d@Statement.TypeDef.Match(_, _)       => indent(d.indent) ++ renderTypeDef(d)
           case d@Statement.ValueDef.Def(_, _)        => indent(d.indent) ++ renderValueDef(d)
@@ -115,6 +116,11 @@ object version:
           case Term.TypeLevel.Lam.Function1Type() => "=>"
           case Term.TypeLevel.Lam.Function2Type() => "=>"
           case Term.TypeLevel.Var.UserDefinedType(s, i) => s
+
+      private def renderTraitDef(traitDef: Statement.TraitDef): String =
+        val params = traitDef.`trait`.tParams
+        s"""trait ${traitDef.`trait`.nme}${if params.isEmpty then "" else s"[${params.map(p => renderType(p)).mkString(", ")}]"}:
+          |  ${render(traitDef.`trait`.body)}""".stripMargin
 
       private def renderTypeDef(typeDef: Statement.TypeDef): String =
         typeDef match

@@ -45,3 +45,43 @@ class TemplateTypesSuite extends FunSuite:
          |)""".stripMargin
       
     assertEquals(obtained, expected)
+
+  test("trait Foo"):
+
+    type Foo
+
+    def ast =
+      TRAIT[Foo]("Foo",
+        for
+          _ <- DEF("name", VAL("s", STRING), STRING)
+        yield ()
+      )
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.4.0"]
+    
+    val expected: String =
+      """|trait Foo:
+         |  def name(s: String): String""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("trait Bar"):
+
+    type Bar
+
+    def ast =
+      TRAIT[Bar]("Bar", F,
+        for
+          _ <- DEF("name", VAL("s", STRING), F(STRING))
+        yield ()
+      )
+    
+    val obtained: String =
+      ast.compile.toString["scala-3.4.0"]
+    
+    val expected: String =
+      """|trait Bar[F[_]]:
+         |  def name(s: String): F[String]""".stripMargin
+      
+    assertEquals(obtained, expected)

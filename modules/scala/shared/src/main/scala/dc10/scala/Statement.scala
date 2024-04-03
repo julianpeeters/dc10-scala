@@ -1,7 +1,7 @@
 package dc10.scala
 
 import cats.data.NonEmptyList
-import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
+import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term, Trait}
 import org.tpolecat.sourcepos.SourcePos
 
 sealed trait Statement:
@@ -20,6 +20,7 @@ object Statement:
         case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
         case d@TypeExpr(tpe) => d
         case d@ValueExpr(value) => d
+        case d@TraitDef(i, sp) => TraitDef(d.`trait`, i + 1)(using sp)
         case d@TypeDef.Alias(i, sp) => TypeDef.Alias(i + 1, d.tpe)(using sp)
         case d@TypeDef.Match(i, sp) => TypeDef.Match(i + 1, d.tpe, d.rhs)(using sp)
         case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)
@@ -112,6 +113,25 @@ object Statement:
     ): PackageDef =
       new PackageDef(i, sp):
         def pkg: Package = p
+
+
+  sealed abstract case class TraitDef(
+    indent: Int,
+    sp: SourcePos
+  ) extends Statement:
+    type Tpe
+    def `trait`: Trait[Tpe]
+
+  object TraitDef:
+    def apply[T](
+      v: Trait[T],
+      i: Int
+    )(
+      using sp: SourcePos
+    ): TraitDef =
+      new TraitDef(i, sp):
+        type Tpe = T
+        def `trait`: Trait[T] = v
 
   sealed trait TypeDef extends Statement:
     type Tpe

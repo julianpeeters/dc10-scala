@@ -5,9 +5,10 @@ import cats.implicits.given
 import dc10.scala.ctx.ext
 import dc10.scala.{Error, ErrorF}
 import dc10.scala.Statement
-import dc10.scala.Statement.{TypeExpr, ValueDef, ValueExpr}
-import dc10.scala.Symbol.{CaseClass, Term}
+import dc10.scala.Statement.{TraitDef, TypeExpr, ValueDef, ValueExpr}
+import dc10.scala.Symbol.{CaseClass, Term, Trait}
 import org.tpolecat.sourcepos.SourcePos
+import cats.Id
 
 trait TemplateTypes[F[_], G[_]]:
   @scala.annotation.targetName("caseClass1")
@@ -16,6 +17,8 @@ trait TemplateTypes[F[_], G[_]]:
   def CASECLASS[T, A, B](name: String, fields: G[(ValueExpr[A], ValueExpr[B])])(using sp: SourcePos): F[(TypeExpr[T], ValueExpr[(A, B) => T])]
   def EXTENSION[T](nme: String, tpe: F[TypeExpr[T]])(using sp: SourcePos): F[ValueExpr[T]]
   def FIELD[T](nme: String, tpe: F[TypeExpr[T]])(using sp: SourcePos): G[ValueExpr[T]]
+  def TRAIT[T](nme: String, members: F[Unit]): F[TypeExpr[T]]
+  def TRAIT[T](nme: String, tparam: F[TypeExpr[Any]] => F[TypeExpr[Id[Any]]], members: F[Unit]): F[TypeExpr[T]]
 
 object TemplateTypes:
 
@@ -113,4 +116,27 @@ object TemplateTypes:
         v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, None))
         d <- StateT.pure[ErrorF, List[Statement.ValueDef], ValueDef](ValueDef.Fld(0, v))
         _ <- StateT.modifyF[ErrorF, List[Statement.ValueDef]](ctx => ctx.ext(d))
-      yield ValueExpr(v)
+      yield ValueExpr(v)  
+  
+    def TRAIT[T](
+      nme: String,
+      members: StateT[ErrorF, List[Statement], Unit]
+    ): StateT[ErrorF, List[Statement], TypeExpr[T]] =
+      for
+        members <- StateT.liftF[ErrorF, List[Statement], List[Statement]](members.runEmptyS)
+        c <- StateT.pure(Trait[T](nme, members))
+        d <- StateT.pure(TraitDef(c, 0))
+        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+      yield TypeExpr(c.tpe)
+  
+    def TRAIT[T](
+      nme: String,
+      tparam: StateT[ErrorF, List[Statement], TypeExpr[Any]] => StateT[ErrorF, List[Statement], TypeExpr[Any]],
+      members: StateT[ErrorF, List[Statement], Unit]
+    ): StateT[ErrorF, List[Statement], TypeExpr[T]] =
+      for
+        members <- StateT.liftF[ErrorF, List[Statement], List[Statement]](members.runEmptyS)
+        c <- StateT.pure(Trait[T](nme, List(Term.TypeLevel.Var.UserDefinedType("F[_]", None)), members))
+        d <- StateT.pure(TraitDef(c, 0))
+        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+      yield TypeExpr(c.tpe)

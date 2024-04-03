@@ -11,6 +11,7 @@ trait Variables[F[_]]:
   def DEF[A, T](nme: String, arg: F[ValueExpr[A]], tpe: F[TypeExpr[T]])(using sp: SourcePos): F[ValueExpr[A => T]]
   def DEF[A, T](nme: String, arg: F[ValueExpr[A]], tpe: F[TypeExpr[T]], impl: ValueExpr[A] => F[ValueExpr[T]])(using sp: SourcePos): F[ValueExpr[A => T]]
   def DEF[A, B, T](nme: String, arg1: F[ValueExpr[A]], arg2: F[ValueExpr[B]], tpe: F[TypeExpr[T]], impl: (ValueExpr[A], ValueExpr[B]) => F[ValueExpr[T]])(using sp: SourcePos): F[ValueExpr[(A, B) => T]]
+  def F[G[_], T]: F[TypeExpr[T]] => F[TypeExpr[G[T]]]
   def TYPE[T](nme: String): F[TypeExpr[T]]
   def TYPE[T](nme: String, impl: F[TypeExpr[T]]): F[TypeExpr[T]]
   def VAL[T, A](nme: String, tpe: F[TypeExpr[T]])(using sp: SourcePos): F[ValueExpr[T]]
@@ -75,6 +76,14 @@ object Variables:
         d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe, Some(i.value)))
         _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
       yield ValueExpr(v)
+
+    def F[G[_], T]: StateT[ErrorF, List[Statement], TypeExpr[T]] => StateT[ErrorF, List[Statement], TypeExpr[G[T]]] =
+      s => 
+        for
+          a <- s
+          t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[G[T]]](Term.TypeLevel.Var.UserDefinedType("F", None))
+          d <- StateT.pure(TypeExpr(Term.TypeLevel.App.App1(t, a.tpe)))
+        yield d
 
     def TYPE[T](nme: String): StateT[ErrorF, List[Statement], TypeExpr[T]] =
       for

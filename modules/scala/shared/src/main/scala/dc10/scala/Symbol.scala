@@ -7,7 +7,9 @@ object Symbol:
 
   // Templates ////////////////////////////////////////////////////////////////
   sealed trait Template extends Symbol
+
   case class Extension(field: Statement, body: List[Statement]) extends Template
+  
   sealed abstract class CaseClass[T] extends Template:
     def nme: String
     def tpe: Term.TypeLevel[T]
@@ -24,6 +26,35 @@ object Symbol:
         def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
         def fields = fs
         def body = Nil
+
+  sealed abstract class Trait[T] extends Template:
+    def nme: String
+    def tpe: Term.TypeLevel[T]
+    def tParams: List[Term.TypeLevel[?]]
+    def body: List[Statement]
+
+  object Trait:
+    def apply[T](
+      n: String,
+      ms: List[Statement],
+    ): Trait[T] =
+      new Trait[T]:
+        def nme = n
+        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
+        def tParams: List[Term.TypeLevel[?]] = List.empty
+        def body = ms
+
+    def apply[T](
+      n: String,
+      ps: List[Term.TypeLevel[?]],
+      ms: List[Statement],
+    ): Trait[T] =
+      new Trait[T]:
+        def nme = n
+        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
+        def tParams: List[Term.TypeLevel[?]] = ps
+        def body = ms
+
 
   // Object ///////////////////////////////////////////////////////////////////
   sealed abstract class Object[T] extends Symbol:
