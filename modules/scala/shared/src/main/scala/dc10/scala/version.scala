@@ -120,7 +120,7 @@ object version:
       private def renderTraitDef(traitDef: Statement.TraitDef): String =
         val params = traitDef.`trait`.tParams
         s"""trait ${traitDef.`trait`.nme}${if params.isEmpty then "" else s"[${params.map(p => renderType(p)).mkString(", ")}]"}:
-          |  ${render(traitDef.`trait`.body)}""".stripMargin
+          |${traitDef.`trait`.body.map(s => indent(s.indent + 1) + render(List(s))).mkString("\n")}""".stripMargin
 
       private def renderTypeDef(typeDef: Statement.TypeDef): String =
         typeDef match
@@ -160,9 +160,9 @@ object version:
         valueDef match
           case d@Statement.ValueDef.Def(_, _) =>
             d.ret.fold(
-              s"def ${d.value.nme}(${renderValue(d.arg)}: ${renderType(d.arg.tpe)}): ${renderType(d.tpe)}"
+              s"def ${d.value.nme}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)}"
             )(
-              i => s"def ${d.value.nme}(${renderValue(d.arg)}: ${renderType(d.arg.tpe)}): ${renderType(d.tpe)} = ${renderValue(i)}"
+              i => s"def ${d.value.nme}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)} = ${renderValue(i)}"
             )
           case d@Statement.ValueDef.Fld(_, _)  =>
             d.value.impl.fold(

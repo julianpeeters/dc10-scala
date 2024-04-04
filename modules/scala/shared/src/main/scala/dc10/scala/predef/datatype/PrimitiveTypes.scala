@@ -78,3 +78,6 @@ object PrimitiveTypes:
     
     given uLit: Conversion[Unit, StateT[ErrorF, List[Statement], ValueExpr[Unit]]] =
       v => StateT.pure(ValueExpr(Term.ValueLevel.Var.UnitLiteral(Term.TypeLevel.Var.UnitType(), v)))
+
+    def __[A]: StateT[ErrorF, List[Statement], TypeExpr[A]] =
+      StateT.pure(TypeExpr(Term.TypeLevel.Var.UserDefinedType("_", None)))

@@ -1,6 +1,5 @@
 package dc10.scala.predef.datatype
 
-import _root_.scala.language.implicitConversions
 import dc10.scala.compiler.{compile, toString}
 import dc10.scala.dsl.*
 import dc10.scala.version.`3.4.0`
@@ -68,12 +67,13 @@ class TemplateTypesSuite extends FunSuite:
 
   test("trait Bar"):
 
-    type Bar
+    type Bar[F[_]]
 
-    def ast =
-      TRAIT[Bar]("Bar", F,
+    def ast[F[_]] =
+      TRAIT[Bar, F]("Bar",
         for
           _ <- DEF("name", VAL("s", STRING), F(STRING))
+          _ <- DEF("age", VAL("s", INT), F(INT))
         yield ()
       )
     
@@ -82,6 +82,7 @@ class TemplateTypesSuite extends FunSuite:
     
     val expected: String =
       """|trait Bar[F[_]]:
-         |  def name(s: String): F[String]""".stripMargin
+         |  def name(s: String): F[String]
+         |  def age(s: Int): F[Int]""".stripMargin
       
     assertEquals(obtained, expected)

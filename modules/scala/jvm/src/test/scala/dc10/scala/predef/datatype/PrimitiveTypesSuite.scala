@@ -21,6 +21,7 @@ class PrimitiveTypeSuite extends FunSuite:
     def ast =
       for
         _ <- DEF("greeting", VAL("str", STRING), STRING)
+        _ <- DEF("chat", STRING)
         _ <- VAL("farewell", STRING)
       yield ()
     
@@ -29,6 +30,7 @@ class PrimitiveTypeSuite extends FunSuite:
       
     val expected: String =
       """|def greeting(str: String): String
+         |def chat: String
          |val farewell: String""".stripMargin
       
     assertEquals(obtained, expected)

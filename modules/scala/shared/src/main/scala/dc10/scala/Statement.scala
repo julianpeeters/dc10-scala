@@ -196,7 +196,7 @@ object Statement:
       s: SourcePos
     ) extends ValueDef:
       type Tpe = T
-      def arg: Term.ValueLevel[A]
+      def arg: Option[Term.ValueLevel[A]]
       def ret: Option[Term.ValueLevel[B]]
       def tpe: Term.TypeLevel[B]
       def indent: Int = i
@@ -205,14 +205,14 @@ object Statement:
       def apply[T, A, B](
         i: Int,
         v: Term.ValueLevel.Var.UserDefinedValue[T],
-        a: Term.ValueLevel[A],
+        a: Option[Term.ValueLevel[A]],
         t: Term.TypeLevel[B],
         r: Option[Term.ValueLevel[B]]
       )(
         using sp: SourcePos
       ): ValueDef =
         new Def[T, A, B](i, sp):
-          def arg: Term.ValueLevel[A] = a
+          def arg: Option[Term.ValueLevel[A]] = a
           def ret: Option[Term.ValueLevel[B]] = r
           def tpe: Term.TypeLevel[B] = t
           def value: Term.ValueLevel.Var.UserDefinedValue[T] = v
