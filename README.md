@@ -21,7 +21,7 @@ val snippet =
     s <- VAL("str", STRING, "hello, world")
     _ <- VAL("msg", STRING, s)
   yield ()
-// snippet: IndexedStateT[ErrorF, List[Statement], List[Statement], Unit] = cats.data.IndexedStateT@79ece636
+// snippet: IndexedStateT[ErrorF, (Set[LibraryDependency], List[Statement]), List[Statement], Unit] = cats.data.IndexedStateT@79ece636
 ```
 
 Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:

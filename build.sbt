@@ -1,5 +1,5 @@
 val CatsV = "2.10.0"
-val Dc10V = "0.4.0"
+val Dc10V = "0.4.0+2-f918b98f+20240405-1512-SNAPSHOT"
 val MUnitV = "0.7.29"
 val SourcePosV = "1.1.0"
 
@@ -25,7 +25,7 @@ inThisBuild(List(
     "-Wunused:all",
     "-Wvalue-discard"
   ),
-  scalaVersion := "3.4.0",
+  scalaVersion := "3.4.1",
   versionScheme := Some("semver-spec"),
 ))
 
@@ -42,6 +42,24 @@ lazy val scala = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       "org.scalameta"     %% "munit"     % MUnitV      % Test
     )
   )
+  .jsSettings(test := {})
+  .nativeSettings(test := {})
+
+lazy val meta = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/dc10"))
+  .enablePlugins(BuildInfoPlugin)
+  .settings(
+    name := "dc10-scala-dc10",
+    buildInfoKeys := Seq[BuildInfoKey](organization, name, version),
+    buildInfoPackage := "dc10.scala.dc10",
+    libraryDependencies ++= Seq(
+      // main
+      //
+      // test
+      "org.scalameta"     %% "munit"     % MUnitV      % Test
+    )
+  )
+  .dependsOn(scala)
   .jsSettings(test := {})
   .nativeSettings(test := {})
 

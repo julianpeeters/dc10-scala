@@ -16,6 +16,7 @@ object version:
           case d@Statement.CaseClassDef(_, _)        => indent(d.indent) ++ renderCaseClass(d.caseclass)
           case d@Statement.ExtensionDef(_, _)        => indent(d.indent) ++ renderExtension(d.extension)
           case d@Statement.ImportDefs(_, _)          => indent(d.indent) ++ renderImports(d.terms)
+          case d@Statement.LibraryDependency(_,_,_)  => indent(d.indent) ++ renderLibraryDependency(d)
           case d@Statement.ObjectDef(_, _)           => indent(d.indent) ++ renderObject(d.obj)
           case d@Statement.PackageDef(_, _)          => indent(d.indent) ++ renderPackage(d.pkg)
           case d@Statement.TraitDef(_, _)            => indent(d.indent) ++ renderTraitDef(d)
@@ -65,11 +66,12 @@ object version:
             case trm@Term.TypeLevel.Lam.Function1Type() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Lam.Function2Type() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.BooleanType() => s"import ${renderType(trm)}"
+            case trm@Term.TypeLevel.Var.__() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.IntType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.NothingType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.StringType() => s"import ${renderType(trm)}"
             case trm@Term.TypeLevel.Var.UnitType() => s"import ${renderType(trm)}"
-            case trm@Term.TypeLevel.Var.UserDefinedType(nme, impl) => s"import ${renderType(trm)}"
+            case trm@Term.TypeLevel.Var.UserDefinedType(nme, tparams, impl) => s"import ${renderType(trm)}"
             case trm@Term.ValueLevel.App.App1(fun, arg, tpe) => s"import ${renderValue(trm)}"
             case trm@Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => s"import ${renderValue(trm)}"
             case trm@Term.ValueLevel.App.AppPure(fun, arg, tpe) => s"import ${renderValue(trm)}"
@@ -84,8 +86,11 @@ object version:
             case trm@Term.ValueLevel.Var.IntLiteral(tpe, i) => s"import ${renderValue(trm)}"
             case trm@Term.ValueLevel.Var.StringLiteral(tpe, s) => s"import ${renderValue(trm)}"
             case trm@Term.ValueLevel.Var.UnitLiteral(tpe, u) => s"import ${renderValue(trm)}"
-            case trm@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => s"import ${renderValue(trm)}"
+            case trm@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => s"import ${renderValue(trm)}"
           ).mkString("\n") ++ "\n"
+
+      private def renderLibraryDependency(libDep: Statement.LibraryDependency): String =
+        s""""${libDep.org}" %%% "${libDep.nme}" % "${libDep.ver}""""
 
       private def renderObject[T](obj: Object[T]): String =
         obj.par.fold(s"object ${obj.nme}:\n\n${render(obj.body)}")(p =>
@@ -107,6 +112,7 @@ object version:
           case Term.TypeLevel.App.App3(tfun, ta1, ta2, tb) => s"${renderType(ta1)} ${renderType(tfun)} ${renderType(tb)}"
           case Term.TypeLevel.App.Infix(tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
           // primitive
+          case Term.TypeLevel.Var.__() => "_"
           case Term.TypeLevel.Var.BooleanType() => "Boolean"
           case Term.TypeLevel.Var.IntType() => "Int"
           case Term.TypeLevel.Var.NothingType() => "Nothing"
@@ -115,7 +121,7 @@ object version:
           // complex
           case Term.TypeLevel.Lam.Function1Type() => "=>"
           case Term.TypeLevel.Lam.Function2Type() => "=>"
-          case Term.TypeLevel.Var.UserDefinedType(s, i) => s
+          case Term.TypeLevel.Var.UserDefinedType(s, p, i) => if p.isEmpty then s else s"${s}[${p.map(renderType).mkString(", ")}]"
 
       private def renderTraitDef(traitDef: Statement.TraitDef): String =
         val params = traitDef.`trait`.tParams
@@ -124,11 +130,21 @@ object version:
 
       private def renderTypeDef(typeDef: Statement.TypeDef): String =
         typeDef match
-          case d@Alias(i, s) => d.tpe.impl.fold(
-            s"type ${d.tpe.nme}"
+          case d@Statement.TypeDef.Alias(i, s) => d.tpe.impl.fold(
+            s"type ${renderType(d.tpe)}"
           )(i =>
-            s"type ${d.tpe.nme} = ${renderType(i)}"
+            s"type ${renderType(d.tpe)} = ${renderType(i)}"
           )
+          // case d@Statement.TypeDef.AliasF(i, s) => //d.tpe //  .impl.fold(
+          //   s"type ${renderType(d.tpe.tfun)}[${renderType(d.tpe.targ)}]"
+          // // )(i =>
+          // //   s"type ${d.tpe.nme} = ${renderType(i)}"
+          // // )
+          // case d@Statement.TypeDef.AliasFA(i, s) => //d.tpe //  .impl.fold(
+          //   s"type ${renderType(d.tpe.tfun)}[${renderType(d.tpe.farg)}, ${renderType(d.tpe.aarg)}]"
+          // // )(i =>
+          // //   s"type ${d.tpe.nme} = ${renderType(i)}"
+          // // )
           case d@Match(i, s) =>
             s"""|type ${renderType(d.tpe)} = ${renderType(d.tpe.targ)} match
                 |${d.rhs.map(app => indent(d.indent + 1) ++ "case " ++ renderType(app)).toList.mkString("\n")}""".stripMargin
@@ -154,15 +170,16 @@ object version:
           case Term.ValueLevel.Var.StringLiteral(tpe, s) => s"\"$s\""
           case Term.ValueLevel.Var.UnitLiteral(tpe, u) => s"$u"
           // complex
-          case Term.ValueLevel.Var.UserDefinedValue(s, t, i) => s
+          case Term.ValueLevel.Var.UserDefinedValue(s, t, tparams, i) =>
+            if tparams.isEmpty then s else s"$s[${tparams.map(renderType).mkString(", ")}]"
 
       private def renderValueDef(valueDef: Statement.ValueDef): String =
         valueDef match
           case d@Statement.ValueDef.Def(_, _) =>
             d.ret.fold(
-              s"def ${d.value.nme}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)}"
+              s"def ${renderValue(d.value)}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)}"
             )(
-              i => s"def ${d.value.nme}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)} = ${renderValue(i)}"
+              i => s"def ${renderValue(d.value)}${d.arg.fold("")(a => s"(${renderValue(a)}: ${renderType(a.tpe)})")}: ${renderType(d.tpe)} = ${renderValue(i)}"
             )
           case d@Statement.ValueDef.Fld(_, _)  =>
             d.value.impl.fold(

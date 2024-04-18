@@ -9,19 +9,28 @@ import munit.FunSuite
 class VariableTypesSuite extends FunSuite:
 
   test("type alias def"):
+
+    type Stream[_[_], _]
  
-    def ast =
+    def ast[F[_], A] =
       for
-        s <- TYPE("S", STRING)
-        _ <- TYPE("T", s)
+        _ <- TYPE("Q") := STRING
+        A <- TYPE[A]("A")
+        _ <- TYPE("S"):= A
+        F <- TYPE[F, __]("Functor", __)
+        _ <- TYPE[Stream, F, A]("Stream", TYPE[F, __]("F", __), TYPE[A]("A"))
+        // _ <- TYPE("Foo") := S(F, A)
       yield ()
     
     val obtained: String =
       ast.compile.toString["scala-3.4.0"]
       
     val expected: String =
-      """|type S = String
-         |type T = S""".stripMargin
+      """|type Q = String
+         |type A
+         |type S = A
+         |type Functor[_]
+         |type Stream[F[_], A]""".stripMargin
       
     assertEquals(obtained, expected)
 

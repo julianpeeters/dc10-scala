@@ -2,7 +2,10 @@ package dc10.scala
 
 import java.nio.file.Path
 
-case class File(path: Path, contents: List[Statement])
+case class File(
+  path: Path,
+  contents: List[Statement]
+)
 object File:
 
   extension (file: File)

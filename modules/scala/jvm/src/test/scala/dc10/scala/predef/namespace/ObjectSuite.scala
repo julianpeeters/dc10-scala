@@ -1,7 +1,6 @@
 package dc10.scala.predef.namespace
 
 import _root_.scala.language.implicitConversions
-
 import munit.FunSuite
 
 class ObjectSuite extends FunSuite:

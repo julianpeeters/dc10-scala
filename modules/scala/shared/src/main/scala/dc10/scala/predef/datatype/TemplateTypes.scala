@@ -2,10 +2,10 @@ package dc10.scala.predef.datatype
 
 import cats.data.StateT
 import cats.implicits.given
-import dc10.scala.ctx.ext
+import dc10.scala.ctx.{dep, ext}
 import dc10.scala.{Error, ErrorF}
 import dc10.scala.Statement
-import dc10.scala.Statement.{TraitDef, TypeExpr, ValueDef, ValueExpr}
+import dc10.scala.Statement.{LibraryDependency, TraitDef, TypeExpr, ValueDef, ValueExpr}
 import dc10.scala.Symbol.{CaseClass, Term, Trait}
 import org.tpolecat.sourcepos.SourcePos
 
@@ -19,12 +19,12 @@ trait TemplateTypes[F[_], G[_]]:
   @scala.annotation.targetName("trait")
   def TRAIT[T](nme: String, members: F[Unit]): F[TypeExpr[T]]
   @scala.annotation.targetName("traitF")
-  def TRAIT[T[_[_]], H[_]](nme: String, members: F[Unit]): F[TypeExpr[T[H]]]
+  def TRAIT[T[_[_]], H[_], A](nme: String, tparam: F[TypeExpr[H[A]]], members: TypeExpr[H[A]] => F[Unit]): F[TypeExpr[T[H]]]
 
 object TemplateTypes:
 
   trait Mixins extends TemplateTypes[
-    [A] =>> StateT[ErrorF, List[Statement], A],
+    [A] =>> StateT[ErrorF, (Set[LibraryDependency], List[Statement]), A],
     [A] =>> StateT[ErrorF, List[Statement.ValueDef], A]
   ]:
  
@@ -35,14 +35,14 @@ object TemplateTypes:
     )(
       using
         sp: SourcePos
-    ): StateT[ErrorF, List[Statement], (TypeExpr[T], ValueExpr[A => T])] =
+    ): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), (TypeExpr[T], ValueExpr[A => T])] =
       for
-        (fields, a) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], ValueExpr[A])](fields.runEmpty)
+        (fields, a) <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), (List[Statement.ValueDef], ValueExpr[A])](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App2(Term.TypeLevel.Lam.Function1Type(), a.value.tpe, c.tpe))
-        v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[A => T]](
+        v <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[A => T]](
           a.value match
-            case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => Right[List[Error], Statement.ValueExpr[A => T]](ValueExpr[A => T](
+            case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, mpl) => Right[List[Error], Statement.ValueExpr[A => T]](ValueExpr[A => T](
               Term.ValueLevel.Var.UserDefinedValue(
                 nme = name,
                 tpe = Term.TypeLevel.App.App2(
@@ -50,13 +50,14 @@ object TemplateTypes:
                     a.value.tpe,
                     c.tpe
                 ),
+                tparams,
                 impl = None
               )
             ))
             case _ => Left(scala.List(Error(s"${sp.file}:${sp.line}\nExpected Identifier but found ${a.value}")))
           )
         d <- StateT.pure(Statement.CaseClassDef(c, 0))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+        _ <- StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.ext(d))
       yield (TypeExpr(c.tpe), v)
 
     @scala.annotation.targetName("caseClass2")
@@ -66,14 +67,14 @@ object TemplateTypes:
     )(
       using
         sp: SourcePos
-    ): StateT[ErrorF, List[Statement], (TypeExpr[T], ValueExpr[(A, B) => T])] =
+    ): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), (TypeExpr[T], ValueExpr[(A, B) => T])] =
       for
-        (fields, (a, b)) <- StateT.liftF[ErrorF, List[Statement], (List[Statement.ValueDef], (ValueExpr[A], ValueExpr[B]))](fields.runEmpty)
+        (fields, (a, b)) <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), (List[Statement.ValueDef], (ValueExpr[A], ValueExpr[B]))](fields.runEmpty)
         c <- StateT.pure(CaseClass[T](name, fields))
         t <- StateT.pure(Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, c.tpe))
-        v <- StateT.liftF[ErrorF, List[Statement], ValueExpr[(A, B) => T]](
+        v <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[(A, B) => T]](
           (a.value, b.value) match
-            case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), Term.ValueLevel.Var.UserDefinedValue(nme2, tpe2, impl2)) =>
+            case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl), Term.ValueLevel.Var.UserDefinedValue(nme2, tpe2, tparams2, impl2)) =>
               Right[List[Error], Statement.ValueExpr[(A, B) => T]](ValueExpr[(A, B) => T](
                 Term.ValueLevel.Var.UserDefinedValue(
                   nme = name,
@@ -83,6 +84,7 @@ object TemplateTypes:
                       b.value.tpe,
                       c.tpe
                   ),
+                  tparams,
                   impl = None
                 )
               ))
@@ -90,31 +92,31 @@ object TemplateTypes:
 
           )
         d <- StateT.pure(Statement.CaseClassDef(c, 0))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+        _ <- StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.ext(d))
       yield (TypeExpr(c.tpe), v)
 
     def EXTENSION[T](
       nme: String,
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T]]
+      tpe: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[T]]
     )(
       using sp: SourcePos
-    ): StateT[ErrorF, List[Statement], ValueExpr[T]] =
+    ): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[T]] =
       for
-        t <- StateT.liftF[ErrorF, List[Statement], TypeExpr[T]](tpe.runEmptyA)
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, None))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Fld(0, v))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+        t <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[T]](tpe.runEmptyA)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, Nil, None))
+        d <- StateT.pure[ErrorF, (Set[LibraryDependency], List[Statement]), ValueDef](ValueDef.Fld(0, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.ext(d))
       yield ValueExpr(v)
 
     def FIELD[T](
       nme: String,
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T]]
+      tpe: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[T]]
     )(
       using sp: SourcePos
     ): StateT[ErrorF, List[Statement.ValueDef], ValueExpr[T]] =
       for
         t <- StateT.liftF[ErrorF, List[Statement.ValueDef], TypeExpr[T]](tpe.runEmptyA)
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, None))
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, Nil, None))
         d <- StateT.pure[ErrorF, List[Statement.ValueDef], ValueDef](ValueDef.Fld(0, v))
         _ <- StateT.modifyF[ErrorF, List[Statement.ValueDef]](ctx => ctx.ext(d))
       yield ValueExpr(v)  
@@ -122,24 +124,27 @@ object TemplateTypes:
     @scala.annotation.targetName("trait")
     def TRAIT[T](
       nme: String,
-      members: StateT[ErrorF, List[Statement], Unit]
-    ): StateT[ErrorF, List[Statement], TypeExpr[T]] =
+      members: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), Unit]
+    ): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[T]] =
       for
-        members <- StateT.liftF[ErrorF, List[Statement], List[Statement]](members.runEmptyS)
-        c <- StateT.pure(Trait[T](nme, members))
+        members <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), (Set[LibraryDependency], List[Statement])](members.runEmptyS)
+        c <- StateT.pure(Trait[T](nme, members._2))
         d <- StateT.pure(TraitDef(c, 0))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+        _ <- StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.ext(d))
       yield TypeExpr(c.tpe)
   
 
     @scala.annotation.targetName("traitF")
-    def TRAIT[T[_[_]], H[_]](
+    def TRAIT[T[_[_]], H[_], A](
       nme: String,
-      members: StateT[ErrorF, List[Statement], Unit]
-    ): StateT[ErrorF, List[Statement], TypeExpr[T[H]]] =
+      tparam: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[H[A]]],
+      members: TypeExpr[H[A]] => StateT[ErrorF, (Set[LibraryDependency], List[Statement]), Unit]
+    ): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[T[H]]] =
       for
-        members <- StateT.liftF[ErrorF, List[Statement], List[Statement]](members.runEmptyS)
-        c <- StateT.pure(Trait[T[H]](nme, List(Term.TypeLevel.Var.UserDefinedType("F[_]", None)), members))
+        a <- StateT.liftF(tparam.runEmptyA)
+        (ds, ms) <- StateT.liftF[ErrorF, (Set[LibraryDependency], List[Statement]), (Set[LibraryDependency], List[Statement])](members(a).runEmptyS)
+        c <- StateT.pure(Trait[T[H]](nme, List(Term.TypeLevel.Var.UserDefinedType("F[_]", Nil, None)), ms))
         d <- StateT.pure(TraitDef(c, 0))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
+        _ <- StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibraryDependency], List[Statement])](ctx => ctx.dep(l)))
       yield TypeExpr(c.tpe)

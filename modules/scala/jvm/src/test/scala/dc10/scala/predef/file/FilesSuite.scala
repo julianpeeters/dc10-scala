@@ -1,9 +1,8 @@
 package dc10.scala.predef.file
 
 import _root_.scala.language.implicitConversions
-
-import munit.FunSuite
 import dc10.scala.{Error, dsl}
+import munit.FunSuite
 
 class PrimitiveTypeSuite extends FunSuite:
   

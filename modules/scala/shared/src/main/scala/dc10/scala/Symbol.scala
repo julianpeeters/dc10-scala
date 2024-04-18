@@ -23,7 +23,7 @@ object Symbol:
     ): CaseClass[T] =
       new CaseClass[T]:
         def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
+        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
         def fields = fs
         def body = Nil
 
@@ -40,7 +40,7 @@ object Symbol:
     ): Trait[T] =
       new Trait[T]:
         def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
+        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
         def tParams: List[Term.TypeLevel[?]] = List.empty
         def body = ms
 
@@ -51,7 +51,7 @@ object Symbol:
     ): Trait[T] =
       new Trait[T]:
         def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, None)
+        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
         def tParams: List[Term.TypeLevel[?]] = ps
         def body = ms
 
@@ -75,7 +75,7 @@ object Symbol:
         def par = p
         def tpe: Term.TypeLevel[T] =
           p.fold(
-            Term.TypeLevel.Var.UserDefinedType(n, None)
+            Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
           )(i => i)
         
         def body: List[Statement] = b
@@ -116,7 +116,7 @@ object Symbol:
       sealed trait App[T] extends TypeLevel[T]
       object App:
         case class App1[T[_], A](tfun: TypeLevel[T[A]], targ: TypeLevel[A]) extends App[T[A]]
-        case class App1T[T[_[_], _], F[_], A](tfun: TypeLevel[T[F, A]], farg: TypeLevel[F[A]], aarg: TypeLevel[A]) extends App[T[F, A]]
+        case class App1T[T[_[_], _], F[_], A](tfun: TypeLevel[T[F, A]], farg: TypeLevel[F[Var.__]], aarg: TypeLevel[A]) extends App[T[F, A]]
         case class App2[T[_,_], A, B](tfun: TypeLevel[T[A, B]], ta: TypeLevel[A], tb: TypeLevel[B]) extends App[T[A, B]]
         case class App2T[T[_[_],_,_], F[_], A, B, C](tfun: TypeLevel[T[F,A,B]], ta1: TypeLevel[F[C]], ta2: TypeLevel[A], tb: TypeLevel[B]) extends App[T[F, A, B]]
         case class App3[T[_,_,_], A, B, C](tfun: TypeLevel[T[A,B,C]], ta1: TypeLevel[A], ta2: TypeLevel[B], tb: TypeLevel[C]) extends App[T[A, B, C]]
@@ -127,12 +127,13 @@ object Symbol:
         case class Function2Type[A, B, C]() extends Lam[(A, B) => C]
       sealed abstract class Var[T] extends TypeLevel[T]
       object Var:
+        case class __() extends Var[__]
         case class BooleanType() extends Var[Boolean]
         case class IntType() extends Var[Int]
         case class NothingType() extends Var[Nothing]
         case class StringType() extends Var[String]
         case class UnitType() extends Var[Unit]
-        case class UserDefinedType[T](nme: String, impl: Option[TypeLevel[T]]) extends Var[T]
+        case class UserDefinedType[T](nme: String, tparams: List[TypeLevel[Any]], impl: Option[TypeLevel[T]]) extends Var[T]
           
     sealed trait ValueLevel[T] extends Term
     object ValueLevel:
@@ -159,7 +160,7 @@ object Symbol:
         case class IntLiteral(tpe: TypeLevel[Int], i: Int) extends Var[Int]
         case class StringLiteral(tpe: TypeLevel[String], s: String) extends Var[String]
         case class UnitLiteral(tpe: TypeLevel[Unit], u: Unit) extends Var[Unit]
-        case class UserDefinedValue[T](nme: String, tpe: TypeLevel[T], impl: Option[ValueLevel[T]]) extends Var[T]
+        case class UserDefinedValue[T](nme: String, tpe: TypeLevel[T], tparams: List[TypeLevel[Any]], impl: Option[ValueLevel[T]]) extends Var[T]
 
       extension [T] (v: ValueLevel[T])
         def tpe: TypeLevel[T] =
@@ -178,7 +179,7 @@ object Symbol:
             case Term.ValueLevel.Var.IntLiteral(tpe, i) => tpe
             case Term.ValueLevel.Var.StringLiteral(tpe, s) => tpe
             case Term.ValueLevel.Var.UnitLiteral(tpe, u) => tpe
-            case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => tpe
+            case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => tpe
             
     extension [T] (v: Term.ValueLevel[T])
 
@@ -198,7 +199,7 @@ object Symbol:
           case Term.ValueLevel.Var.IntLiteral(tpe, i) => Some(v)
           case Term.ValueLevel.Var.StringLiteral(tpe, s) => Some(v)
           case Term.ValueLevel.Var.UnitLiteral(tpe, s) => Some(v)
-          case u@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => impl.fold(None)(i => i.findImpl)
+          case u@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => impl.fold(None)(i => i.findImpl)
 
       def findVargs[A]: Option[Seq[Term.ValueLevel[A]]] =
         v.findImpl.fold(None)(i => i match
@@ -216,5 +217,5 @@ object Symbol:
           case Term.ValueLevel.Var.IntLiteral(tpe, i) => None
           case Term.ValueLevel.Var.StringLiteral(tpe, s) => None
           case Term.ValueLevel.Var.UnitLiteral(tpe, s) => None
-          case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => None
+          case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => None
         )

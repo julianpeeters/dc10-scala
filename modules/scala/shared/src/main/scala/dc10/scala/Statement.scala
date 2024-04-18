@@ -16,6 +16,7 @@ object Statement:
         case d@CaseClassDef(i, sp) => CaseClassDef(d.caseclass, i + 1)(using sp)
         case d@ExtensionDef(i, sp) => ExtensionDef(d.extension, i + 1)(using sp)
         case d@ImportDefs(i, sp) => ImportDefs(d.terms, i + 1)(using sp)
+        case d@LibraryDependency(o, n, v) => d
         case d@ObjectDef(i, sp) => ObjectDef(d.obj, i + 1)(using sp)
         case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
         case d@TypeExpr(tpe) => d
@@ -135,7 +136,6 @@ object Statement:
 
   sealed trait TypeDef extends Statement:
     type Tpe
-    type Zed
     def indent: Int
     def sp: SourcePos
 
@@ -150,8 +150,8 @@ object Statement:
       def sp: SourcePos = s
       def tpe: Term.TypeLevel.Var.UserDefinedType[T]
 
-
     object Alias:
+
       def apply[T](
         i: Int,
         t: Term.TypeLevel.Var.UserDefinedType[T]
@@ -277,6 +277,10 @@ object Statement:
           def value: Term.ValueLevel.Var.UserDefinedValue[T] = v
           def tpe: Term.TypeLevel[T] = v.tpe
    
+  case class LibraryDependency(org: String, nme: String, ver: String) extends Statement:
+    def indent: Int = 0
+    def sp: SourcePos = summon[SourcePos]
+
   case class TypeExpr[T](tpe: Term.TypeLevel[T]) extends Statement:
     def indent: Int = 0
     def sp: SourcePos = summon[SourcePos]

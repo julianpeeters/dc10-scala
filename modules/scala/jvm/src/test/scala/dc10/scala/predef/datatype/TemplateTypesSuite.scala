@@ -1,9 +1,10 @@
 package dc10.scala.predef.datatype
 
 import dc10.scala.compiler.{compile, toString}
-import dc10.scala.dsl.*
+import dc10.scala.dsl.{*, given}
 import dc10.scala.version.`3.4.0`
 import munit.FunSuite
+import scala.language.implicitConversions
 
 class TemplateTypesSuite extends FunSuite:
 
@@ -27,7 +28,7 @@ class TemplateTypesSuite extends FunSuite:
     type Person2
 
     def ast =
-      CASECLASS[Person2, String, Int]( "Person2",
+      CASECLASS[Person2, String, Int]("Person2",
         for
           name <- FIELD("name", STRING)
           age <- FIELD("age", INT)
@@ -69,8 +70,8 @@ class TemplateTypesSuite extends FunSuite:
 
     type Bar[F[_]]
 
-    def ast[F[_]] =
-      TRAIT[Bar, F]("Bar",
+    def ast[F[_], A] =
+      TRAIT[Bar, F, __]("Bar", TYPE[F, __]("F", __), F =>
         for
           _ <- DEF("name", VAL("s", STRING), F(STRING))
           _ <- DEF("age", VAL("s", INT), F(INT))
