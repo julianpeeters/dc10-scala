@@ -6,15 +6,22 @@ import dc10.compile.{Compiler, Renderer, VirtualFile}
 implicit object compiler extends Compiler[
   ErrorF,
   List,
-  Error,
+  File,
   Statement,
-  File
+  LibDep,
+  Error,
 ]:
 
   type Ctx[F[_], L, A] = StateT[F, L, A]
 
-  extension [C, D, E] (ast: StateT[ErrorF, (Set[E], List[D]), C])
-    def compile: ErrorF[List[D]] =
+  extension [A] (ast: StateT[ErrorF, (Set[LibDep], List[Statement]), A])
+    @scala.annotation.targetName("compileCode")
+    def compile: ErrorF[List[Statement]] =
+      ast.runEmptyS.map(_._2)
+
+  extension [A] (ast: StateT[ErrorF, (Set[LibDep], List[File]), A])
+    @scala.annotation.targetName("compileFile")
+    def compile: ErrorF[List[File]] =
       ast.runEmptyS.map(_._2)
 
   extension (res: ErrorF[List[Statement]])

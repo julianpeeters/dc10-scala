@@ -1,221 +1,116 @@
 package dc10.scala
 
-import java.nio.file.Path
+import dc10.scala.Symbol.Term.TypeLevel
 
-sealed trait Symbol
 object Symbol:
 
-  // Templates ////////////////////////////////////////////////////////////////
-  sealed trait Template extends Symbol
+  case class CaseClass[T](nme: String, fields: List[Statement], body: List[Statement])
+  case class Extension(field: Statement, body: List[Statement])
+  case class Object[T](nme: String, parent: Option[TypeLevel.`*`[T]], body: List[Statement])
 
-  case class Extension(field: Statement, body: List[Statement]) extends Template
-  
-  sealed abstract class CaseClass[T] extends Template:
-    def nme: String
-    def tpe: Term.TypeLevel[T]
-    def fields: List[Statement]
-    def body: List[Statement]
-
-  object CaseClass:
-    def apply[T](
-      n: String,
-      fs: List[Statement],
-    ): CaseClass[T] =
-      new CaseClass[T]:
-        def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
-        def fields = fs
-        def body = Nil
-
-  sealed abstract class Trait[T] extends Template:
-    def nme: String
-    def tpe: Term.TypeLevel[T]
-    def tParams: List[Term.TypeLevel[?]]
-    def body: List[Statement]
-
-  object Trait:
-    def apply[T](
-      n: String,
-      ms: List[Statement],
-    ): Trait[T] =
-      new Trait[T]:
-        def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
-        def tParams: List[Term.TypeLevel[?]] = List.empty
-        def body = ms
-
-    def apply[T](
-      n: String,
-      ps: List[Term.TypeLevel[?]],
-      ms: List[Statement],
-    ): Trait[T] =
-      new Trait[T]:
-        def nme = n
-        def tpe: Term.TypeLevel[T] = Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
-        def tParams: List[Term.TypeLevel[?]] = ps
-        def body = ms
-
-
-  // Object ///////////////////////////////////////////////////////////////////
-  sealed abstract class Object[T] extends Symbol:
-    def nme: String
-    def par: Option[Term.TypeLevel[T]]
-    def tpe: Term.TypeLevel[T]
-    def body: List[Statement]
-
-  object Object:
-    def apply[T](
-      q: Option[Long],
-      n: String,
-      p: Option[Term.TypeLevel[T]],
-      b: List[Statement],
-    ): Object[T] =
-      new Object[T]:
-        def nme = n
-        def par = p
-        def tpe: Term.TypeLevel[T] =
-          p.fold(
-            Term.TypeLevel.Var.UserDefinedType(n, Nil, None)
-          )(i => i)
-        
-        def body: List[Statement] = b
-
-  // Package //////////////////////////////////////////////////////////////////
-  sealed abstract class Package extends Symbol
-
+  sealed trait Package
   object Package:
+    case class Basic(nme: String, nst: Statement.`package`) extends Package
+    case class Empty(ms : List[Statement]) extends Package
 
-    extension (pkg: Package)
-      def getPath: Path =
-        pkg match
-          case Basic(nme, nst) => Path.of(nme).resolve(nst.pkg.getPath)
-          case Empty(ms) => Path.of("")
-
-      def addMember(stmt: Statement): Package =
-        pkg match
-          case Basic(nme, nst) => nst.pkg.addMember(stmt)
-          case Empty(ms) => Empty(ms :+ stmt)
-
-    case class Basic(
-      nme: String,
-      nst: Statement.PackageDef
-    ) extends Package
-
-    case class Empty(
-      ms : List[Statement]
-    ) extends Package
-
-  // Term /////////////////////////////////////////////////////////////////////
-  sealed trait Term extends Symbol
-
+  sealed trait Trait
+  object Trait:
+    case class `*`[T](nme: String, body: List[Statement]) extends Trait
+    case class `*->*`[F[_]](nme: String, body: List[Statement]) extends Trait
+    case class `(*->*)->*`[F[_[_]]](nme: String, body: List[Statement]) extends Trait
+    case class `(*->*)->*->*`[F[_[_], _]](nme: String, body: List[Statement]) extends Trait
+  
+  sealed trait Term
   object Term:
 
-    sealed trait TypeLevel[+T] extends Term
+    sealed trait TypeLevel extends Term
     object TypeLevel:
-
-      sealed trait App[T] extends TypeLevel[T]
+      
+      type __
+      sealed trait `*`[+T] extends TypeLevel
+      sealed trait `*->*`[T[_]] extends TypeLevel
+      sealed trait `*->*->*`[T[_, _]] extends TypeLevel
+      sealed trait `*->*->*->*`[T[_, _, _]] extends TypeLevel
+      sealed trait `(*->*)->*`[T[_[_]]] extends TypeLevel
+      sealed trait `(*->*)->*->*`[T[_[_], _]] extends TypeLevel
+      
       object App:
-        case class App1[T[_], A](tfun: TypeLevel[T[A]], targ: TypeLevel[A]) extends App[T[A]]
-        case class App1T[T[_[_], _], F[_], A](tfun: TypeLevel[T[F, A]], farg: TypeLevel[F[Var.__]], aarg: TypeLevel[A]) extends App[T[F, A]]
-        case class App2[T[_,_], A, B](tfun: TypeLevel[T[A, B]], ta: TypeLevel[A], tb: TypeLevel[B]) extends App[T[A, B]]
-        case class App2T[T[_[_],_,_], F[_], A, B, C](tfun: TypeLevel[T[F,A,B]], ta1: TypeLevel[F[C]], ta2: TypeLevel[A], tb: TypeLevel[B]) extends App[T[F, A, B]]
-        case class App3[T[_,_,_], A, B, C](tfun: TypeLevel[T[A,B,C]], ta1: TypeLevel[A], ta2: TypeLevel[B], tb: TypeLevel[C]) extends App[T[A, B, C]]
-        case class Infix[T[_,_], A, B](tfun: TypeLevel[T[A, B]], ta: TypeLevel[A], tb: TypeLevel[B]) extends App[T[A, B]]
-      sealed trait Lam[T] extends TypeLevel[T]
+        case class `App[_]`[T[_], A](tfun: `*->*`[T], aarg: `*`[A]) extends `*`[T[A]]
+        case class `App[_, _]`[T[_,_], A, B](tfun: `*->*->*`[T], ta: `*`[A], tb: `*`[B]) extends `*`[T[A, B]]
+        case class `App[_[_], _]`[T[_[_], _], F[_], A](tfun: `(*->*)->*->*`[T], farg: `*->*`[F], aarg: `*`[A]) extends `*`[T[F, A]]
+        case class `App[_, _, _]`[T[_,_,_], A, B, C](tfun: `*->*->*->*`[T], ta1: `*`[A], ta2: `*`[B], tb: `*`[C]) extends `*`[T[A, B, C]]
+        case class Infix[T[_,_], A, B](tfun: `*->*->*`[T], ta: `*`[A], tb: `*`[B]) extends `*`[T[A, B]]
+        case class Infix2[T[_,_,_], A, B, C](tfun: `*->*->*->*`[T], ta: `*`[A], tb: `*`[B], tc: `*`[C]) extends `*`[T[A, B, C]]
       object Lam:
-        case class Function1Type[A, B]() extends Lam[A => B]
-        case class Function2Type[A, B, C]() extends Lam[(A, B) => C]
-      sealed abstract class Var[T] extends TypeLevel[T]
+        case class Lam[F[_], A](domain: `*`[A], codomain: `*`[F[A]]) extends `*->*`[F]
       object Var:
-        case class __() extends Var[__]
-        case class BooleanType() extends Var[Boolean]
-        case class IntType() extends Var[Int]
-        case class NothingType() extends Var[Nothing]
-        case class StringType() extends Var[String]
-        case class UnitType() extends Var[Unit]
-        case class UserDefinedType[T](nme: String, tparams: List[TypeLevel[Any]], impl: Option[TypeLevel[T]]) extends Var[T]
-          
-    sealed trait ValueLevel[T] extends Term
+        case class `UserDefinedType`[T](nme: String, impl: Option[`*`[T]]) extends `*`[T]
+        case class `UserDefinedType[_]`[T[_]](nme: String, impl: Option[`*->*`[T]]) extends `*->*`[T]
+        case class `UserDefinedType[_[_]]`[T[_[_]]](nme: String, impl: Option[`(*->*)->*`[T]]) extends `(*->*)->*`[T]
+        case class `UserDefinedType[_, _]`[T[_, _]](nme: String, impl: Option[`*->*->*`[T]]) extends `*->*->*`[T]
+        case class `UserDefinedType[_[_], _]`[T[_[_], _]](nme: String, impl: Option[`(*->*)->*->*`[T]]) extends `(*->*)->*->*`[T]
+        case class `UserDefinedType[_, _, _]`[T[_, _, _]](nme: String, impl: Option[`*->*->*->*`[T]]) extends `*->*->*->*`[T]
+
+    sealed trait ValueLevel extends Term
     object ValueLevel:
 
-      sealed abstract class App[T] extends Term.ValueLevel[T]
+      sealed trait `*`[T] extends ValueLevel
+      sealed trait `*->*`[T[_]] extends ValueLevel
+
       object App:
-        case class App1[A, B](fun: ValueLevel[A => B], arg: ValueLevel[A], tpe: TypeLevel[B]) extends Term.ValueLevel.App[B]
-        case class App2[A, B, C](fun: ValueLevel[(A, B) => C], arg: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
-        case class AppPure[G[_], A](fun: ValueLevel[G[A]], arg: ValueLevel[A], tpe: TypeLevel[G[A]]) extends Term.ValueLevel.App[G[A]]
-        case class AppVargs[G[_], A](fun: ValueLevel[G[A]], tpe: TypeLevel[G[A]], vargs: ValueLevel[A]*) extends Term.ValueLevel.App[G[A]]
-        case class Dot0[A, B, C](fun: ValueLevel[C], arg1: ValueLevel[A], tpe: TypeLevel[B]) extends Term.ValueLevel.App[B]
-        case class Dot1[A, B, C, D](fun: ValueLevel[D], arg1: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
-        case class Dotless[A, B, C, D](fun: ValueLevel[D], arg1: ValueLevel[A], arg2: ValueLevel[B], tpe: TypeLevel[C]) extends Term.ValueLevel.App[C]
-      sealed abstract class Blc[T] extends Term.ValueLevel[T]
-      object Blc:
-        case class ForComp[G[_], A](gens: List[Statement], ret: ValueLevel[A], tpe: TypeLevel[G[A]]) extends Blc[G[A]]
-      sealed abstract class Lam[T] extends Term.ValueLevel[T]
+        case class App1[A, B](fun: ValueLevel.`*`[A => B], arg: ValueLevel.`*`[A], tpe: TypeLevel.`*`[B]) extends `*`[B]
+        case class App2[A, B, C](fun: ValueLevel.`*`[(A, B) => C], arg: ValueLevel.`*`[A], arg2: ValueLevel.`*`[B], tpe: TypeLevel.`*`[C]) extends `*`[C]
+        case class AppPure[G[_], A](fun: ValueLevel.`*`[G[A]], arg: ValueLevel.`*`[A], tpe: TypeLevel.`*`[G[A]]) extends `*`[G[A]]
+        case class AppVargs[G[_], A](fun: ValueLevel.`*`[G[A]], tpe: TypeLevel.`*`[G[A]], vargs: ValueLevel.`*`[A]*) extends `*`[G[A]]
+        case class Dot0[A, B, C](fun: ValueLevel.`*`[C], arg1: ValueLevel.`*`[A], tpe: TypeLevel.`*`[B]) extends `*`[B]
+        case class Dot1[A, B, C, D](fun: ValueLevel.`*`[D], arg1: ValueLevel.`*`[A], arg2: ValueLevel.`*`[B], tpe: TypeLevel.`*`[C]) extends `*`[C]
+        case class Dotless[A, B, C, D](fun: ValueLevel.`*`[D], arg1: ValueLevel.`*`[A], arg2: ValueLevel.`*`[B], tpe: TypeLevel.`*`[C]) extends `*`[C]
+        case class ForComp[G[_], A](gens: List[Statement], ret: ValueLevel.`*`[A], tpe: TypeLevel.`*`[G[A]]) extends `*`[G[A]]
       object Lam:
-        case class Lam1[A, B](a: ValueLevel[A], b: ValueLevel[B], tpe: TypeLevel[A => B]) extends Term.ValueLevel.Lam[A => B]
-        case class Lam2[A, B, C](a1: ValueLevel[A], a2: ValueLevel[B], c: ValueLevel[C], tpe: TypeLevel[(A, B) => C]) extends Term.ValueLevel.Lam[(A, B) => C]
-      sealed abstract class Var[T] extends Term.ValueLevel[T]
+        case class Lam1[A, B](a: ValueLevel.`*`[A], b: ValueLevel.`*`[B], tpe: TypeLevel.`*`[A => B]) extends `*`[A => B]
+        case class Lam2[A, B, C](a1: ValueLevel.`*`[A], a2: ValueLevel.`*`[B], c: ValueLevel.`*`[C], tpe: TypeLevel.`*`[(A, B) => C]) extends `*`[(A, B) => C]
       object Var:
-        case class BooleanLiteral(tpe: TypeLevel[Boolean], b: Boolean) extends Var[Boolean]
-        case class IntLiteral(tpe: TypeLevel[Int], i: Int) extends Var[Int]
-        case class StringLiteral(tpe: TypeLevel[String], s: String) extends Var[String]
-        case class UnitLiteral(tpe: TypeLevel[Unit], u: Unit) extends Var[Unit]
-        case class UserDefinedValue[T](nme: String, tpe: TypeLevel[T], tparams: List[TypeLevel[Any]], impl: Option[ValueLevel[T]]) extends Var[T]
+        case class BooleanLiteral(tpe: TypeLevel.`*`[Boolean], b: Boolean) extends `*`[Boolean]
+        case class IntLiteral(tpe: TypeLevel.`*`[Int], i: Int) extends `*`[Int]
+        case class StringLiteral(tpe: TypeLevel.`*`[String], s: String) extends `*`[String]
+        case class UnitLiteral(tpe: TypeLevel.`*`[Unit], u: Unit) extends `*`[Unit]
+        case class `UserDefinedValue`[T](nme: String, tpe: TypeLevel.`*`[T], impl: Option[ValueLevel.`*`[T]]) extends `*`[T]
+        case class `UserDefinedValue[_]`[T[_]](nme: String, tpe: TypeLevel.`*->*`[T], impl: Option[ValueLevel.`*->*`[T]]) extends `*->*`[T]
 
-      extension [T] (v: ValueLevel[T])
-        def tpe: TypeLevel[T] =
+      extension [T] (v: ValueLevel.`*`[T])
+        def tpe: TypeLevel.`*`[T] =
           v match
-            case Term.ValueLevel.App.App1(fun, arg, tpe) => tpe
-            case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => tpe 
-            case Term.ValueLevel.App.AppPure(fun, arg, tpe) => tpe
-            case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => tpe
-            case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => tpe
-            case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => tpe
-            case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => tpe
-            case Term.ValueLevel.Blc.ForComp(l, r, tpe) => tpe
-            case Term.ValueLevel.Lam.Lam1(a, b, tpe) => tpe
-            case Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe) => tpe
-            case Term.ValueLevel.Var.BooleanLiteral(tpe, b) => tpe
-            case Term.ValueLevel.Var.IntLiteral(tpe, i) => tpe
-            case Term.ValueLevel.Var.StringLiteral(tpe, s) => tpe
-            case Term.ValueLevel.Var.UnitLiteral(tpe, u) => tpe
-            case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => tpe
+            case ValueLevel.App.App1(fun, arg, tpe) => tpe
+            case ValueLevel.App.App2(fun, arg1, arg2, tpe) => tpe 
+            case ValueLevel.App.AppPure(fun, arg, tpe) => tpe
+            case ValueLevel.App.AppVargs(fun, tpe, vargs*) => tpe
+            case ValueLevel.App.Dot0(fun, arg1, tpe) => tpe
+            case ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => tpe
+            case ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => tpe
+            case ValueLevel.App.ForComp(l, r, tpe) => tpe
+            case ValueLevel.Lam.Lam1(a, b, tpe) => tpe
+            case ValueLevel.Lam.Lam2(a1, a2, c, tpe) => tpe
+            case ValueLevel.Var.BooleanLiteral(tpe, b) => tpe
+            case ValueLevel.Var.IntLiteral(tpe, i) => tpe
+            case ValueLevel.Var.StringLiteral(tpe, s) => tpe
+            case ValueLevel.Var.UnitLiteral(tpe, u) => tpe
+            case ValueLevel.Var.`UserDefinedValue`(nme, tpe, impl) => tpe
             
-    extension [T] (v: Term.ValueLevel[T])
-
-      def findImpl: Option[Term.ValueLevel[T]] =
+    extension [T] (v: ValueLevel.`*`[T])
+      def findImpl: Option[ValueLevel.`*`[T]] =
         v match
-          case Term.ValueLevel.App.App1(fun, arg, tpe) => Some(v)
-          case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => Some(v) 
-          case Term.ValueLevel.App.AppPure(fun, arg, tpe) => Some(v)
-          case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(v)
-          case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => Some(v)
-          case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => Some(v)
-          case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => Some(v)
-          case Term.ValueLevel.Blc.ForComp(l, r, t) => Some(v)
-          case Term.ValueLevel.Lam.Lam1(a, b, t) => Some(v)
-          case Term.ValueLevel.Lam.Lam2(a1, a2, b, t) => Some(v)
-          case Term.ValueLevel.Var.BooleanLiteral(tpe, b) => Some(v)
-          case Term.ValueLevel.Var.IntLiteral(tpe, i) => Some(v)
-          case Term.ValueLevel.Var.StringLiteral(tpe, s) => Some(v)
-          case Term.ValueLevel.Var.UnitLiteral(tpe, s) => Some(v)
-          case u@Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => impl.fold(None)(i => i.findImpl)
-
-      def findVargs[A]: Option[Seq[Term.ValueLevel[A]]] =
-        v.findImpl.fold(None)(i => i match
-          case Term.ValueLevel.App.App1(fun, arg, tpe) => None
-          case Term.ValueLevel.App.App2(fun, arg1, arg2, tpe) => None
-          case Term.ValueLevel.App.AppPure(fun, arg, tpe) => None
-          case Term.ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(vargs.asInstanceOf[Seq[Term.ValueLevel[A]]])
-          case Term.ValueLevel.App.Dot0(fun, arg1, tpe) => None
-          case Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => None
-          case Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => None
-          case Term.ValueLevel.Blc.ForComp(l, r, t) => None
-          case Term.ValueLevel.Lam.Lam1(a, b, t) => None
-          case Term.ValueLevel.Lam.Lam2(a1, a2, b, t) => None
-          case Term.ValueLevel.Var.BooleanLiteral(tpe, b) => None
-          case Term.ValueLevel.Var.IntLiteral(tpe, i) => None
-          case Term.ValueLevel.Var.StringLiteral(tpe, s) => None
-          case Term.ValueLevel.Var.UnitLiteral(tpe, s) => None
-          case Term.ValueLevel.Var.UserDefinedValue(nme, tpe, tparams, impl) => None
-        )
+          case ValueLevel.App.App1(fun, arg, tpe) => Some(v)
+          case ValueLevel.App.App2(fun, arg1, arg2, tpe) => Some(v) 
+          case ValueLevel.App.AppPure(fun, arg, tpe) => Some(v)
+          case ValueLevel.App.AppVargs(fun, tpe, vargs*) => Some(v)
+          case ValueLevel.App.Dot0(fun, arg1, tpe) => Some(v)
+          case ValueLevel.App.Dot1(fun, arg1, arg2, tpe) => Some(v)
+          case ValueLevel.App.Dotless(fun, arg1, arg2, tpe) => Some(v)
+          case ValueLevel.App.ForComp(l, r, t) => Some(v)
+          case ValueLevel.Lam.Lam1(a, b, t) => Some(v)
+          case ValueLevel.Lam.Lam2(a1, a2, b, t) => Some(v)
+          case ValueLevel.Var.BooleanLiteral(tpe, b) => Some(v)
+          case ValueLevel.Var.IntLiteral(tpe, i) => Some(v)
+          case ValueLevel.Var.StringLiteral(tpe, s) => Some(v)
+          case ValueLevel.Var.UnitLiteral(tpe, s) => Some(v)
+          case ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => impl.fold(None)(i => i.findImpl)

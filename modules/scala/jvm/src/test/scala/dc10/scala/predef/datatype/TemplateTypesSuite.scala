@@ -2,7 +2,7 @@ package dc10.scala.predef.datatype
 
 import dc10.scala.compiler.{compile, toString}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.4.0`
+import dc10.scala.version.`3.3.3`
 import munit.FunSuite
 import scala.language.implicitConversions
 
@@ -15,7 +15,7 @@ class TemplateTypesSuite extends FunSuite:
     def ast = CASECLASS[Person1, String]("Person1", FIELD("name", STRING))
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.toString["scala-3.3.3"]
       
     val expected: String =
       """case class Person1(name: String)""".stripMargin
@@ -36,7 +36,7 @@ class TemplateTypesSuite extends FunSuite:
       )
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.toString["scala-3.3.3"]
       
     val expected: String =
       """|case class Person2(
@@ -58,7 +58,7 @@ class TemplateTypesSuite extends FunSuite:
       )
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.toString["scala-3.3.3"]
     
     val expected: String =
       """|trait Foo:
@@ -71,7 +71,7 @@ class TemplateTypesSuite extends FunSuite:
     type Bar[F[_]]
 
     def ast[F[_], A] =
-      TRAIT[Bar, F, __]("Bar", TYPE[F, __]("F", __), F =>
+      TRAIT[Bar, F]("Bar", TYPE[F, __]("F", __), F =>
         for
           _ <- DEF("name", VAL("s", STRING), F(STRING))
           _ <- DEF("age", VAL("s", INT), F(INT))
@@ -79,7 +79,7 @@ class TemplateTypesSuite extends FunSuite:
       )
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.toString["scala-3.3.3"]
     
     val expected: String =
       """|trait Bar[F[_]]:

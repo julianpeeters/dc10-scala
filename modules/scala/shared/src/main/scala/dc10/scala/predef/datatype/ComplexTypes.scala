@@ -2,95 +2,103 @@ package dc10.scala.predef.datatype
 
 import cats.data.StateT
 import cats.implicits.given
-import dc10.scala.{ErrorF, Statement}
+import dc10.scala.{ErrorF, LibDep, Statement}
 import dc10.scala.predef.{Functions, Variables}
-import dc10.scala.Statement.{LibraryDependency, TypeExpr, ValueExpr}
+import dc10.scala.Statement.TypeExpr.{`Type`, `Type[_]`, `Type[_, _]`}
+import dc10.scala.Statement.ValueExpr.{`Value`}
 import dc10.scala.Symbol.Term
 
+
+import scala.language.implicitConversions
+import dc10.scala.predef.Applications
+
 trait ComplexTypes[F[_]]:
-  def LIST[A](targ: F[TypeExpr[A]]): F[TypeExpr[List[A]]]
-  def List[A](args: F[ValueExpr[A]]*): F[ValueExpr[List[A]]]
-  def OPTION[A](targ: F[TypeExpr[A]]): F[TypeExpr[Option[A]]]
-  def Option[A](arg: F[ValueExpr[A]]): F[ValueExpr[Option[A]]]
-  def Some[A](arg: F[ValueExpr[A]]): F[ValueExpr[Option[A]]]
-  def TUPLE[A, B](arg1: F[TypeExpr[A]], arg2: F[TypeExpr[B]]): F[TypeExpr[Tuple2[A, B]]]
-  def Tuple[A, B]: (F[ValueExpr[A]], F[ValueExpr[B]]) => F[ValueExpr[Tuple2[A, B]]]
+  def LIST: F[`Type[_]`[List]]
+  def List[A](args: F[`Value`[A]]*): F[`Value`[List[A]]]
+  def OPTION: F[`Type[_]`[Option]]
+  def Option[A](arg: F[`Value`[A]]): F[`Value`[Option[A]]]
+  def Some[A](arg: F[`Value`[A]]): F[`Value`[Option[A]]]
+  def TUPLE: F[`Type[_, _]`[Tuple2]]
+  def Tuple[A, B]: (F[`Value`[A]], F[`Value`[B]]) => F[`Value`[Tuple2[A, B]]]
 
 object ComplexTypes:
 
-  trait Mixins extends ComplexTypes[[A] =>> StateT[ErrorF, (Set[LibraryDependency], List[Statement]), A]]
-    with Functions.Mixins with Variables.Mixins:
-
-    def LIST[A](targ: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[A]]): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[List[A]]] =
-      targ.map(a => TypeExpr(Term.TypeLevel.App.App1(Term.TypeLevel.Var.UserDefinedType("List", Nil, None), a.tpe)))
+  trait Mixins extends ComplexTypes[[A] =>> StateT[ErrorF, (Set[LibDep], List[Statement]), A]]
+    with Applications.Mixins with Functions.Mixins with PrimitiveTypes.Mixins with Variables.Mixins:
       
-    def List[A](args: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[A]]*): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[List[A]]] =
+    def LIST: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[List]] =
+      StateT.pure(`Type[_]`(Term.TypeLevel.Var.`UserDefinedType[_]`("List", None)))
+      
+    def List[A](
+      args: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]]*
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[List[A]]] =
       for
         a <- args.toList.sequence
-        v <- a.headOption.fold[StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[List[A]]]](
-          LIST(StateT.pure[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[A]](TypeExpr(Term.TypeLevel.Var.NothingType()))).map(l => 
-            ValueExpr(Term.ValueLevel.App.AppVargs(
-              Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, Nil, None),
+        n <- NOTHING
+        v <- a.headOption.fold[StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[List[A]]]](
+          LIST(StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Type`[Nothing]](n)).map(l => 
+            Value(Term.ValueLevel.App.AppVargs(
+              Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, None),
               l.tpe,
               Nil*
             ))
           )
-        )(h => LIST(StateT.pure(TypeExpr(h.value.tpe))).map(l => 
-          ValueExpr(Term.ValueLevel.App.AppVargs(
-            Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, Nil, None),
+        )(h => LIST(StateT.pure(`Type`(h.value.tpe))).map(l => 
+          Value(Term.ValueLevel.App.AppVargs(
+            Term.ValueLevel.Var.UserDefinedValue("List", l.tpe, None),
             l.tpe,
             a.map(arg => arg.value)*)
           ))
         )
       yield v
 
-    def OPTION[A](targ: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[A]]): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[Option[A]]] =
-      targ.map(a => TypeExpr(Term.TypeLevel.App.App1(Term.TypeLevel.Var.UserDefinedType("Option", Nil, None), a.tpe)))
+    def OPTION: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[Option]] =
+      `Type[_]`(Term.TypeLevel.Var.`UserDefinedType[_]`("Option", None))
     
-    def Option[A](arg: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[A]]): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[Option[A]]] =
+    def Option[A](arg: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Option[A]]] =
       for
         a <- arg
-        t <- OPTION(StateT.pure(TypeExpr(a.value.tpe)))
-        v <- StateT.pure[ErrorF, (Set[LibraryDependency], List[Statement]), Term.ValueLevel[Option[A]]](
+        t <- OPTION(StateT.pure(`Type`(a.value.tpe)))
+        v <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.`*`[Option[A]]](
           Term.ValueLevel.App.AppPure(
-            Term.ValueLevel.Var.UserDefinedValue("Option", t.tpe, Nil, None),
+            Term.ValueLevel.Var.UserDefinedValue("Option", t.tpe, None),
             a.value,
             t.tpe,
           )
         )
-      yield ValueExpr(v)
+      yield Value(v)
 
-    def Some[A](arg: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[A]]): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[Option[A]]] =
+    def Some[A](arg: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Option[A]]] =
       for
         a <- arg
-        t <- OPTION(StateT.pure(TypeExpr(a.value.tpe)))
-        v <- StateT.pure[ErrorF, (Set[LibraryDependency], List[Statement]), Term.ValueLevel[Option[A]]](
+        t <- OPTION(StateT.pure(`Type`(a.value.tpe)))
+        v <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.`*`[Option[A]]](
           Term.ValueLevel.App.AppPure(
-            Term.ValueLevel.Var.UserDefinedValue("Some", t.tpe, Nil, None),
+            Term.ValueLevel.Var.UserDefinedValue("Some", t.tpe, None),
             a.value,
             t.tpe,
           )
         )
-      yield ValueExpr(v)
+      yield Value(v)
 
-    def TUPLE[A, B](arg1: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[A]], arg2: StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[B]]): StateT[ErrorF, (Set[LibraryDependency], List[Statement]), TypeExpr[Tuple2[A, B]]] =
-      for 
-        a <- arg1
-        b <- arg2
-      yield TypeExpr(Term.TypeLevel.App.App2(Term.TypeLevel.Var.UserDefinedType("Tuple2", Nil, None), a.tpe, b.tpe))
+    def TUPLE: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_, _]`[Tuple2]] =
+      StateT.pure(`Type[_, _]`(Term.TypeLevel.Var.`UserDefinedType[_, _]`("Tuple2", None)))
       
-    def Tuple[A, B]: (StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[A]], StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[B]]) => StateT[ErrorF, (Set[LibraryDependency], List[Statement]), ValueExpr[Tuple2[A, B]]] =
+    def Tuple[A, B]: (
+      StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]],
+      StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[B]]
+    ) => StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Tuple2[A, B]]] =
       (arg1, arg2) =>
         for
           a <- arg1
           b <- arg2
-          t <- TUPLE(StateT.pure(TypeExpr(a.value.tpe)), StateT.pure(TypeExpr(b.value.tpe)))
-          v <- StateT.pure[ErrorF, (Set[LibraryDependency], List[Statement]), Term.ValueLevel[Tuple2[A, B]]](
+          t <- TUPLE(StateT.pure(`Type`(a.value.tpe)), StateT.pure(`Type`(b.value.tpe)))
+          v <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.`*`[Tuple2[A, B]]](
             Term.ValueLevel.App.App2(
-              Term.ValueLevel.Var.UserDefinedValue("", Term.TypeLevel.App.App3(Term.TypeLevel.Lam.Function2Type(), a.value.tpe, b.value.tpe, t.tpe), Nil, None),
+              Term.ValueLevel.Var.UserDefinedValue("", Term.TypeLevel.App.`App[_, _, _]`(Term.TypeLevel.Var.`UserDefinedType[_, _, _]`("=>", None), a.value.tpe, b.value.tpe, t.tpe), None),
               a.value,
               b.value,
               t.tpe
             )
           )
-        yield ValueExpr(v)
+        yield Value(v)

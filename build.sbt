@@ -1,5 +1,5 @@
 val CatsV = "2.10.0"
-val Dc10V = "0.4.0+2-f918b98f+20240405-1512-SNAPSHOT"
+val Dc10V = "0.4.0+3-b5d6ad6d+20240611-2108-SNAPSHOT"
 val MUnitV = "0.7.29"
 val SourcePosV = "1.1.0"
 
@@ -25,7 +25,7 @@ inThisBuild(List(
     "-Wunused:all",
     "-Wvalue-discard"
   ),
-  scalaVersion := "3.4.1",
+  scalaVersion := "3.4.2",
   versionScheme := Some("semver-spec"),
 ))
 
