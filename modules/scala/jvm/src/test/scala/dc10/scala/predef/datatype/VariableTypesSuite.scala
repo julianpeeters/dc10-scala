@@ -1,26 +1,24 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
-import dc10.scala.compiler.{compile, toString}
+import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.3`
+import dc10.scala.version.`3.3.4`
 import munit.FunSuite
-import org.tpolecat.sourcepos.SourcePos
 
 class VariableTypesSuite extends FunSuite:
 
   test("type alias def"):
  
-    def ast[F[_], A](using sp: SourcePos) =
+    def ast[A] =
       for
         a <- TYPE("Q") := STRING
         A <- TYPE[A]("A")
         _ <- TYPE("S"):= A
       yield ()
     
-    println(ast.runEmptyS)
-    val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+    def obtained[A]: String =
+      ast.compile.string
       
     val expected: String =
       """|type Q = String
@@ -43,7 +41,7 @@ class VariableTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|type A
@@ -69,7 +67,7 @@ class VariableTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|type A
@@ -91,7 +89,7 @@ class VariableTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|type Q = [A] =>> Option[A]
@@ -109,7 +107,7 @@ class VariableTypesSuite extends FunSuite:
   //   )
   
   //   val obtained: String =
-  //     ast.compile.toString["scala-3.3.3"]
+  //     ast.compile.string
       
   //   val expected: String =
   //     """|type Elem[X] = X match

@@ -2,25 +2,26 @@ package dc10.scala
 
 import dc10.scala.Symbol.Term.TypeLevel
 
+sealed trait Symbol
 object Symbol:
 
-  case class CaseClass[T](nme: String, fields: List[Statement], body: List[Statement])
-  case class Extension(field: Statement, body: List[Statement])
-  case class Object[T](nme: String, parent: Option[TypeLevel.`*`[T]], body: List[Statement])
+  case class CaseClass[T](nme: String, fields: List[Statement], body: List[Statement]) extends Symbol
+  case class Extension(field: Statement, body: List[Statement]) extends Symbol
+  case class Object[T](nme: String, parent: Option[TypeLevel.`*`[T]], body: List[Statement]) extends Symbol
 
-  sealed trait Package
+  sealed trait Package extends Symbol
   object Package:
     case class Basic(nme: String, nst: Statement.`package`) extends Package
     case class Empty(ms : List[Statement]) extends Package
 
-  sealed trait Trait
+  sealed trait Trait extends Symbol
   object Trait:
     case class `*`[T](nme: String, body: List[Statement]) extends Trait
     case class `*->*`[F[_]](nme: String, body: List[Statement]) extends Trait
     case class `(*->*)->*`[F[_[_]]](nme: String, body: List[Statement]) extends Trait
     case class `(*->*)->*->*`[F[_[_], _]](nme: String, body: List[Statement]) extends Trait
   
-  sealed trait Term
+  sealed trait Term extends Symbol
   object Term:
 
     sealed trait TypeLevel extends Term

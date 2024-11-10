@@ -1,10 +1,6 @@
-package dc10.scala.predef.datatype
-
 import _root_.scala.language.implicitConversions
 import cats.data.StateT
-import dc10.scala.{ErrorF}
-import dc10.scala.Statement
-import dc10.scala.LibDep
+import dc10.scala.{ErrorF, LibDep, Statement}
 import dc10.scala.Statement.ValueExpr.`Value`
 import munit.FunSuite
 
@@ -14,8 +10,8 @@ class PrimitiveTypeSuite extends FunSuite:
   import dc10.scala.dsl.{*, given}
 
   // compile
-  import dc10.scala.compiler.{compile, toString}
-  import dc10.scala.version.`3.3.3`
+  import dc10.scala.compiler.{compile, string}
+  import dc10.scala.version.`3.3.4`
 
   test("def dec"):
 
@@ -27,7 +23,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|def greeting(str: String): String
@@ -45,7 +41,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|def f(str: String): String = str
@@ -78,7 +74,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|extension (str: String)
@@ -101,7 +97,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val t: Boolean
@@ -126,7 +122,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val t: Boolean = true
@@ -150,7 +146,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|def foo: String

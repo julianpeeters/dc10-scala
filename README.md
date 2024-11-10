@@ -4,7 +4,7 @@ A ***D**efinitional* ***C**ompiler* for generating Scala code.
  - Generates code for Scala 3
 
 ```scala
-"com.julianpeeters" %% "dc10-scala" % "0.7.1"
+"com.julianpeeters" %% "dc10-scala" % "0.8.0"
 ```
 
 ### `dc10-scala`
@@ -21,16 +21,16 @@ val snippet =
     s <- VAL("str", STRING, "hello, world")
     _ <- VAL("msg", STRING, s)
   yield ()
-// snippet: IndexedStateT[ErrorF, (Set[LibraryDependency], List[Statement]), List[Statement], Unit] = cats.data.IndexedStateT@79ece636
+// snippet: IndexedStateT[ErrorF, Tuple2[Set[LibDep], List[Statement]], Tuple2[Set[LibDep], List[Statement]], Unit] = cats.data.IndexedStateT@3ef0c214
 ```
 
-Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
+Use the `compiler` impl to check and render code `toString` or `virtualFile`:
 
 ```scala
-import dc10.scala.compiler.{compile, toString}
-import dc10.scala.version.`3.3.3`
+import dc10.scala.compiler.{compile, string}
+import dc10.scala.version.`3.3.4`
 
-val result: String = snippet.compile.toString["scala-3.3.3"]
+val result: String = snippet.compile.string
 // result: String = """val str: String = "hello, world"
 // val msg: String = str"""
 ```
@@ -38,4 +38,3 @@ val result: String = snippet.compile.toString["scala-3.3.3"]
 ### Libraries
  - [`dc10-cats`](https://github.com/julianpeeters/dc10-cats)
  - [`dc10-cats-effect`](https://github.com/julianpeeters/dc10-cats-effect)
- - [`dc10-scalaq`](https://github.com/julianpeeters/dc10-scalaq)

@@ -23,13 +23,13 @@ val snippet =
   yield ()
 ```
 
-Use the `compiler` impl to check and render code `toString` or `toVirtualFile`:
+Use the `compiler` impl to check and render code `toString` or `virtualFile`:
 
 ```scala mdoc
-import dc10.scala.compiler.{compile, toString}
-import dc10.scala.version.`3.3.3`
+import dc10.scala.compiler.{compile, string}
+import dc10.scala.version.`3.3.4`
 
-val result: String = snippet.compile.toString["scala-3.3.3"]
+val result: String = snippet.compile.string
 ```
 
 ### Libraries

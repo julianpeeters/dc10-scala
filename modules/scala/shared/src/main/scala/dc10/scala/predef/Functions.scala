@@ -2,13 +2,11 @@ package dc10.scala.predef
 
 import cats.data.StateT
 import cats.implicits.given
-import dc10.scala.ctx.ext
 import dc10.scala.dsl.{OPTION}
-import dc10.scala.{Error, ErrorF, LibDep, Statement}
+import dc10.scala.{Error, ErrorF, LibDep, Statement, compiler}
 import dc10.scala.Statement.TypeExpr.{`Type`, `Type[_]`}
 import dc10.scala.Statement.ValueExpr.{`Value`}
 import dc10.scala.Symbol.{Extension, Term}
-import org.tpolecat.sourcepos.SourcePos
 
 trait Functions[F[_]]:
 
@@ -32,22 +30,22 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("tLam1")
     def ==>>(codomain: `Type`[A] => F[`Type`[G[A]]]): F[`Type[_]`[G]]
 
-  def EXT[G[_], B](func: F[G[B]])(using sp: SourcePos): F[G[B]]
+  def EXT[G[_], B](func: F[G[B]]): F[G[B]]
 
   @scala.annotation.targetName("forOption")
-  def FOR[A](f: F[Value[A]])(using sp: SourcePos): F[Value[Option[A]]]
+  def FOR[A](f: F[Value[A]]): F[Value[Option[A]]]
 
   extension [G[_], A] (nme: String)
-    def <--(ff: F[Value[G[A]]])(using sp: SourcePos): F[Value[A]]
+    def <--(ff: F[Value[G[A]]]): F[Value[A]]
   
   // @scala.annotation.targetName("matchT1")
-  // def MATCHTYPES[T[_], A, B](nme: String, arg: F[`Type`[A]], cases: `Type`[A] => F[B])(using sp: SourcePos): F[`Type`[T[A]]]
+  // def MATCHTYPES[T[_], A, B](nme: String, arg: F[`Type`[A]], cases: `Type`[A] => F[B]): F[`Type`[T[A]]]
   
-  def CASE[A, B](f: F[`Type`[A => B]])(using sp: SourcePos): F[Unit]
+  def CASE[A, B](f: F[`Type`[A => B]]): F[Unit]
 
 object Functions:
 
-  trait Mixins extends Functions[[A] =>> StateT[ErrorF, (Set[LibDep], List[Statement]), A]]
+  trait Mixins extends Functions[StateT[ErrorF, (Set[LibDep], List[Statement]), _]]
     with Applications.Mixins:
  
     extension [A, B] (domain: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]])
@@ -132,19 +130,19 @@ object Functions:
 
     def EXT[G[_], B](
       func: StateT[ErrorF, (Set[LibDep], List[Statement]), G[B]]
-    )(using sp: SourcePos): StateT[ErrorF, (Set[LibDep], List[Statement]), G[B]] =
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), G[B]] =
       for
         ((ds, ms), f) <- StateT.liftF(func.runEmpty)
         e <- StateT.liftF(ms match
           case arg1 :: methods => Right(Extension(arg1, methods))
-          case Nil => Either.left[List[Error], Extension](List(Error(s"${sp.file}:${sp.line}\nToo many extension arguments")))
+          case Nil => Either.left[List[Error], Extension](List(Error(s"Too many extension arguments")))
         )
-        d <- StateT.pure(Statement.extension(0, sp, e))
+        d <- StateT.pure(Statement.extension(0, e))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
       yield f
 
     @scala.annotation.targetName("forOption")
-    def FOR[A](f: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]])(using sp: SourcePos): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Option[A]]] =
+    def FOR[A](f: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]]): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Option[A]]] =
       for
         ((d, l), a) <- StateT.liftF(f.runEmpty)
         t <- OPTION(StateT.pure(Type(a.value.tpe)))
@@ -154,7 +152,7 @@ object Functions:
     extension [G[_], A] (nme: String)
       def <--(
         ff: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[G[A]]]
-      )(using sp: SourcePos): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]] =
+      ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]] =
         for
           g <- ff
           t <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Term.TypeLevel.`*`[A]](g.value.tpe match
@@ -185,7 +183,7 @@ object Functions:
           ))
           v <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.Var.UserDefinedValue[A]](
                 Right(Term.ValueLevel.Var.UserDefinedValue(nme, t, Some(i))))
-          d <- StateT.pure(Statement.ValueDef.Gen(0, sp, v, g.value))
+          d <- StateT.pure(Statement.ValueDef.Gen(0, v, g.value))
           _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
         yield Value(v)
 
@@ -194,27 +192,27 @@ object Functions:
     //   nme: String,
     //   arg: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]],
     //   cases: `Type`[A] => StateT[ErrorF, (Set[LibDep], List[Statement]), B]
-    // )(using sp: SourcePos): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[T[A]]] =
+    // ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[T[A]]] =
     //   for
     //     a <- StateT.liftF(arg.runEmptyA)
     //     (d, l) <- StateT.liftF(cases(a).runEmptyS)
     //     c <- StateT.liftF(l.map(s => s match
     //       case Type(tpe) => tpe match
     //         case Infix(tfun, ta, tb) => Right(Infix(tfun, ta, tb))
-    //         case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected function but found ${tpe}")))
-    //       case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected cases but found ${a.tpe}")))
+    //         case _ => Left(List(Error(s"Match types error: expected function but found ${tpe}")))
+    //       case _ => Left(List(Error(s"Match types error: expected cases but found ${a.tpe}")))
     //     ).sequence)
     //     f <- StateT.pure(TypeLevel.Var.`UserDefinedType[_]`(nme, None))
     //     t <- StateT.liftF(a.tpe match
     //       case u@TypeLevel.Var.`UserDefinedType`(_, _) => Right(Term.TypeLevel.App.`App[_]`(f, a.tpe 
     //       ))
-    //       case _ => Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected user-defined type but found ${a.tpe}")))
+    //       case _ => Left(List(Error(s"Match types error: expected user-defined type but found ${a.tpe}")))
     //     )
-    //     d <- StateT.liftF(c.toNel.fold(Left(List(Error(s"${sp.file}:${sp.line}\nMatch types error: expected at least one case"))))(nel => Right(TypeDef.Match(0, sp, t, nel))))
+    //     d <- StateT.liftF(c.toNel.fold(Left(List(Error(s"Match types error: expected at least one case"))))(nel => Right(TypeDef.Match(0, t, nel))))
     //     _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
     //   yield Type(t)
 
-    def CASE[A, B](f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A => B]])(using sp: SourcePos): StateT[ErrorF, (Set[LibDep], List[Statement]), Unit] =
+    def CASE[A, B](f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A => B]]): StateT[ErrorF, (Set[LibDep], List[Statement]), Unit] =
       for
         a <- f
         _ <- f.modify(d => (d._1, d._2 :+ a))

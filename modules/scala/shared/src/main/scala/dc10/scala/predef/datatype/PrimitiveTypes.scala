@@ -28,7 +28,7 @@ trait PrimitiveTypes[F[_]]:
   
 object PrimitiveTypes:
 
-  trait Mixins extends PrimitiveTypes[[A] =>> StateT[ErrorF, (Set[LibDep], List[Statement]), A]]:
+  trait Mixins extends PrimitiveTypes[StateT[ErrorF, (Set[LibDep], List[Statement]), _]]:
 
     type __ = Term.TypeLevel.__
 

@@ -1,7 +1,5 @@
-val CatsV = "2.10.0"
-val Dc10V = "0.4.0+3-b5d6ad6d+20240611-2108-SNAPSHOT"
-val MUnitV = "0.7.29"
-val SourcePosV = "1.1.0"
+val Dc10V = "0.5.0"
+val MUnitV = "1.0.2"
 
 inThisBuild(List(
   crossScalaVersions := Seq(scalaVersion.value),
@@ -21,11 +19,10 @@ inThisBuild(List(
     "-deprecation",
     "-feature",
     "-Werror",
-    "-source:future",
     "-Wunused:all",
-    "-Wvalue-discard"
+    "-Xkind-projector:underscores"
   ),
-  scalaVersion := "3.4.2",
+  scalaVersion := "3.5.2",
   versionScheme := Some("semver-spec"),
 ))
 
@@ -36,27 +33,25 @@ lazy val scala = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     libraryDependencies ++= Seq(
       // main
       "com.julianpeeters" %%% "dc10-core" % Dc10V,
-      "org.tpolecat"      %%% "sourcepos" % SourcePosV,
-      "org.typelevel"     %%% "cats-core" % CatsV,
       // test
-      "org.scalameta"     %% "munit"     % MUnitV      % Test
+      "org.scalameta"     %% "munit"      % MUnitV % Test
     )
   )
   .jsSettings(test := {})
   .nativeSettings(test := {})
 
-lazy val meta = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .in(file("modules/dc10"))
+lazy val metalang = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/metalang"))
   .enablePlugins(BuildInfoPlugin)
   .settings(
-    name := "dc10-scala-dc10",
+    name := "dc10-scala-metalang",
     buildInfoKeys := Seq[BuildInfoKey](organization, name, version),
-    buildInfoPackage := "dc10.scala.dc10",
+    buildInfoPackage := "dc10.scala.metalang",
     libraryDependencies ++= Seq(
       // main
       //
       // test
-      "org.scalameta"     %% "munit"     % MUnitV      % Test
+      "org.scalameta" %% "munit" % MUnitV % Test
     )
   )
   .dependsOn(scala)

@@ -2,22 +2,23 @@ package dc10.scala.predef
 
 import _root_.scala.language.implicitConversions
 import cats.implicits.given
-import dc10.scala.compiler.{compile, toString}
+import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.3`
+import dc10.scala.{LibDep, Statement}
+import dc10.scala.version.`3.3.4`
 import munit.FunSuite
 
 class FunctionsSuite extends FunSuite:
 
   test("val dec"):
 
-    def ast =
+    def ast: cats.data.StateT[dc10.scala.ErrorF, (Set[LibDep], List[Statement]), Unit] =
       for
         _ <- VAL("f1", INT ==> STRING)
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """val f1: Int => String""".stripMargin
@@ -36,7 +37,7 @@ class FunctionsSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val f1: String => String = input => input
@@ -57,7 +58,7 @@ class FunctionsSuite extends FunSuite:
     )
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val f1: Option[String] = 

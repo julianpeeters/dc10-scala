@@ -1,17 +1,17 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
+import cats.data.StateT
 import cats.implicits.given
-import munit.FunSuite
-
-import dc10.scala.compiler.{compile, toString}
+import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.3`
+import dc10.scala.version.`3.3.4`
+import munit.FunSuite
 
 class ComplexTypesSuite extends FunSuite:
   
   test("list val dec"):
-
+  
     def ast =
       for
         _ <- VAL("l1", LIST(INT))
@@ -21,7 +21,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+       ast.compile.string
       
     val expected: String =
       """|val l1: List[Int]
@@ -43,7 +43,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val l0: List[Int] = List()
@@ -65,7 +65,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val l1: Option[Int]
@@ -87,7 +87,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val s1: Option[Int] = Some(1)
@@ -107,7 +107,7 @@ class ComplexTypesSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.3.3"]
+      ast.compile.string
       
     val expected: String =
       """|val s1: Tuple2[Int, String]
