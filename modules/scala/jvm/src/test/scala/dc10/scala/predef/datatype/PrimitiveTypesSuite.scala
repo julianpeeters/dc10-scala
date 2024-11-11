@@ -1,10 +1,7 @@
-package dc10.scala.predef.datatype
-
 import _root_.scala.language.implicitConversions
-
 import cats.data.StateT
-import dc10.scala.{ErrorF, Statement}
-import dc10.scala.Statement.ValueExpr
+import dc10.scala.{ErrorF, LibDep, Statement}
+import dc10.scala.Statement.ValueExpr.`Value`
 import munit.FunSuite
 
 class PrimitiveTypeSuite extends FunSuite:
@@ -13,22 +10,24 @@ class PrimitiveTypeSuite extends FunSuite:
   import dc10.scala.dsl.{*, given}
 
   // compile
-  import dc10.scala.compiler.{compile, toString}
-  import dc10.scala.version.`3.4.0`
+  import dc10.scala.compiler.{compile, string}
+  import dc10.scala.version.`3.3.4`
 
   test("def dec"):
 
     def ast =
       for
         _ <- DEF("greeting", VAL("str", STRING), STRING)
+        _ <- DEF("chat", STRING)
         _ <- VAL("farewell", STRING)
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|def greeting(str: String): String
+         |def chat: String
          |val farewell: String""".stripMargin
       
     assertEquals(obtained, expected)
@@ -42,7 +41,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|def f(str: String): String = str
@@ -53,14 +52,14 @@ class PrimitiveTypeSuite extends FunSuite:
   test("ext def"):
 
     trait ExtensionR[Z, A]:
-      extension (s: StateT[ErrorF, List[Statement], ValueExpr[A, Z]] | ValueExpr[A, Z])
-        def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String, Z]]): StateT[ErrorF, List[Statement], ValueExpr[String, Z]]
+      extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]] | `Value`[A])
+        def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]
 
     object ExtensionR:
-      def apply(f: StateT[ErrorF, List[Statement], ValueExpr[String => String, Unit]]): ExtensionR[Unit, String] =
+      def apply(f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]]): ExtensionR[Unit, String] =
         new ExtensionR[Unit, String]:
-          extension (s: StateT[ErrorF, List[Statement], ValueExpr[String, Unit]] | ValueExpr[String, Unit])
-            def REPLACE(n: StateT[ErrorF, List[Statement], ValueExpr[String, Unit]]): StateT[ErrorF, List[Statement], ValueExpr[String, Unit]] =
+          extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] | `Value`[String])
+            def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
               s.DOT(f)(n)
         
     def ast =
@@ -75,7 +74,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|extension (str: String)
@@ -98,7 +97,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|val t: Boolean
@@ -123,7 +122,7 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|val t: Boolean = true
@@ -132,5 +131,27 @@ class PrimitiveTypeSuite extends FunSuite:
          |val year: Int = 2020
          |val greeting: String = "hello, world"
          |val farewell: String = "goodbye, world"""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("def dec f"):
+
+    def ast[F[_], A] =
+      for
+        _ <- DEF("foo", STRING)
+        _ <- DEF("bar", TYPE[F, __]("F", __), F => F(STRING))
+        _ <- DEF("baz", TYPE[A]("A"), A => A)
+        // _ <- DEF("qux", TYPE[F, __]("F", __), TYPE[A]("A"), (F, A) => F(A))
+        _ <- VAL("farewell", STRING)
+      yield ()
+    
+    val obtained: String =
+      ast.compile.string
+      
+    val expected: String =
+      """|def foo: String
+         |def bar[F[_]]: F[String]
+         |def baz[A]: A
+         |val farewell: String""".stripMargin
       
     assertEquals(obtained, expected)

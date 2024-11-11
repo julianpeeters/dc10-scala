@@ -1,275 +1,151 @@
 package dc10.scala
 
 import cats.data.NonEmptyList
-import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Term}
-import org.tpolecat.sourcepos.SourcePos
+import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Trait}
+import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
 
-sealed trait Statement:
-  def indent: Int
-  def sp: SourcePos
-  
+sealed trait Statement
 object Statement:
+
+  case class `case class`[T](indent: Int, caseclass: CaseClass[T]) extends Statement
+  case class `extension`(indent: Int, extension: Extension) extends Statement
+  case class `object`[T](indent: Int, obj: Object[T]) extends Statement
+  case class `package`(indent: Int, pkg: Package) extends Statement
+
+  sealed trait TraitDef extends Statement
+  object TraitDef:
+    case class `trait`[T](indent: Int, `trait`: Trait.`*`[T]) extends TraitDef
+    case class `trait[_]`[T[_], A](indent: Int, tparam: TypeLevel.`*`[A], `trait`: Trait.`*->*`[T]) extends TraitDef
+    case class `trait[_[_]]`[T[_[_]], F[_]](indent: Int, tparam: TypeLevel.`*->*`[F], `trait`: Trait.`(*->*)->*`[T]) extends TraitDef
+    case class `trait[_[_], _]`[T[_[_], _], F[_], A](indent: Int, tparamF: TypeLevel.`*->*`[F], tparamA: TypeLevel.`*`[A], `trait`: Trait.`(*->*)->*->*`[T]) extends TraitDef
+
+  sealed trait TypeDef extends Statement
+  object TypeDef:
+
+    case class `Alias`[T](
+      indent: Int,
+      tpe: TypeLevel.Var.`UserDefinedType`[T]
+    ) extends TypeDef
+
+    case class `Alias[_]`[F[_], A](
+      indent: Int,
+      tparam: TypeLevel.`*`[A],
+      tpe: TypeLevel.Var.`UserDefinedType[_]`[F]
+    ) extends TypeDef
+
+    case class `Alias[_]=>>`[F[_]](
+      indent: Int,
+      tpe: TypeLevel.Var.`UserDefinedType[_]`[F]
+    ) extends TypeDef
+
+    case class `Alias[_[_]]`[F[_[_]], G[_]](
+      indent: Int,
+      tparam: TypeLevel.`*->*`[G],
+      tpe: TypeLevel.Var.`UserDefinedType[_[_]]`[F]
+    ) extends TypeDef
+
+    case class `Alias[_[_], _]`[F[_[_], _], G[_], A](
+      indent: Int,
+      tparamF: TypeLevel.`*->*`[G],
+      tparamA: TypeLevel.`*`[A],
+      tpe: TypeLevel.Var.`UserDefinedType[_[_], _]`[F]
+    ) extends TypeDef
+    
+    case class `Match`[T[_], AA, A, B](
+      indent: Int,
+      tpe: TypeLevel.App.`App[_]`[T, A],
+      rhs: NonEmptyList[TypeLevel.App.Infix[?, ?, ?]]
+    ) extends TypeDef
+
+  sealed trait ValueDef extends Statement
+  object ValueDef:
+
+    case class `def`[T, A, B](
+      indent: Int,
+      arg: Option[ValueLevel.`*`[A]],
+      impl: Option[ValueLevel.`*`[B]],
+      tpe: TypeLevel.`*`[B],
+      value: ValueLevel.Var.`UserDefinedValue`[T],
+    ) extends ValueDef
+
+    case class `def[_]`[T, A](
+      indent: Int,
+      tparam: TypeLevel.`*`[A],
+      impl: Option[ValueLevel.`*`[T]],
+      value: ValueLevel.Var.`UserDefinedValue`[T],
+    ) extends ValueDef
+
+    case class `def[_[_]]`[F[_], A](
+      indent: Int,
+      tparam: TypeLevel.`*->*`[F],
+      impl: Option[ValueLevel.`*`[A]],
+      value: ValueLevel.Var.`UserDefinedValue`[A],
+    ) extends ValueDef
+
+    case class `def[_[_], _]`[F[_], A, T](
+      indent: Int,
+      tparamf: TypeLevel.`*->*`[F],
+      tparama: TypeLevel.`*`[A],
+      impl: Option[ValueLevel.`*`[T]],
+      value: ValueLevel.Var.`UserDefinedValue`[T],
+    ) extends ValueDef
+
+    case class Fld[T](
+      indent: Int,
+      value: ValueLevel.Var.`UserDefinedValue`[T]
+    ) extends ValueDef
+    
+    case class Gen[G[_], A](
+      indent: Int,
+      value: ValueLevel.Var.`UserDefinedValue`[A],
+      impl: ValueLevel.`*`[G[A]]
+    ) extends ValueDef
+    
+    case class `val`[K, T](
+      indent: Int,
+      value: ValueLevel.Var.`UserDefinedValue`[T],
+      tpe: TypeLevel.`*`[T]
+    ) extends ValueDef
+  
+  sealed trait TypeExpr extends Statement
+  object TypeExpr:
+    case class `Type`[T](tpe: TypeLevel.`*`[T]) extends TypeExpr
+    case class `Type[_]`[F[_]](tpe: TypeLevel.`*->*`[F]) extends TypeExpr
+    case class `Type[_[_]]`[F[_[_]]](tpe: TypeLevel.`(*->*)->*`[F]) extends TypeExpr
+    case class `Type[_, _]`[F[_, _]](tpe: TypeLevel.`*->*->*`[F]) extends TypeExpr
+    case class `Type[_[_], _]`[F[_[_], _]](tpe: TypeLevel.`(*->*)->*->*`[F]) extends TypeExpr
+
+  sealed trait ValueExpr extends Statement
+  object ValueExpr:
+    case class Value[T](value: ValueLevel.`*`[T]) extends ValueExpr
 
   extension (s: Statement)
     def addIndent: Statement =
       s match
-        case d@CaseClassDef(i, sp) => CaseClassDef(d.caseclass, i + 1)(using sp)
-        case d@ExtensionDef(i, sp) => ExtensionDef(d.extension, i + 1)(using sp)
-        case d@ImportDefs(i, sp) => ImportDefs(d.terms, i + 1)(using sp)
-        case d@ObjectDef(i, sp) => ObjectDef(d.obj, i + 1)(using sp)
-        case d@PackageDef(i, sp) => PackageDef(d.pkg, i + 1)(using sp)
-        case TypeExpr(tpe) => ???
-        case ValueExpr(value) => ???
-        case d@TypeDef.Alias(i, sp) => TypeDef.Alias(i + 1, d.tpe)(using sp)
-        case d@TypeDef.Match(i, sp) => TypeDef.Match(i + 1, d.tpe, d.rhs)(using sp)
-        case d@ValueDef.Def(i, sp) => ValueDef.Def(i + 1, d.value, d.arg, d.tpe, d.ret)(using sp)
-        case d@ValueDef.Fld(i, sp) => ValueDef.Fld(i + 1, d.value)(using sp)
-        case d@ValueDef.Gen(i, sp) => ValueDef.Gen(i + 1, d.value, d.impl)(using sp)
-        case d@ValueDef.Val(i, sp) => ValueDef.Val(i + 1, d.value)(using sp)
-
-  sealed abstract case class CaseClassDef(
-    indent: Int,
-    sp: SourcePos
-  ) extends Statement:
-    type Tpe
-    type Zed
-    def caseclass: CaseClass[Tpe, Zed]
-
-  object CaseClassDef:
-    def apply[T, Z](
-      v: CaseClass[T, Z],
-      i: Int
-    )(
-      using sp: SourcePos
-    ): CaseClassDef =
-      new CaseClassDef(i, sp):
-        type Tpe = T
-        type Zed = Z
-        def caseclass: CaseClass[T, Z] = v
-
-  sealed abstract case class ExtensionDef(
-    indent: Int,
-    sp: SourcePos
-  ) extends Statement:
-    def extension: Extension
-
-  object ExtensionDef:
-    def apply(
-      v: Extension,
-      i: Int
-    )(
-      using sp: SourcePos
-    ): ExtensionDef =
-      new ExtensionDef(i, sp):
-        def extension: Extension = v
-
-  sealed abstract case class ImportDefs(
-    indent: Int,
-    sp: SourcePos
-  ) extends Statement:
-    type Tpe
-    def terms: List[Term]
-
-  object ImportDefs:
-    def apply[T](
-      ts: List[Term],
-      i: Int
-    )(
-      using sp: SourcePos
-    ): ImportDefs =
-      new ImportDefs(i, sp):
-        type Tpe = T
-        def terms: List[Term] = ts
-
-  sealed abstract case class ObjectDef(
-    indent: Int,
-    sp: SourcePos
-  ) extends Statement:
-    type Tpe
-    def obj: Object[Tpe, Unit]
-
-  object ObjectDef:
-    def apply[T](
-      o: Object[T, Unit],
-      i: Int
-    )(
-      using sp: SourcePos
-    ): ObjectDef =
-      new ObjectDef(i, sp):
-        type Tpe = T
-        def obj: Object[T, Unit] = o
-
-  sealed abstract case class PackageDef(
-    indent: Int,
-    sp: SourcePos
-  ) extends Statement:
-    def pkg: Package
-
-  object PackageDef:
-    def apply[T](
-      p: Package,
-      i: Int,
-    )(
-      using sp: SourcePos
-    ): PackageDef =
-      new PackageDef(i, sp):
-        def pkg: Package = p
-
-  sealed trait TypeDef extends Statement:
-    type Tpe
-    type Zed
-    def indent: Int
-    def sp: SourcePos
-
-  object TypeDef:
-
-    abstract case class Alias[T, Z](
-      i: Int,
-      s: SourcePos   
-    ) extends TypeDef:
-      type Tpe = T
-      type Zed = Z
-      def indent: Int = i
-      def sp: SourcePos = s
-      def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z]
-
-
-    object Alias:
-      def apply[T, Z](
-        i: Int,
-        t: Term.TypeLevel.Var.UserDefinedType[T, Z]
-      )(
-        using sp: SourcePos
-      ): TypeDef =
-        new Alias[T, Z](i, sp):
-          def tpe: Term.TypeLevel.Var.UserDefinedType[T, Z] = t
-
-    abstract case class Match[T[_], A, B, X, Y, Z](
-      i: Int,
-      s: SourcePos   
-    ) extends TypeDef:
-      type Tpe = T[A]
-      type Zed = Z
-      def indent: Int = i
-      def sp: SourcePos = s
-      def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z]
-      def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
-
-    object Match:
-      def apply[T[_], A, B, X, Y, Z](
-        i: Int,
-        t: Term.TypeLevel.App.App1[T, A, X, Y, Z],
-        f: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]]
-      )(
-        using sp: SourcePos
-      ): TypeDef =
-        new Match[T, A, B, X, Y, Z](i, sp):
-          def tpe: Term.TypeLevel.App.App1[T, A, X, Y, Z] = t
-          def rhs: NonEmptyList[Term.TypeLevel.App.Infix[?, ?, ?, ?, ?, ?, ?]] = f
-
-  sealed trait ValueDef extends Statement:
-    type Tpe
-    type Zed
-    def value: Term.ValueLevel.Var.UserDefinedValue[Tpe, Zed]
-    def indent: Int
-    def sp: SourcePos
-
-  object ValueDef:
-
-    abstract case class Def[T, A, B, Z](
-      i: Int,
-      s: SourcePos
-    ) extends ValueDef:
-      type Tpe = T
-      type Zed = Z
-      def arg: Term.ValueLevel[A, Z]
-      def ret: Option[Term.ValueLevel[B, Z]]
-      def tpe: Term.TypeLevel[B, Z]
-      def indent: Int = i
-      def sp: SourcePos = s
-    object Def:
-      def apply[T, A, B, Z](
-        i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z],
-        a: Term.ValueLevel[A, Z],
-        t: Term.TypeLevel[B, Z],
-        r: Option[Term.ValueLevel[B, Z]]
-      )(
-        using sp: SourcePos
-      ): ValueDef =
-        new Def[T, A, B, Z](i, sp):
-          def arg: Term.ValueLevel[A, Z] = a
-          def ret: Option[Term.ValueLevel[B, Z]] = r
-          def tpe: Term.TypeLevel[B, Z] = t
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
-
-    abstract case class Fld[T, Z](
-      i: Int,
-      s: SourcePos   
-    ) extends ValueDef:
-      type Tpe = T
-      type Zed = Z
-      def indent: Int = i
-      def sp: SourcePos = s
-
-    object Fld:
-      def apply[T, Z](
-        i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z]
-      )(
-        using sp: SourcePos
-      ): ValueDef =
-        new Fld[T, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
-   
-    
-    abstract case class Gen[G[_], A, Y, Z](
-      i: Int,
-      s: SourcePos   
-    ) extends ValueDef:
-      type Tpe = A
-      type Zed = Z
-      def indent: Int = i
-      def sp: SourcePos = s
-      def impl: Term.ValueLevel[G[A], (Y, Z)]
-
-    object Gen:
-      def apply[G[_], A, Y, Z](
-        i: Int,
-        u: Term.ValueLevel.Var.UserDefinedValue[A, Z],
-        v: Term.ValueLevel[G[A], (Y, Z)]
-
-      )(
-        using sp: SourcePos
-      ): ValueDef =
-        new Gen[G, A, Y, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[A, Z] = u     
-          def impl: Term.ValueLevel[G[A], (Y, Z)] = v
-
-    abstract case class Val[T, Z](
-      i: Int,
-      s: SourcePos   
-    ) extends ValueDef:
-      type Tpe = T
-      type Zed = Z
-      def indent: Int = i
-      def sp: SourcePos = s
-
-    object Val:
-      def apply[T, Z](
-        i: Int,
-        v: Term.ValueLevel.Var.UserDefinedValue[T, Z]
-      )(
-        using sp: SourcePos
-      ): ValueDef =
-        new Val[T, Z](i, sp):
-          def value: Term.ValueLevel.Var.UserDefinedValue[T, Z] = v
-          def tpe: Term.TypeLevel[T, Z] = v.tpe
-   
-  case class TypeExpr[T, Z](tpe: Term.TypeLevel[T, Z]) extends Statement:
-    def indent: Int = 0
-    def sp: SourcePos = summon[SourcePos]
-
-  case class ValueExpr[T, Z](value: Term.ValueLevel[T, Z]) extends Statement:
-    def indent: Int = 0
-    def sp: SourcePos = summon[SourcePos]
+        case d@`case class`(i, c)                                       => `case class`(i + 1, c)
+        case d@`extension`(i, e)                                        => `extension`(i + 1, e)
+        case d@`object`(i, obj)                                         => `object`(i + 1, obj)
+        case d@`package`(i, pkg)                                        => `package`(i + 1, d.pkg)
+        case d@TraitDef.`trait`(i, t)                                   => TraitDef.`trait`(i + 1, d.`trait`)
+        case d@TraitDef.`trait[_]`(i, p, t)                             => TraitDef.`trait[_]`(i + 1, p, t)
+        case d@TraitDef.`trait[_[_]]`(i, p, t)                          => TraitDef.`trait[_[_]]`(i + 1, p, d.`trait`)
+        case d@TraitDef.`trait[_[_], _]`(i, f, a, t)                    => TraitDef.`trait[_[_], _]`(i + 1, f, a, d.`trait`)
+        case d@TypeDef.`Alias`(i, tpe)                                  => TypeDef.`Alias`(i + 1, d.tpe)
+        case d@TypeDef.`Alias[_]=>>`(i, tpe)                            => TypeDef.`Alias[_]=>>`(i + 1, d.tpe)
+        case d@TypeDef.`Alias[_]`(i, a, t)                              => TypeDef.`Alias[_]`(i + 1, d.tparam, d.tpe)
+        case d@TypeDef.`Alias[_[_]]`(i, a, t)                           => TypeDef.`Alias[_[_]]`(i + 1, d.tparam, d.tpe)
+        case d@TypeDef.`Alias[_[_], _]`(i, f, a, t)                     => TypeDef.`Alias[_[_], _]`(i + 1, f, a, t)
+        case d@TypeDef.Match(i, _, _)                                   => TypeDef.Match(i + 1, d.tpe, d.rhs)
+        case d@ValueDef.`def`(i, arg, ret, tpe, value)                  => ValueDef.`def`(i + 1, arg, ret, tpe, value)
+        case d@ValueDef.`def[_]`(i, tparam, ret, value)                 => ValueDef.`def[_]`(i + 1, tparam, ret, value)
+        case d@ValueDef.`def[_[_]]`(i, tparam, ret, value)              => ValueDef.`def[_[_]]`(i + 1, tparam, ret, value)
+        case d@ValueDef.`def[_[_], _]`(i, tparamf, tparama, ret, value) => ValueDef.`def[_[_], _]`(i + 1, tparamf, tparama, ret, value)
+        case d@ValueDef.Fld(i, v)                                       => ValueDef.Fld(i + 1, v)
+        case d@ValueDef.Gen(i, value, impl)                             => ValueDef.Gen(i + 1, value, impl)
+        case d@ValueDef.`val`(i, value, tpe)                            => ValueDef.`val`(i + 1, value, tpe)
+        case d@TypeExpr.`Type`(_)                                       => d
+        case d@TypeExpr.`Type[_]`(_)                                    => d
+        case d@TypeExpr.`Type[_[_]]`(_)                                 => d
+        case d@TypeExpr.`Type[_, _]`(_)                                 => d
+        case d@TypeExpr.`Type[_[_], _]`(_)                              => d
+        case d@ValueExpr.`Value`(_)                                     => d

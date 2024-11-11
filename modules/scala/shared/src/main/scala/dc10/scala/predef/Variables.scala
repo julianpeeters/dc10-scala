@@ -1,128 +1,303 @@
 package dc10.scala.predef
 
 import cats.data.StateT
-import dc10.scala.{Error, ErrorF, Statement}
-import dc10.scala.Statement.{TypeDef, TypeExpr, ValueDef, ValueExpr}
+import cats.syntax.all.toTraverseOps
+import dc10.scala.{Error, ErrorF, LibDep, Statement, compiler}
+import dc10.scala.Statement.{TypeDef, ValueDef}
+import dc10.scala.Statement.TypeExpr.{`Type`, `Type[_]`, `Type[_[_]]`, `Type[_[_], _]`}
+import dc10.scala.Statement.ValueExpr.{`Value`}
 import dc10.scala.Symbol.Term
-import dc10.scala.ctx.ext
-import dc10.scala.Symbol.Term.dep
-import org.tpolecat.sourcepos.SourcePos
 
 trait Variables[F[_]]:
-  def DEF[A, T, Z, Y](nme: String, arg: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Y]])(using sp: SourcePos): F[ValueExpr[A => T, Z]]
-  def DEF[A, T, Z, Y](nme: String, arg: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Y]], impl: ValueExpr[A, Z] => F[ValueExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[A => T, Z]]
-  def DEF[A, T, Z](nme: String, arg1: F[ValueExpr[A, Z]], arg2: F[ValueExpr[A, Z]], tpe: F[TypeExpr[T, Z]], impl: (ValueExpr[A, Z], ValueExpr[A, Z]) => F[ValueExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[(A, A) => T, Z]]
-  def TYPE[T](nme: String): F[TypeExpr[T, Unit]]
-  def TYPE[T, Z](nme: String, impl: F[TypeExpr[T, Z]]): F[TypeExpr[T, Z]]
-  def VAL[Z, T, A](nme: String, tpe: F[TypeExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[T, Z]]
-  def VAL[Z, T](nme: String, tpe: F[TypeExpr[T, Z]], impl: F[ValueExpr[T, Z]])(using sp: SourcePos): F[ValueExpr[T, Z]]
-  given refT[Z, T]: Conversion[TypeExpr[T, Z], F[TypeExpr[T, Z]]]
-  given refV[Z, T]: Conversion[ValueExpr[T, Z], F[ValueExpr[T, Z]]]
+  extension [T] (lhs: F[`Type`[T]])
+    @scala.annotation.targetName("*")
+    def :=(rhs: F[`Type`[T]]): F[`Type`[T]]
+    @scala.annotation.targetName("*->*")
+    def :=[G[_], A](rhs: F[`Type[_]`[G]]): F[`Type[_]`[G]]
+  @scala.annotation.targetName("0")
+  def DEF[T](nme: String, tpe: F[`Type`[T]]): F[`Value`[T]]
+  @scala.annotation.targetName("0*")
+  def DEF[A, T](nme: String, tparam: F[`Type`[A]], tpe: `Type`[A] => F[`Type`[T]]): F[`Value`[T]]
+  @scala.annotation.targetName("0*->*->*")
+  def DEF[A, B, T](nme: String, tparam1: F[`Type`[A]], tparam2: F[`Type`[B]], tpe: (`Type`[A], `Type`[B]) => F[`Type`[T]]): F[`Value`[T]]
+  @scala.annotation.targetName("0*->*")
+  def DEF[G[_], T](nme: String, tparam: F[`Type[_]`[G]], tpe: `Type[_]`[G] => F[`Type`[T]]): F[`Value`[T]]
+  @scala.annotation.targetName("0(*->*)->*->*")
+  def DEF[G[_], A, T](nme: String, tparamf: F[`Type[_]`[G]], tparama: F[`Type`[A]], tpe: (`Type[_]`[G], `Type`[A]) => F[`Type`[T]]): F[`Value`[T]]
+  // 1-arg
+  def DEF[A, T](nme: String, arg: F[`Value`[A]], tpe: F[`Type`[T]]): F[`Value`[A => T]]
+  def DEF[A, T](nme: String, arg: F[`Value`[A]], tpe: F[`Type`[T]], impl: Value[A] => F[`Value`[T]]): F[`Value`[A => T]]
+  // 2-arg
+  def DEF[A, B, T](nme: String, arg1: F[`Value`[A]], arg2: F[`Value`[B]], tpe: F[`Type`[T]], impl: (Value[A], Value[B]) => F[`Value`[T]]): F[`Value`[(A, B) => T]]
+  @scala.annotation.targetName("*")
+  def TYPE[T](nme: String): F[`Type`[T]]
+  @scala.annotation.targetName("*->*")
+  def TYPE[G[_], A](nme: String, tparam: F[`Type`[A]]): F[`Type[_]`[G]]
+  @scala.annotation.targetName("(*->*)->*")
+  def TYPE[G[_[_]], H[_]](nme: String, tparam: F[`Type[_]`[H]]): F[`Type[_[_]]`[G]]
+  def TYPE[G[_[_], _], H[_], A](nme: String, tparamF: F[`Type[_]`[H]], targA: F[`Type`[A]]): F[`Type[_[_], _]`[G]]
+  def VAL[T](nme: String, tpe: F[`Type`[T]]): F[`Value`[T]]
+  def VAL[T](nme: String, tpe: F[`Type`[T]], impl: F[`Value`[T]]): F[`Value`[T]]
+  given `refT`[T]: Conversion[`Type`[T], F[`Type`[T]]]
+  given `refT[_]`[T[_]]: Conversion[`Type[_]`[T], F[`Type[_]`[T]]]
+  given `refT[_[_], _]`[T[_[_], _]]: Conversion[`Type[_[_], _]`[T], F[`Type[_[_], _]`[T]]]
+  given refV[T]: Conversion[`Value`[T], F[`Value`[T]]]
 
 object Variables:
 
   trait Mixins extends Variables[
-    [A] =>> StateT[ErrorF, List[Statement], A]
+    StateT[ErrorF, (Set[LibDep], List[Statement]), _]
   ] with Functions.Mixins:
 
-    def DEF[A, T, Z, Y](
-      nme: String,
-      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]], 
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Y]]
-    )(
-      using sp: SourcePos
-    ): StateT[ErrorF, List[Statement], ValueExpr[A => T, Z]] =
-      for
-        a <- StateT.liftF(arg.runEmptyA)
-        r <- StateT.liftF(tpe.runEmptyA)
-        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Z]](TypeExpr[A, Z]((a.value.tpe))) ==> tpe
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T, Z](None, nme, t.tpe.manageDep(_ => a.value.tpe.dep), None))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe.manageDep(_ => a.value.tpe.dep), None))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield ValueExpr(v)
+    extension [T] (lhs: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]])
+      @scala.annotation.targetName("*")
+      def :=(
+        rhs: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+      ): StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]] =
+        for
+          l <- StateT.liftF(lhs.runEmptyA)
+          r <- StateT.liftF(rhs.runEmptyA)
+          t <- StateT.liftF(l.tpe match
+            case Term.TypeLevel.App.`App[_]`(tfun, targ) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.App.`App[_[_], _]`(tfun, farg, aarg) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.App.`App[_, _]`(tfun, ta, tb) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.App.`App[_, _, _]`(tfun, ta1, ta2, tb) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.App.Infix(tfun, ta, tb) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.App.Infix2(tfun, ta, tb, tc) => Left(List(Error("Not an assignable *")))
+            case Term.TypeLevel.Var.`UserDefinedType`(nme, impl) => Right(Term.TypeLevel.Var.`UserDefinedType`(nme, Some(r.tpe)))
+          )
+          d <- StateT.pure(TypeDef.`Alias`[T](0, t))
+          _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        yield `Type`[T](t)
 
-    def DEF[A, T, Z, Y](
+      @scala.annotation.targetName("*->*")
+      def :=[G[_], A](
+        rhs: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[G]]
+      ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[G]] =
+        for
+          l <- StateT.liftF(lhs.runEmptyA)
+          r <- StateT.liftF(rhs.runEmptyA)
+          t <- StateT.liftF(l.tpe match
+            case Term.TypeLevel.App.`App[_]`(tfun, aarg) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.App.`App[_, _]`(tfun, ta, tb) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.App.`App[_[_], _]`(tfun, farg, aarg) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.App.`App[_, _, _]`(tfun, ta1, ta2, tb) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.App.Infix(tfun, ta, tb) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.App.Infix2(tfun, ta, tb, tc) => Left(List(Error("Not an assignable *->*")))
+            case Term.TypeLevel.Var.UserDefinedType(nme, impl) => Right(Term.TypeLevel.Var.`UserDefinedType[_]`(nme, Some(r.tpe)))
+          )
+          d <- StateT.pure(TypeDef.`Alias[_]=>>`[G](0, t))
+          _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        yield `Type[_]`(t)
+
+    @scala.annotation.targetName("0")
+    def DEF[T](
+      nme: String, 
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
+      for
+        ((ds, ms), t) <- StateT.liftF(tpe.runEmpty)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def`(0, None, None, t.tpe, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+
+    @scala.annotation.targetName("0*")
+    def DEF[A, T](
       nme: String,
-      arg: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Y]], 
-      impl: ValueExpr[A, Z] => StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
-    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[A => T, Z]] =
+      tparam: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]],
+      tpe: `Type`[A] => StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
+      for
+        a <- StateT.liftF(tparam.runEmptyA)
+        ((ds, ms), t) <- StateT.liftF(tpe(a).runEmpty)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def[_]`(0, a.tpe, None, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+
+    @scala.annotation.targetName("0*->*->*")
+    def DEF[A, B, T](
+      nme: String,
+      tparam1: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]],
+      tparam2: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[B]],
+      tpe: (`Type`[A], `Type`[B]) => StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
+      for
+        a <- StateT.liftF(tparam1.runEmptyA)
+        b <- StateT.liftF(tparam2.runEmptyA)
+        ((ds, ms), t) <- StateT.liftF(tpe(a, b).runEmpty)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def`(0, None, None, t.tpe, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+
+    @scala.annotation.targetName("0*->*")
+    def DEF[G[_], T](
+      nme: String,
+      tparam: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[G]],
+      tpe: `Type[_]`[G] => StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
+      for
+        f <- StateT.liftF(tparam.runEmptyA)
+        ((ds, ms), t) <- StateT.liftF(tpe(f).runEmpty)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def[_[_]]`(0, f.tpe, None, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+      
+    @scala.annotation.targetName("0(*->*)->*->*")
+    def DEF[G[_], A, T](
+      nme: String,
+      tparamf: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[G]],
+      tparama: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]],
+      tpe: (`Type[_]`[G], `Type`[A]) => StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
+      for
+        f <- StateT.liftF(tparamf.runEmptyA)
+        a <- StateT.liftF(tparama.runEmptyA)
+        ((ds, ms), t) <- StateT.liftF(tpe(f, a).runEmpty)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def[_[_], _]`(0, f.tpe, a.tpe, None, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+
+    def DEF[A, T](
+      nme: String,
+      arg: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]], 
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A => T]] =
       for
         a <- StateT.liftF(arg.runEmptyA)
-        r <- StateT.liftF(tpe.runEmptyA)
+        ((ds, ms), r) <- StateT.liftF(tpe.runEmpty)
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]](`Type`[A]((a.value.tpe))) ==> tpe
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def`(0, Some(a.value), None, r.tpe, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
+
+    def DEF[A, T](
+      nme: String,
+      arg: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A]],
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]], 
+      impl: Value[A] => StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[A => T]] =
+      for
+        a <- StateT.liftF(arg.runEmptyA)
+        ((ds, ms), r) <- StateT.liftF(tpe.runEmpty)
         i <- impl(a)
-        t <- StateT.pure[ErrorF, List[Statement], TypeExpr[A, Z]](TypeExpr[A, Z]((a.value.tpe))) ==> tpe
-        f <- StateT.pure[ErrorF, List[Statement], ValueExpr[A, Z]](a) ==> impl
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T, Z](None, nme, t.tpe.manageDep(_ => a.value.tpe.dep), Some(f.value.manageDep(_ => a.value.tpe.dep))))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe.manageDep(_ => a.value.tpe.dep), Some(i.value)))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield ValueExpr(v)
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]](`Type`[A]((a.value.tpe))) ==> tpe
+        f <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]](a) ==> impl
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[A => T](nme, t.tpe, Some(f.value)))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def`(0, Some(a.value), Some(i.value), r.tpe, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
 
-    def DEF[A, T, Z](
+    def DEF[A, B, T](
       nme: String,
-      arg1: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
-      arg2: StateT[ErrorF, List[Statement], ValueExpr[A, Z]],
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Z]], 
-      impl: (ValueExpr[A, Z], ValueExpr[A, Z]) => StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
-    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[(A, A) => T, Z]] =
+      arg1: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]],
+      arg2: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[B]],
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]], 
+      impl: (Value[A], Value[B]) => StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[(A, B) => T]] =
       for
         a <- StateT.liftF(arg1.runEmptyA)
         b <- StateT.liftF(arg2.runEmptyA)
-        r <- StateT.liftF(tpe.runEmptyA)
+        ((ds, ms), r) <- StateT.liftF(tpe.runEmpty)
         i <- impl(a, b)
-        t <- StateT.pure[ErrorF, List[Statement], (TypeExpr[A, Z], TypeExpr[A, Z])]((TypeExpr[A, Z](a.value.tpe), TypeExpr[A, Z](b.value.tpe))) ==> tpe
-        f <- StateT.pure[ErrorF, List[Statement], (ValueExpr[A, Z], ValueExpr[A, Z])]((a, a)) ==> impl
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(None, nme, t.tpe, Some(f.value)))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Def(0, v, a.value, r.tpe, Some(i.value)))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield ValueExpr(v)
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), (`Type`[A], `Type`[B])]((`Type`[A](a.value.tpe), `Type`[B](b.value.tpe))) ==> tpe
+        f <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), (`Value`[A], `Value`[B])]((a, b)) ==> impl
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, Some(f.value)))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`def`(0, Some(a.value), Some(i.value), r.tpe, v))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value(v)
 
-    def TYPE[T](nme: String): StateT[ErrorF, List[Statement], TypeExpr[T, Unit]] =
+    @scala.annotation.targetName("*")
+    def TYPE[T](nme: String): StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]] =
       for
-        t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T, Unit]](Term.TypeLevel.Var.UserDefinedType(None, nme, None, Term.ValueLevel.Var.UnitLiteral(None, Term.TypeLevel.Var.UnitType(None), ())))
-        d <- StateT.pure(TypeDef.Alias[T, Unit](0, t))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield TypeExpr(t)
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Term.TypeLevel.Var.`UserDefinedType`[T]](Term.TypeLevel.Var.`UserDefinedType`(nme, None))
+        d <- StateT.pure(TypeDef.`Alias`[T](0, t))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield Type(t)
 
-    def TYPE[T, Z](nme: String, impl: StateT[ErrorF, List[Statement], TypeExpr[T, Z]]): StateT[ErrorF, List[Statement], TypeExpr[T, Z]] =
-      for
-        i <- StateT.liftF(impl.runEmptyA)
-        t <- StateT.pure[ErrorF, List[Statement], Term.TypeLevel.Var.UserDefinedType[T, Z]](Term.TypeLevel.Var.UserDefinedType(None, nme, Some(i.tpe), i.tpe.dep))
-        d <- StateT.pure(TypeDef.Alias[T, Z](0, t))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield TypeExpr(t)
-
-    def VAL[Z, T, A](
+    @scala.annotation.targetName("*->*")
+    def TYPE[G[_], A](
       nme: String,
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Z]]
-    )(
-      using sp: SourcePos
-    ): StateT[ErrorF, List[Statement], ValueExpr[T, Z]] =
+      tparam: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[G]] =
+      for
+        a <- StateT.liftF(tparam.runEmptyA)
+        t <- StateT.pure(Term.TypeLevel.Var.`UserDefinedType[_]`[G](nme, None))
+        d <- StateT.pure(TypeDef.`Alias[_]`(0, a.tpe, t))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield `Type[_]`(t)
+
+    @scala.annotation.targetName("(*->*)->*")
+    def TYPE[G[_[_]], H[_]](
+      nme: String,
+      tparam: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[H]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_[_]]`[G]] =
+      for
+        a <- StateT.liftF(tparam.runEmptyA)
+        t <- StateT.pure(Term.TypeLevel.Var.`UserDefinedType[_[_]]`[G](nme, None))
+        d <- StateT.pure(TypeDef.`Alias[_[_]]`(0, a.tpe, t))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield `Type[_[_]]`(t)
+
+    def TYPE[G[_[_], _], H[_], A](
+      nme: String,
+      targF: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[H]],
+      targA: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_[_], _]`[G]] =
+      for
+        f <- StateT.liftF(targF.runEmptyA)
+        a <- StateT.liftF(targA.runEmptyA)
+        t <- StateT.pure(Term.TypeLevel.Var.`UserDefinedType[_[_], _]`[G](nme, None))
+        d <- StateT.pure(TypeDef.`Alias[_[_], _]`[G, H, A](0, f.tpe, a.tpe, t))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield `Type[_[_], _]`(t)
+
+    def VAL[T](
+      nme: String,
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
       for
         t <- tpe
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T, Z](None, nme, t.tpe, None))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Val(0, v))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield ValueExpr(v)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue[T](nme, t.tpe, None))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`val`(0, v, t.tpe))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield Value(v)
 
-    def VAL[Z, T](
+    def VAL[T](
       nme: String,
-      tpe: StateT[ErrorF, List[Statement], TypeExpr[T, Z]], 
-      impl: StateT[ErrorF, List[Statement], ValueExpr[T, Z]]
-    )(using sp: SourcePos): StateT[ErrorF, List[Statement], ValueExpr[T, Z]] =
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]], 
+      impl: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]] =
       for
-        t <- tpe
+        ((ds, ms), t) <- StateT.liftF(tpe.runEmpty)
         i <- impl
-        v <- StateT.liftF(
-          if (t.tpe.dep == i.value.tpe.dep)
-            then Right(Term.ValueLevel.Var.UserDefinedValue(None, nme, t.tpe, Some(i.value)))
-            else Left(List(Error(s"${sp.file}:${sp.line}\nDependent type error: ${t.tpe.dep} =/= ${i.value.tpe.dep}"))))
-        d <- StateT.pure[ErrorF, List[Statement], ValueDef](ValueDef.Val(0, v))
-        _ <- StateT.modifyF[ErrorF, List[Statement]](ctx => ctx.ext(d))
-      yield ValueExpr[T, Z](v)
+        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, Some(i.value)))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.`val`(0, v, t.tpe))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+        _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
+      yield Value[T](v)
 
-    given refT[Z, T]: Conversion[TypeExpr[T, Z], StateT[ErrorF, List[Statement], TypeExpr[T, Z]]] =
+    given `refT`[T]: Conversion[`Type`[T], StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[T]]] =
       t => StateT.pure(t)
 
-    given refV[Z, T]: Conversion[ValueExpr[T, Z], StateT[ErrorF, List[Statement], ValueExpr[T, Z]]] =
+    given `refT[_]`[T[_]]: Conversion[`Type[_]`[T], StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[T]]] =
+      t => StateT.pure(t)
+
+    given `refT[_[_], _]`[T[_[_], _]]: Conversion[`Type[_[_], _]`[T], StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_[_], _]`[T]]] =
+      t => StateT.pure(t)
+
+    given refV[T]: Conversion[`Value`[T], StateT[ErrorF, (Set[LibDep], List[Statement]), Value[T]]] =
       v => StateT.pure(v)

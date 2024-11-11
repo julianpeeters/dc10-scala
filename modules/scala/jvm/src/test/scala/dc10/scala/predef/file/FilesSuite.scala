@@ -1,9 +1,8 @@
 package dc10.scala.predef.file
 
 import _root_.scala.language.implicitConversions
-
-import munit.FunSuite
 import dc10.scala.{Error, dsl}
+import munit.FunSuite
 
 class PrimitiveTypeSuite extends FunSuite:
   
@@ -11,8 +10,8 @@ class PrimitiveTypeSuite extends FunSuite:
   import dc10.scala.dsl.* 
 
   // compile
-  import dc10.scala.compiler.{compile, toVirtualFile}
-  import dc10.scala.version.`3.4.0`
+  import dc10.scala.compiler.{compile, virtualFile}
+  import dc10.scala.version.`3.3.4`
 
   test("val dec"):
 
@@ -27,8 +26,9 @@ class PrimitiveTypeSuite extends FunSuite:
       yield ()
     )
     val obtained: Either[List[Error], List[String]] =
-      ast.compile.toVirtualFile["scala-3.4.0"]
-        .map(fs => fs.map(vf => vf.contents))
+      ast.compile
+         .virtualFile
+         .map(fs => fs.map(vf => vf.contents))
       
     val expected: Either[List[Error], List[String]] =
       Right(scala.List("""|val t: Boolean

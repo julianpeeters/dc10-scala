@@ -1,10 +1,10 @@
 package dc10.scala.predef.datatype
 
-import _root_.scala.language.implicitConversions
-import dc10.scala.compiler.{compile, toString}
-import dc10.scala.dsl.*
-import dc10.scala.version.`3.4.0`
+import dc10.scala.compiler.{compile, string}
+import dc10.scala.dsl.{*, given}
+import dc10.scala.version.`3.3.4`
 import munit.FunSuite
+import scala.language.implicitConversions
 
 class TemplateTypesSuite extends FunSuite:
 
@@ -15,7 +15,7 @@ class TemplateTypesSuite extends FunSuite:
     def ast = CASECLASS[Person1, String]("Person1", FIELD("name", STRING))
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """case class Person1(name: String)""".stripMargin
@@ -28,7 +28,7 @@ class TemplateTypesSuite extends FunSuite:
     type Person2
 
     def ast =
-      CASECLASS[Person2, String, Int]( "Person2",
+      CASECLASS[Person2, String, Int]("Person2",
         for
           name <- FIELD("name", STRING)
           age <- FIELD("age", INT)
@@ -36,12 +36,54 @@ class TemplateTypesSuite extends FunSuite:
       )
     
     val obtained: String =
-      ast.compile.toString["scala-3.4.0"]
+      ast.compile.string
       
     val expected: String =
       """|case class Person2(
          |  name: String,
          |  age: Int,
          |)""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("trait Foo"):
+
+    type Foo
+
+    def ast =
+      TRAIT[Foo]("Foo",
+        for
+          _ <- DEF("name", VAL("s", STRING), STRING)
+        yield ()
+      )
+    
+    val obtained: String =
+      ast.compile.string
+    
+    val expected: String =
+      """|trait Foo:
+         |  def name(s: String): String""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("trait Bar"):
+
+    type Bar[F[_]]
+
+    def ast[F[_], A] =
+      TRAIT[Bar, F]("Bar", TYPE[F, __]("F", __), F =>
+        for
+          _ <- DEF("name", VAL("s", STRING), F(STRING))
+          _ <- DEF("age", VAL("s", INT), F(INT))
+        yield ()
+      )
+    
+    val obtained: String =
+      ast.compile.string
+    
+    val expected: String =
+      """|trait Bar[F[_]]:
+         |  def name(s: String): F[String]
+         |  def age(s: Int): F[Int]""".stripMargin
       
     assertEquals(obtained, expected)
