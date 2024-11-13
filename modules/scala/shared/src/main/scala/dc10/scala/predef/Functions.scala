@@ -6,6 +6,7 @@ import dc10.scala.dsl.{OPTION}
 import dc10.scala.{Error, ErrorF, LibDep, Statement, compiler}
 import dc10.scala.Statement.TypeExpr.{`Type`, `Type[_]`}
 import dc10.scala.Statement.ValueExpr.{`Value`}
+import dc10.scala.Statement.ValueDef
 import dc10.scala.Symbol.{Extension, Term}
 
 trait Functions[F[_]]:
@@ -30,7 +31,7 @@ trait Functions[F[_]]:
     @scala.annotation.targetName("tLam1")
     def ==>>(codomain: `Type`[A] => F[`Type`[G[A]]]): F[`Type[_]`[G]]
 
-  def EXT[G[_], B](func: F[G[B]]): F[G[B]]
+  def EXT[G[_], B, A](nme: String, tpe: F[`Type`[A]])(ext: F[B]): F[B]
 
   @scala.annotation.targetName("forOption")
   def FOR[A](f: F[Value[A]]): F[Value[Option[A]]]
@@ -128,15 +129,16 @@ object Functions:
           t <- StateT.pure(Term.TypeLevel.Lam.Lam[G, A](a.tpe, b.tpe))
         yield `Type[_]`(t)
 
-    def EXT[G[_], B](
-      func: StateT[ErrorF, (Set[LibDep], List[Statement]), G[B]]
-    ): StateT[ErrorF, (Set[LibDep], List[Statement]), G[B]] =
+    def EXT[G[_], B, A](
+      nme: String,
+      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]]
+    )(
+      ext: StateT[ErrorF, (Set[LibDep], List[Statement]), B]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), B] =
       for
-        ((ds, ms), f) <- StateT.liftF(func.runEmpty)
-        e <- StateT.liftF(ms match
-          case arg1 :: methods => Right(Extension(arg1, methods))
-          case Nil => Either.left[List[Error], Extension](List(Error(s"Too many extension arguments")))
-        )
+        ((ds, ms), f) <- StateT.liftF(ext.runEmpty)
+        t <- StateT.liftF(tpe.runEmptyA)
+        e <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Extension](Right(Extension(ValueDef.Fld(0, Term.ValueLevel.Var.`UserDefinedValue`(nme, t.tpe, None)), ms)))
         d <- StateT.pure(Statement.extension(0, e))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
       yield f

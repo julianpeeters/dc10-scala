@@ -51,26 +51,26 @@ class PrimitiveTypeSuite extends FunSuite:
 
   test("ext def"):
 
-    trait ExtensionR[Z, A]:
-      extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]] | `Value`[A])
-        def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]
-
-    object ExtensionR:
-      def apply(f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]]): ExtensionR[Unit, String] =
-        new ExtensionR[Unit, String]:
-          extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] | `Value`[String])
-            def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
-              s.DOT(f)(n)
+    case class ExtensionR(
+      f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]],
+      g: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]]
+    ):
+      extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]])
+        def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
+          s.DOT(f)(n)
+        def REPLACE2(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
+          s.DOT(g)(n)
         
     def ast =
       for
-        given ExtensionR[Unit, String] <- EXT(
+        given ExtensionR <- EXT("str", STRING)(
           for
-            _ <- EXTENSION("str", STRING)
             f <- DEF("replace", VAL("msg", STRING), STRING, b => b)
-          yield ExtensionR(f)
+            g <- DEF("replace2", VAL("msg", STRING), STRING, b => b)
+          yield ExtensionR(f, g)
         )
         _ <- VAL("farewell", STRING, sLit("hello").REPLACE("goodbye"))
+        _ <- VAL("aloha", STRING, sLit("hello").REPLACE2("aloha"))
       yield ()
     
     val obtained: String =
@@ -79,8 +79,10 @@ class PrimitiveTypeSuite extends FunSuite:
     val expected: String =
       """|extension (str: String)
          |  def replace(msg: String): String = msg
+         |  def replace2(msg: String): String = msg
          |
-         |val farewell: String = "hello".replace("goodbye")""".stripMargin
+         |val farewell: String = "hello".replace("goodbye")
+         |val aloha: String = "hello".replace2("aloha")""".stripMargin
       
     assertEquals(obtained, expected)
 

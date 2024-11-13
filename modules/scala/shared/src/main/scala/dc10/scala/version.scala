@@ -57,7 +57,7 @@ object version:
         })"
 
       private def renderExtension(ext: Extension) =
-        s"extension (${render(List(ext.field)).mkString})\n  ${render(ext.body)}\n"
+        s"extension (${render(List(ext.field)).mkString})\n${render(ext.body.map(s => s.addIndent))}\n"
 
       private def renderFieldDef[T](d: Statement.ValueDef.Fld[T], input: List[Statement]): String =
         if input.length <= 1

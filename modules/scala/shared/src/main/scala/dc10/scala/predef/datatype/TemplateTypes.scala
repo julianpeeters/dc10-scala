@@ -14,7 +14,6 @@ trait TemplateTypes[F[_]]:
   def CASECLASS[T, A](name: String, fields: F[`Value`[A]]): F[(`Type`[T], `Value`[A => T])]
   @scala.annotation.targetName("caseClass2")
   def CASECLASS[T, A, B](name: String, fields: F[(`Value`[A], `Value`[B])]): F[(`Type`[T], `Value`[(A, B) => T])]
-  def EXTENSION[T](nme: String, tpe: F[`Type`[T]]): F[`Value`[T]]
   def FIELD[T](nme: String, tpe: F[`Type`[T]]): F[`Value`[T]]
   @scala.annotation.targetName("trait*")
   def TRAIT[T](nme: String, members: F[Unit]): F[`Type`[T]]
@@ -29,7 +28,6 @@ object TemplateTypes:
 
   trait Mixins extends TemplateTypes[
     StateT[ErrorF, (Set[LibDep], List[Statement]), _],
-    // StateT[ErrorF, List[Statement], _]
   ]:
  
     @scala.annotation.targetName("caseClass1")
@@ -85,17 +83,6 @@ object TemplateTypes:
         d <- StateT.pure(Statement.`case class`(0, c))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
       yield (Type(n), v)
-
-    def EXTENSION[T](
-      nme: String,
-      tpe: StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]]
-    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[T]] =
-      for
-        t <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Type[T]](tpe.runEmptyA)
-        v <- StateT.pure(Term.ValueLevel.Var.UserDefinedValue(nme, t.tpe, None))
-        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), ValueDef](ValueDef.Fld(0, v))
-        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
-      yield Value(v)
 
     def FIELD[T](
       nme: String,
