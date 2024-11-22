@@ -70,6 +70,7 @@ object PrimitiveTypes:
             case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), _) => Left(List(Error("Not a value of Int")))
             case (Term.ValueLevel.Var.StringLiteral(tpe, s), _) => Left(List(Error("Not a value of Int")))
             case (Term.ValueLevel.Var.UnitLiteral(tpe, u), _) => Left(List(Error("Not a value of Int")))
+            case (Term.ValueLevel.Var.UserDefinedObject(_, _, _, _), _) => Left(List(Error("Not a value of Int")))
             case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), _) => Left(List(Error("Not a value of Int")))
           )
         yield r

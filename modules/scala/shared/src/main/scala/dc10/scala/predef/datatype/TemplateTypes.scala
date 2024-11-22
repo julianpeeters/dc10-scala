@@ -4,7 +4,6 @@ import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.{Error, ErrorF, LibDep, Statement, compiler}
 import dc10.scala.Statement.{TraitDef, ValueDef}
-// import dc10.scala.Statement.TraitDef.{`trait`, `trait[_[_]]`}
 import dc10.scala.Statement.TypeExpr.{`Type`, `Type[_]`, `Type[_[_]]`, `Type[_[_], _]`}
 import dc10.scala.Statement.ValueExpr.`Value`
 import dc10.scala.Symbol.{CaseClass, Term, Trait}
@@ -17,6 +16,8 @@ trait TemplateTypes[F[_]]:
   def FIELD[T](nme: String, tpe: F[`Type`[T]]): F[`Value`[T]]
   @scala.annotation.targetName("trait*")
   def TRAIT[T](nme: String, members: F[Unit]): F[`Type`[T]]
+  @scala.annotation.targetName("trait*extends")
+  def TRAIT[T, A](nme: String, parent: F[`Type`[A]], members: F[Unit]): F[`Type`[T]]
   @scala.annotation.targetName("trait*->*")
   def TRAIT[T[_], A](nme: String, tparam: F[`Type`[A]], members: `Type`[A] => F[Unit]): F[`Type[_]`[T]]
   @scala.annotation.targetName("trait(*->*)->*")
@@ -102,10 +103,24 @@ object TemplateTypes:
     ): StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]] =
       for
         members <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](members.runEmptyS)
-        c <- StateT.pure(Trait.`*`[T](nme, members._2))
+        c <- StateT.pure(Trait.`*`[T](nme, None, members._2))
         d <- StateT.pure(TraitDef.`trait`(0, c))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
       yield `Type`(Term.TypeLevel.Var.`UserDefinedType`(nme, None))
+
+    @scala.annotation.targetName("trait*extends")
+    def TRAIT[T, A](
+      nme: String,
+      parent: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]],
+      members: StateT[ErrorF, (Set[LibDep], List[Statement]), Unit]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), Type[T]] =
+      for
+        p <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), `Type`[A]](parent.runEmptyA)
+        members <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](members.runEmptyS)
+        c <- StateT.pure(Trait.`*`[T](nme, Some(p.tpe), members._2))
+        d <- StateT.pure(TraitDef.`trait`(0, c))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield `Type`(Term.TypeLevel.Var.`UserDefinedType`(nme, None))     
 
     @scala.annotation.targetName("trait*->*")
     def TRAIT[T[_], A](
@@ -116,7 +131,7 @@ object TemplateTypes:
       for
         a <- StateT.liftF(tparam.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](members(a).runEmptyS)
-        c <- StateT.pure(Trait.`*->*`[T](nme, ms))
+        c <- StateT.pure(Trait.`*->*`[T](nme, None, ms))
         d <- StateT.pure(TraitDef.`trait[_]`(0, a.tpe, c))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
@@ -131,7 +146,7 @@ object TemplateTypes:
       for
         a <- StateT.liftF(tparam.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](members(a).runEmptyS)
-        c <- StateT.pure(Trait.`(*->*)->*`[T](nme, ms))
+        c <- StateT.pure(Trait.`(*->*)->*`[T](nme, None, ms))
         d <- StateT.pure(TraitDef.`trait[_[_]]`(0, a.tpe, c))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))
@@ -148,7 +163,7 @@ object TemplateTypes:
         f <- StateT.liftF(tparamF.runEmptyA)
         a <- StateT.liftF(tparamA.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](members(f, a).runEmptyS)
-        c <- StateT.pure(Trait.`(*->*)->*->*`[T](nme, ms))
+        c <- StateT.pure(Trait.`(*->*)->*->*`[T](nme, None, ms))
         d <- StateT.pure(TraitDef.`trait[_[_], _]`(0, f.tpe, a.tpe, c))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.dep(l)))

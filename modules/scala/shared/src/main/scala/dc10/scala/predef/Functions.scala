@@ -159,12 +159,15 @@ object Functions:
           g <- ff
           t <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Term.TypeLevel.`*`[A]](g.value.tpe match
             case dc10.scala.Symbol.Term.TypeLevel.App.`App[_]`(tfun, targ) => Right(targ)
+            case dc10.scala.Symbol.Term.TypeLevel.App.`App[_[_]]`(tfun, farg) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.TypeLevel.App.`App[_[_], _]`(tfun, farg, aarg) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.TypeLevel.App.`App[_, _]`(tfun, ta, tb) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.TypeLevel.App.`App[_, _, _]`(tfun, ta1, ta2, tb) => Left(List(Error("Not of kind *->*")))
+            case dc10.scala.Symbol.Term.TypeLevel.App.`App[_[_], _, _]`(tfun, farg, aarg, barg) => Left(List(Error("Not of kind *->*")))
+            case dc10.scala.Symbol.Term.TypeLevel.App.`App[_[_[_], _]]`(_, _) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.TypeLevel.App.Infix(tfun, ta, tb) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.TypeLevel.App.Infix2(tfun, ta, tb, tc) => Left(List(Error("Not of kind *->*")))
-            case dc10.scala.Symbol.Term.TypeLevel.Var.`UserDefinedType`(nme, impl) => Left(List(Error("Not of kind *->*")))            
+            case dc10.scala.Symbol.Term.TypeLevel.Var.`UserDefinedType`(nme, impl) => Left(List(Error("Not of kind *->*")))
           )
           i <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.`*`[A]](g.value.findImpl.fold(Left(List(Error(""))))(i => i match
             case dc10.scala.Symbol.Term.ValueLevel.App.App1(fun, arg, tpe) => Right(arg.asInstanceOf[Term.ValueLevel.`*`[A]]) 
@@ -182,6 +185,7 @@ object Functions:
             case dc10.scala.Symbol.Term.ValueLevel.Var.StringLiteral(tpe, s) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.ValueLevel.Var.UnitLiteral(tpe, s) => Left(List(Error("Not of kind *->*")))
             case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl) => Left(List(Error("Not of kind *->*")))
+            case dc10.scala.Symbol.Term.ValueLevel.Var.UserDefinedObject(nme, tpe, par, body) => Left(List(Error("Not of kind *->*")))
           ))
           v <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Term.ValueLevel.Var.UserDefinedValue[A]](
                 Right(Term.ValueLevel.Var.UserDefinedValue(nme, t, Some(i))))

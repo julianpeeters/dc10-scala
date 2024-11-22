@@ -1,15 +1,17 @@
 package dc10.scala
 
 import cats.data.NonEmptyList
-import dc10.scala.Symbol.{CaseClass, Extension, Object, Package, Trait}
+import dc10.scala.Symbol.{CaseClass, Extension, Package, Trait}
 import dc10.scala.Symbol.Term.{TypeLevel, ValueLevel}
+import dc10.scala.Statement.ValueExpr.Value
+import dc10.scala.Statement.TypeExpr.Type
 
 sealed trait Statement
 object Statement:
 
   case class `case class`[T](indent: Int, caseclass: CaseClass[T]) extends Statement
   case class `extension`(indent: Int, extension: Extension) extends Statement
-  case class `object`[T](indent: Int, obj: Object[T]) extends Statement
+  case class `object`[T](indent: Int, obj: ValueLevel.Var.UserDefinedObject[T]) extends Statement
   case class `package`(indent: Int, pkg: Package) extends Statement
 
   sealed trait TraitDef extends Statement
@@ -101,7 +103,7 @@ object Statement:
       impl: ValueLevel.`*`[G[A]]
     ) extends ValueDef
     
-    case class `val`[K, T](
+    case class `val`[T](
       indent: Int,
       value: ValueLevel.Var.`UserDefinedValue`[T],
       tpe: TypeLevel.`*`[T]
@@ -114,22 +116,25 @@ object Statement:
     case class `Type[_[_]]`[F[_[_]]](tpe: TypeLevel.`(*->*)->*`[F]) extends TypeExpr
     case class `Type[_, _]`[F[_, _]](tpe: TypeLevel.`*->*->*`[F]) extends TypeExpr
     case class `Type[_[_], _]`[F[_[_], _]](tpe: TypeLevel.`(*->*)->*->*`[F]) extends TypeExpr
+    case class `Type[_[_], _, _]`[F[_[_], _, _]](tpe: TypeLevel.`(*->*)->*->*->*`[F]) extends TypeExpr
 
   sealed trait ValueExpr extends Statement
   object ValueExpr:
-    case class Value[T](value: ValueLevel.`*`[T]) extends ValueExpr
+    case class Value[T](value: ValueLevel.`*`[T]) extends ValueExpr:
+      def `type`: Type[T] = Type(value.tpe)
+    case class `Value[_[_], _]`[T[_[_], _]](value: ValueLevel.`(*->*)->*->*`[T]) extends ValueExpr
 
   extension (s: Statement)
     def addIndent: Statement =
       s match
         case d@`case class`(i, c)                                       => `case class`(i + 1, c)
         case d@`extension`(i, e)                                        => `extension`(i + 1, e)
-        case d@`object`(i, obj)                                         => `object`(i + 1, obj)
+        case d@`object`(i, obj)                                         => `object`(i + 1, obj.copy(body = obj.body.map(s => s.addIndent)))
         case d@`package`(i, pkg)                                        => `package`(i + 1, d.pkg)
-        case d@TraitDef.`trait`(i, t)                                   => TraitDef.`trait`(i + 1, d.`trait`)
-        case d@TraitDef.`trait[_]`(i, p, t)                             => TraitDef.`trait[_]`(i + 1, p, t)
-        case d@TraitDef.`trait[_[_]]`(i, p, t)                          => TraitDef.`trait[_[_]]`(i + 1, p, d.`trait`)
-        case d@TraitDef.`trait[_[_], _]`(i, f, a, t)                    => TraitDef.`trait[_[_], _]`(i + 1, f, a, d.`trait`)
+        case d@TraitDef.`trait`(i, t)                                   => TraitDef.`trait`(i + 1, d.`trait`.copy(body = d.`trait`.body.map(s => s.addIndent)))
+        case d@TraitDef.`trait[_]`(i, p, t)                             => TraitDef.`trait[_]`(i + 1, p, d.`trait`.copy(body = d.`trait`.body.map(s => s.addIndent)))
+        case d@TraitDef.`trait[_[_]]`(i, p, t)                          => TraitDef.`trait[_[_]]`(i + 1, p, d.`trait`.copy(body = d.`trait`.body.map(s => s.addIndent)))
+        case d@TraitDef.`trait[_[_], _]`(i, f, a, t)                    => TraitDef.`trait[_[_], _]`(i + 1, f, a, d.`trait`.copy(body = d.`trait`.body.map(s => s.addIndent)))
         case d@TypeDef.`Alias`(i, tpe)                                  => TypeDef.`Alias`(i + 1, d.tpe)
         case d@TypeDef.`Alias[_]=>>`(i, tpe)                            => TypeDef.`Alias[_]=>>`(i + 1, d.tpe)
         case d@TypeDef.`Alias[_]`(i, a, t)                              => TypeDef.`Alias[_]`(i + 1, d.tparam, d.tpe)
@@ -148,4 +153,6 @@ object Statement:
         case d@TypeExpr.`Type[_[_]]`(_)                                 => d
         case d@TypeExpr.`Type[_, _]`(_)                                 => d
         case d@TypeExpr.`Type[_[_], _]`(_)                              => d
+        case d@TypeExpr.`Type[_[_], _, _]`(_)                           => d
         case d@ValueExpr.`Value`(_)                                     => d
+        case d@ValueExpr.`Value[_[_], _]`(_)                            => d

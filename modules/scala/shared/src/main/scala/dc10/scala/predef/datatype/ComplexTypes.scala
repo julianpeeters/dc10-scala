@@ -14,6 +14,8 @@ trait ComplexTypes[F[_]]:
   def List[A](args: F[`Value`[A]]*): F[`Value`[List[A]]]
   def OPTION: F[`Type[_]`[Option]]
   def Option[A](arg: F[`Value`[A]]): F[`Value`[Option[A]]]
+  def SET: F[`Type[_]`[Set]]
+  def Set[A](args: F[`Value`[A]]*): F[`Value`[Set[A]]]
   def Some[A](arg: F[`Value`[A]]): F[`Value`[Option[A]]]
   def TUPLE: F[`Type[_, _]`[Tuple2]]
   def Tuple[A, B]: (F[`Value`[A]], F[`Value`[B]]) => F[`Value`[Tuple2[A, B]]]
@@ -33,7 +35,7 @@ object ComplexTypes:
         a <- args.toList.sequence
         n <- NOTHING
         t = Term.TypeLevel.App.`App[_]`[List, Nothing](Term.TypeLevel.Var.`UserDefinedType[_]`("List", None), n.tpe)
-                v <- a.headOption.fold[StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[List[A]]]](
+        v <- a.headOption.fold[StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[List[A]]]](
             StateT.pure(Value(Term.ValueLevel.App.AppVargs(
               Term.ValueLevel.Var.UserDefinedValue("List", t, None),
               t,
@@ -64,6 +66,32 @@ object ComplexTypes:
           )
         )
       yield Value(v)
+
+    def SET: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type[_]`[Set]] =
+      StateT.pure(`Type[_]`(Term.TypeLevel.Var.`UserDefinedType[_]`[Set]("Set", None)))
+      
+    def Set[A](
+      args: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]]*
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Set[A]]] =
+      for
+        a <- args.toList.sequence
+        n <- NOTHING
+        t = Term.TypeLevel.App.`App[_]`[Set, A](Term.TypeLevel.Var.`UserDefinedType[_]`("Set", None), n.tpe)
+        v <- a.headOption.fold[StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Set[A]]]](
+            StateT.pure(Value[Set[A]](Term.ValueLevel.App.AppVargs[Set, A](
+              Term.ValueLevel.Var.UserDefinedValue[Set[A]]("Set", t, None),
+              t,
+              Nil*
+            ))
+          )
+        )(h => StateT.pure(Term.TypeLevel.App.`App[_]`[Set, A](Term.TypeLevel.Var.`UserDefinedType[_]`("Set", None), h.value.tpe)).map(l => 
+          Value(Term.ValueLevel.App.AppVargs[Set, A](
+            Term.ValueLevel.Var.UserDefinedValue("Set", l, None),
+            l,
+            a.map(arg => arg.value)*)
+          ))
+        )
+      yield v
 
     def Some[A](arg: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[A]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[Option[A]]] =
       for
