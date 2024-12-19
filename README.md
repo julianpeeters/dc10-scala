@@ -28,7 +28,7 @@ Use the `compiler` impl to check and render code `toString` or `virtualFile`:
 
 ```scala
 import dc10.scala.compiler.{compile, string}
-import dc10.scala.version.`3.3.4`
+import dc10.scala.version.`3.5.2`
 
 val result: String = snippet.compile.string
 // result: String = """val str: String = "hello, world"

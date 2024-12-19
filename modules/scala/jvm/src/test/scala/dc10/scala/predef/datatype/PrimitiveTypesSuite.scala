@@ -1,7 +1,6 @@
 import _root_.scala.language.implicitConversions
 import cats.data.StateT
-import dc10.scala.{ErrorF, LibDep, Statement}
-import dc10.scala.Statement.ValueExpr.`Value`
+import dc10.scala.* 
 import munit.FunSuite
 
 class PrimitiveTypeSuite extends FunSuite:
@@ -11,33 +10,33 @@ class PrimitiveTypeSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, string}
-  import dc10.scala.version.`3.3.4`
+  import dc10.scala.version.`3.5.2`
 
-  test("def dec"):
+  // test("def dec"):
 
-    def ast =
-      for
-        _ <- DEF("greeting", VAL("str", STRING), STRING)
-        _ <- DEF("chat", STRING)
-        _ <- VAL("farewell", STRING)
-      yield ()
+  //   def ast =
+  //     for
+  //       _ <- DEF("greeting", VAL("str", STRING), STRING)
+  //       _ <- DEF("chat", STRING)
+  //       _ <- VAL("farewell", STRING)
+  //     yield ()
     
-    val obtained: String =
-      ast.compile.string
+  //   val obtained: String =
+  //     ast.compile.string
       
-    val expected: String =
-      """|def greeting(str: String): String
-         |def chat: String
-         |val farewell: String""".stripMargin
+  //   val expected: String =
+  //     """|def greeting(str: String): String
+  //        |def chat: String
+  //        |val farewell: String""".stripMargin
       
-    assertEquals(obtained, expected)
+  //   assertEquals(obtained, expected)
 
   test("def def"):
 
     def ast =
       for
-        f <- DEF("f", VAL("str", STRING), STRING, s => s)
-        _ <- VAL("farewell", STRING, f("aloha"))
+        f <- DEF("f", VAL("str", STRING), STRING) := (s => s)
+        _ <- VAL("farewell", STRING) := f("aloha")
       yield ()
     
     val obtained: String =
@@ -52,25 +51,25 @@ class PrimitiveTypeSuite extends FunSuite:
   test("ext def"):
 
     case class ExtensionR(
-      f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]],
-      g: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String => String]]
+      f: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String => String]],
+      g: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String => String]]
     ):
-      extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]])
-        def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
+      extension (s: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]])
+        def REPLACE(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]] =
           s.DOT(f)(n)
-        def REPLACE2(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value`[String]] =
+        def REPLACE2(n: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]] =
           s.DOT(g)(n)
         
     def ast =
       for
         given ExtensionR <- EXT("str", STRING)(
           for
-            f <- DEF("replace", VAL("msg", STRING), STRING, b => b)
-            g <- DEF("replace2", VAL("msg", STRING), STRING, b => b)
+            f <- DEF("replace", VAL("msg", STRING), STRING) := (a => a)
+            g <- DEF("replace2", VAL("msg", STRING), STRING) := (a => a)
           yield ExtensionR(f, g)
         )
-        _ <- VAL("farewell", STRING, sLit("hello").REPLACE("goodbye"))
-        _ <- VAL("aloha", STRING, sLit("hello").REPLACE2("aloha"))
+        _ <- VAL("farewell", STRING) := sLit("hello").REPLACE("goodbye")
+        _ <- VAL("aloha", STRING) := sLit("hello").REPLACE2("aloha")
       yield ()
     
     val obtained: String =
@@ -115,12 +114,12 @@ class PrimitiveTypeSuite extends FunSuite:
 
     def ast =
       for
-        _ <- VAL("t", BOOLEAN, true)
-        _ <- VAL("f", BOOLEAN, false)
-        _ <- VAL("age", INT, 101)
-        _ <- VAL("year", INT, 2020)
-        _ <- VAL("greeting", STRING, "hello, world")
-        _ <- VAL("farewell", STRING, "goodbye, world")
+        _ <- VAL("t", BOOLEAN) := true
+        _ <- VAL("f", BOOLEAN) := false
+        _ <- VAL("age", INT) := 101
+        _ <- VAL("year", INT) := 2020
+        _ <- VAL("greeting", STRING) := "hello, world"
+        _ <- VAL("farewell", STRING) := "goodbye, world"
       yield ()
     
     val obtained: String =

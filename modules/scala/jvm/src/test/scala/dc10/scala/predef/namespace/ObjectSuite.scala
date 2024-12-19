@@ -10,14 +10,14 @@ class ObjectSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, string}
-  import dc10.scala.version.`3.3.4`
+  import dc10.scala.version.`3.5.2`
 
   test("obj def"):
     
     def ast = OBJECT("MyObject",
       for
-        _ <- VAL("t", BOOLEAN, true)
-        _ <- VAL("f", BOOLEAN, false)
+        _ <- VAL("t", BOOLEAN) := true
+        _ <- VAL("f", BOOLEAN) := false
       yield ()
     )
 
