@@ -3,6 +3,8 @@ package dc10.scala.predef.calculus
 import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.*
+import dc10.scala.internal.construct.applyValue
+import dc10.scala.internal.extract.unpure
 
 trait Applications[F[_]]:
 
@@ -57,7 +59,7 @@ object Applications:
         for
           f <- tfunction
           a <- args
-        yield Type.`App[_]`(0, f, a)
+        yield `Type.App[_]`(0, f, a)
 
     extension [T[_[_]]] (tfunction: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.(*->*)->*`[T]])
       @scala.annotation.targetName("F[G]")
@@ -67,7 +69,7 @@ object Applications:
         for
           t <- tfunction
           f <- farg
-        yield Type.`App[_[_]]`(0, t, f)
+        yield `Type.App[_[_]]`(0, t, f)
 
     extension [T[_,_]] (tfunction: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*->*->*`[T]])
       @scala.annotation.targetName("F[A, B]")
@@ -79,7 +81,7 @@ object Applications:
           f <- tfunction
           a <- fta
           b <- ftb
-        yield Type.`App[_, _]`(0, f, a, b)
+        yield `Type.App[_, _]`(0, f, a, b)
 
     extension [T[_[_], _]] (tfunction: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.(*->*)->*->*`[T]])
       @scala.annotation.targetName("F[G, A]")
@@ -91,7 +93,7 @@ object Applications:
           t <- tfunction
           f <- farg
           a <- aarg
-        yield Type.`App[_[_], _]`(0, t, f, a)
+        yield `Type.App[_[_], _]`(0, t, f, a)
 
     extension [T[_,_,_]] (tfunction: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*->*->*->*`[T]])
       @scala.annotation.targetName("F[A, B, C]")
@@ -105,7 +107,7 @@ object Applications:
           a <- fta
           b <- ftb
           c <- ftc
-        yield Type.`App[_, _, _]`(0, f, a, b, c)
+        yield `Type.App[_, _, _]`(0, f, a, b, c)
 
     extension [T[_[_], _, _]] (tfunction: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.(*->*)->*->*->*`[T]])
       @scala.annotation.targetName("F[G, A, B]")
@@ -119,7 +121,7 @@ object Applications:
           f <- farg
           a <- aarg
           b <- barg
-        yield Type.`App[_[_], _, _]`(0, t, f, a, b)
+        yield `Type.App[_[_], _, _]`(0, t, f, a, b)
 
     extension [A, B] (function: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[A => B]])
       @scala.annotation.targetName("A => B")
@@ -127,8 +129,8 @@ object Applications:
         for
           f <- function
           a <- args
-          t <- StateT.liftF(f.tpe.unapplyRightmost)
-        yield Value.App1(0, f, a, t)
+          t <- StateT.liftF(f.tpe.unpure)
+        yield `Value.App1`(0, f, a, t)
 
     extension [A, B] (function: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[List[A] => B]])
       @scala.annotation.targetName("List[A] => B")
@@ -136,8 +138,8 @@ object Applications:
         for
           f <- function
           a <- vargs.toList.sequence
-          t <- StateT.liftF(f.tpe.unapplyRightmost)
-        yield Value.AppVargs(0, f, t, a*)
+          t <- StateT.liftF(f.tpe.unpure)
+        yield `Value.AppVargs`(0, f, t, a*)
 
 
     extension [G[_]] (function: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*->*`[[A] =>> A => G[A]]])
@@ -147,7 +149,7 @@ object Applications:
         for
           a <- arg
           f <- function
-          m <- StateT.liftF(f.apply(a))
+          m <- StateT.liftF(f.applyValue(a))
         yield m
 
     extension [G[_]] (function: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*->*`[[A] =>> List[A] => G[A]]])
@@ -156,7 +158,7 @@ object Applications:
         for
           as <- vargs.toList.sequence
           f <- function
-          g <- StateT.liftF(f.apply(as*))
+          g <- StateT.liftF(f.applyValue(as*))
         yield g
     
     extension [A, B] (arg1: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[A]])
@@ -165,5 +167,4 @@ object Applications:
           f <- func
           a1 <- StateT.liftF(arg1.runEmptyA)
           a2 <- StateT.liftF(arg2.runEmptyA)
-          v <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[B]](Value.AppDot1(0, f, a1, a2, a2.tpe))
-        yield v
+        yield `Value.AppDot1`(0, f, a1, a2, a2.tpe)

@@ -1,7 +1,7 @@
 package dc10.scala.predef.binding
 
 import cats.data.StateT
-import dc10.scala.{*}
+import dc10.scala.*
 
 trait References[F[_]]:
   given `refT`[T]: Conversion[`Type.*`[T], F[`Type.*`[T]]]

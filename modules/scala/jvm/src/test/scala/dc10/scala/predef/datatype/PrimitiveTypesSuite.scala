@@ -12,24 +12,24 @@ class PrimitiveTypeSuite extends FunSuite:
   import dc10.scala.compiler.{compile, string}
   import dc10.scala.version.`3.5.2`
 
-  // test("def dec"):
+  test("def dec"):
 
-  //   def ast =
-  //     for
-  //       _ <- DEF("greeting", VAL("str", STRING), STRING)
-  //       _ <- DEF("chat", STRING)
-  //       _ <- VAL("farewell", STRING)
-  //     yield ()
+    def ast =
+      for
+        _ <- DEF("greeting", VAL("str", STRING), STRING)
+        _ <- DEF("chat", STRING)
+        _ <- VAL("farewell", STRING)
+      yield ()
     
-  //   val obtained: String =
-  //     ast.compile.string
+    val obtained: String =
+      ast.compile.string
       
-  //   val expected: String =
-  //     """|def greeting(str: String): String
-  //        |def chat: String
-  //        |val farewell: String""".stripMargin
+    val expected: String =
+      """|def greeting(str: String): String
+         |def chat: String
+         |val farewell: String""".stripMargin
       
-  //   assertEquals(obtained, expected)
+    assertEquals(obtained, expected)
 
   test("def def"):
 
@@ -142,7 +142,6 @@ class PrimitiveTypeSuite extends FunSuite:
         _ <- DEF("foo", STRING)
         _ <- DEF("bar", TYPE[F, __]("F", __), F => F(STRING))
         _ <- DEF("baz", TYPE[A]("A"), A => A)
-        // _ <- DEF("qux", TYPE[F, __]("F", __), TYPE[A]("A"), (F, A) => F(A))
         _ <- VAL("farewell", STRING)
       yield ()
     
