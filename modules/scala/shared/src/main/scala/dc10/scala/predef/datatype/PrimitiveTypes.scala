@@ -1,90 +1,74 @@
 package dc10.scala.predef.datatype
 
 import cats.data.StateT
-import dc10.scala.{Error, ErrorF, LibDep, Statement}
-import dc10.scala.Statement.TypeExpr.`Type`
-import dc10.scala.Statement.ValueExpr.`Value`
-import dc10.scala.Symbol.Term
+import dc10.scala.*
+import dc10.scala.internal.implement.findImpl
 
 trait PrimitiveTypes[F[_]]:
+
   type __
-  def __ : F[`Type`[__]]
+  def __ : F[`Type.Var`[__]]
 
-  def BOOLEAN: F[`Type`[Boolean]]
-  given bLit: Conversion[Boolean, F[`Value`[Boolean]]]
+  def BOOLEAN: F[`Type.*`[Boolean]]
+  given bLit: Conversion[Boolean, F[`Value.*`[Boolean]]]
   
-  def INT: F[`Type`[Int]]
-  given iLit: Conversion[Int, F[`Value`[Int]]]
-  extension (fa: F[`Value`[Int]])
-    def +:(fb: F[`Value`[Int]]): F[`Value`[Int]]
+  def INT: F[`Type.*`[Int]]
+  given iLit: Conversion[Int, F[`Value.*`[Int]]]
+  extension (fa: F[`Value.*`[Int]])
+    def +:(fb: F[`Value.*`[Int]]): F[`Value.*`[Int]]
     
-  def NOTHING: F[`Type`[Nothing]]
+  def NOTHING[A]: F[`Type.*`[A]]
 
-  def STRING: F[`Type`[String]]
-  given sLit: Conversion[String, F[`Value`[String]]]
+  def STRING: F[`Type.*`[String]]
+  given sLit: Conversion[String, F[`Value.*`[String]]]
 
-  def UNIT: F[`Type`[Unit]]
-  given uLit: Conversion[Unit, F[`Value`[Unit]]]
+  def UNIT: F[`Type.*`[Unit]]
+  given uLit: Conversion[Unit, F[`Value.*`[Unit]]]
   
 object PrimitiveTypes:
 
   trait Mixins extends PrimitiveTypes[StateT[ErrorF, (Set[LibDep], List[Statement]), _]]:
 
-    type __ = Term.TypeLevel.__
+    type __
 
-    def __ : StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[__]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("_", None)))
+    def __ : StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.Var`[__]] =
+      StateT.pure(`Type.Var`(0, "_", None))
 
-    def BOOLEAN: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[Boolean]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("Boolean", None)))
+    def BOOLEAN: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[Boolean]] =
+      StateT.pure(`Type.Var`(0, "Boolean", None))
       
-    given bLit: Conversion[Boolean, StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Boolean]]] =
+    given bLit: Conversion[Boolean, StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Boolean]]] =
       v =>
-        BOOLEAN.flatMap(t => StateT.pure(Value(Term.ValueLevel.Var.BooleanLiteral(t.tpe, v))))
+        BOOLEAN.flatMap(t => StateT.pure(`Value.LitBoolean`(0, t, v)))
 
+    def INT: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[Int]] =
+      StateT.pure(`Type.Var`(0, "Int", None))
 
-    def INT: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[Int]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("Int", None)))
+    given iLit: Conversion[Int, StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Int]]] =
+      v => INT.flatMap(t => StateT.pure(`Value.LitInt`(0, t, v)))
 
-    given iLit: Conversion[Int, StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Int]]] =
-      v => INT.flatMap(t => StateT.pure(Value(Term.ValueLevel.Var.IntLiteral(t.tpe, v))))
-
-    extension (fa: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Int]])
-      def +:(fb: StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Int]]): StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Int]] =
+    extension (fa: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Int]])
+      def +:(fb: StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Int]]): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Int]] =
         for
-          a <- fa
-          b <- fb
-          r <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), Value[Int]]((a.value, b.value) match
-            case (Term.ValueLevel.App.App1(fun, arg, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.App2(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.AppPure(fun, arg, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.AppVargs(fun, tpe, vargs*), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.Dot0(fun, arg1, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.Dot1(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.Dotless(fun, arg1, arg2, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.App.ForComp(gens, ret, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Lam.Lam1(a, b, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Lam.Lam2(a1, a2, c, tpe), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Var.BooleanLiteral(tpe, b), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), Term.ValueLevel.Var.IntLiteral(tpe2, i2)) => Right(Value(Term.ValueLevel.Var.IntLiteral(tpe1, i1 + i2)))
-            case (Term.ValueLevel.Var.IntLiteral(tpe1, i1), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Var.StringLiteral(tpe, s), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Var.UnitLiteral(tpe, u), _) => Left(List(Error("Not a value of Int")))
-            case (Term.ValueLevel.Var.UserDefinedValue(nme, tpe, impl), _) => Left(List(Error("Not a value of Int")))
+          a <- StateT.liftF(fa.runEmptyA)
+          b <- StateT.liftF(fb.runEmptyA)
+          r <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Int]]((a.findImpl, b.findImpl) match
+            case (Some(`Value.LitInt`(in1, tpe1, i1)), Some(`Value.LitInt`(in2, tpe2, i2))) => Right(`Value.LitInt`(in1, tpe1, i1 + i2))
+            case (_, _) => Left(List(Error("Not a concrete Int")))
           )
         yield r
         
-    def NOTHING: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[Nothing]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("Nothing", None)))
+    def NOTHING[A]: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[A]] =
+      StateT.pure(`Type.Var`(0, "Nothing", None))
 
-    def STRING: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[String]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("String", None)))
+    def STRING: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[String]] =
+      StateT.pure(`Type.Var`(0, "String", None))
     
-    given sLit: Conversion[String, StateT[ErrorF, (Set[LibDep], List[Statement]), Value[String]]] =
-      v => STRING.flatMap(t => StateT.pure(Value(Term.ValueLevel.Var.StringLiteral(t.tpe, v))))
+    given sLit: Conversion[String, StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[String]]] =
+      v => STRING.flatMap(t => StateT.pure(`Value.LitString`(0, t, v)))
 
-    def UNIT: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type`[Unit]] =
-      StateT.pure(`Type`(Term.TypeLevel.Var.`UserDefinedType`("Unit", None)))
+    def UNIT: StateT[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[Unit]] =
+      StateT.pure(`Type.Var`(0, "Unit", None))
     
-    given uLit: Conversion[Unit, StateT[ErrorF, (Set[LibDep], List[Statement]), Value[Unit]]] =
-      v => UNIT.flatMap(t => StateT.pure(Value(Term.ValueLevel.Var.UnitLiteral(t.tpe, v))))
+    given uLit: Conversion[Unit, StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[Unit]]] =
+      v => UNIT.flatMap(t => StateT.pure(`Value.LitUnit`(0, t, v)))

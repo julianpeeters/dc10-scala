@@ -5,7 +5,7 @@ import cats.implicits.given
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
 import dc10.scala.{LibDep, Statement}
-import dc10.scala.version.`3.3.4`
+import dc10.scala.version.`3.5.2`
 import munit.FunSuite
 
 class FunctionsSuite extends FunSuite:
@@ -29,11 +29,9 @@ class FunctionsSuite extends FunSuite:
     
     def ast =
       for
-        f <- VAL("f1", STRING ==> STRING,
-          VAL("input", STRING) ==> (s => s)
-        )
-        b <- VAL("b", STRING, f("hello"))
-        _ <- VAL("c", STRING, f(b))
+        f <- VAL("f1", STRING ==> STRING) := VAL("input", STRING) ==> (s => s)
+        b <- VAL("b", STRING) := f("hello")
+        _ <- VAL("c", STRING) := f(b)
       yield ()
     
     val obtained: String =
@@ -48,14 +46,13 @@ class FunctionsSuite extends FunSuite:
 
   test("for"):
     
-    def ast = VAL("f1", OPTION(STRING),
-        FOR(
-          for
-            s <- "s" <-- Option("wowie")
-            t <- "t" <-- Option(s)
-          yield t
-        )
-    )
+    def ast = VAL("f1", OPTION(STRING)) :=
+      FOR(
+        for
+          s <- "s" <-- Option("wowie")
+          t <- "t" <-- Option(s)
+        yield t
+      )
     
     val obtained: String =
       ast.compile.string
@@ -63,8 +60,8 @@ class FunctionsSuite extends FunSuite:
     val expected: String =
       """|val f1: Option[String] = 
          |  for
-         |    s <- Option("wowie")
-         |    t <- Option(s)
+         |    s <- Option[String]("wowie")
+         |    t <- Option[String](s)
          |  yield t""".stripMargin
       
     assertEquals(obtained, expected)

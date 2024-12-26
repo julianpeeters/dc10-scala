@@ -2,7 +2,7 @@ package dc10.scala.predef.datatype
 
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.4`
+import dc10.scala.version.`3.5.2`
 import munit.FunSuite
 import scala.language.implicitConversions
 
@@ -41,7 +41,7 @@ class TemplateTypesSuite extends FunSuite:
     val expected: String =
       """|case class Person2(
          |  name: String,
-         |  age: Int,
+         |  age: Int
          |)""".stripMargin
       
     assertEquals(obtained, expected)

@@ -3,7 +3,7 @@ package dc10.scala.predef.datatype
 import _root_.scala.language.implicitConversions
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.4`
+import dc10.scala.version.`3.5.2`
 import munit.FunSuite
 
 class VariableTypesSuite extends FunSuite:
@@ -82,10 +82,10 @@ class VariableTypesSuite extends FunSuite:
 
   test("type lambda def"):
  
-    def ast[F[_], A] =
+    def ast =
       for
-        _ <- TYPE("Q") := TYPE[A]("A") ==>> (A => OPTION(A))
-        _ <- TYPE[A]("A")
+        _ <- TYPE("Q") := TYPE("A").==>>[Option](a => OPTION(a))
+        _ <- TYPE("A")
       yield ()
     
     val obtained: String =

@@ -1,11 +1,10 @@
 package dc10.scala.predef.datatype
 
 import _root_.scala.language.implicitConversions
-import cats.data.StateT
 import cats.implicits.given
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.4`
+import dc10.scala.version.`3.5.2`
 import munit.FunSuite
 
 class ComplexTypesSuite extends FunSuite:
@@ -35,22 +34,22 @@ class ComplexTypesSuite extends FunSuite:
     
     def ast =
       for
-        _ <- VAL("l0", LIST(INT), List())
-        _ <- VAL("l1", LIST(INT), List(1, 2, 3))
-        a <- VAL("l2", LIST(STRING), List("1", "2", "3"))
-        l <- VAL("l3", LIST(LIST(STRING)), List(List("1", "2", "3"), List("4", "5", "6")))
-        _ <- VAL("l4", LIST(LIST(LIST(STRING))), List(l, l))
+        _ <- VAL("l0", LIST(INT)) := List()
+        _ <- VAL("l1", LIST(INT)) := List(1, 2, 3)
+        a <- VAL("l2", LIST(STRING)) := List("1", "2", "3")
+        l <- VAL("l3", LIST(LIST(STRING))) := List(List("1", "2", "3"), List("4", "5", "6"))
+        _ <- VAL("l4", LIST(LIST(LIST(STRING)))) := List(l, l)
       yield ()
     
     val obtained: String =
       ast.compile.string
       
     val expected: String =
-      """|val l0: List[Int] = List()
-         |val l1: List[Int] = List(1, 2, 3)
-         |val l2: List[String] = List("1", "2", "3")
-         |val l3: List[List[String]] = List(List("1", "2", "3"), List("4", "5", "6"))
-         |val l4: List[List[List[String]]] = List(l3, l3)""".stripMargin
+      """|val l0: List[Int] = List[Nothing]()
+         |val l1: List[Int] = List[Int](1, 2, 3)
+         |val l2: List[String] = List[String]("1", "2", "3")
+         |val l3: List[List[String]] = List[List[String]](List[String]("1", "2", "3"), List[String]("4", "5", "6"))
+         |val l4: List[List[List[String]]] = List[List[List[String]]](l3, l3)""".stripMargin
       
     assertEquals(obtained, expected)
 
@@ -79,22 +78,22 @@ class ComplexTypesSuite extends FunSuite:
     
     def ast =
       for
-        s <- VAL("s1", OPTION(INT), Some(1))
-        _ <- VAL("l1", OPTION(INT), Option(1))
-        a <- VAL("l2", OPTION(STRING), Option("1"))
-        l <- VAL("l3", OPTION(OPTION(STRING)), Option(Option("1")))
-        _ <- VAL("l4", OPTION(OPTION(OPTION(STRING))), Option(l))
+        s <- VAL("s1", OPTION(INT)) := Some(1)
+        _ <- VAL("l1", OPTION(INT)) := Option(1)
+        a <- VAL("l2", OPTION(STRING)) := Option("1")
+        l <- VAL("l3", OPTION(OPTION(STRING))) := Option(Option("1"))
+        _ <- VAL("l4", OPTION(OPTION(OPTION(STRING)))) := Option(l)
       yield ()
     
     val obtained: String =
       ast.compile.string
       
     val expected: String =
-      """|val s1: Option[Int] = Some(1)
-         |val l1: Option[Int] = Option(1)
-         |val l2: Option[String] = Option("1")
-         |val l3: Option[Option[String]] = Option(Option("1"))
-         |val l4: Option[Option[Option[String]]] = Option(l3)""".stripMargin
+      """|val s1: Option[Int] = Some[Int](1)
+         |val l1: Option[Int] = Option[Int](1)
+         |val l2: Option[String] = Option[String]("1")
+         |val l3: Option[Option[String]] = Option[Option[String]](Option[String]("1"))
+         |val l4: Option[Option[Option[String]]] = Option[Option[Option[String]]](l3)""".stripMargin
       
     assertEquals(obtained, expected)
 
@@ -103,7 +102,7 @@ class ComplexTypesSuite extends FunSuite:
     def ast =
       for
         s <- VAL("s1", TUPLE(INT, STRING))
-        _ <- VAL("s2", TUPLE(INT, STRING), Tuple(1, "hello"))
+        _ <- VAL("s2", TUPLE(INT, STRING)) := Tuple(1, "hello")
       yield ()
     
     val obtained: String =

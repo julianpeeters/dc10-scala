@@ -1,38 +1,48 @@
 package dc10.scala.predef.namespace
 
 import cats.data.StateT
-import dc10.scala.{ErrorF, LibDep, Statement, compiler}
-import dc10.scala.Statement.{`object`, TypeExpr}
-import dc10.scala.Statement.TypeExpr.`Type`
-import dc10.scala.Symbol.Object
+import dc10.scala.{*, given}
+import dc10.scala.internal.indent.addIndent
 
 trait Objects[F[_]]:
-  def OBJECT[T, A](name: String, contents: F[A]): F[List[Statement]]
-  def OBJECT[T, A](name: String, parent: `Type`[T], contents: F[A]): F[List[Statement]]
+  def OBJECT[T](name: String): F[`Value.*`[T]]
+  def OBJECT[T](name: String, contents: F[Unit]): F[`Value.*`[T]]
+  def OBJECT[T](name: String, parent: `Type.*`[T], contents: F[Unit]): F[`Value.*`[T]]
 
 object Objects:
 
   trait Mixins extends Objects[StateT[ErrorF, (Set[LibDep], List[Statement]), _]]:
     
-    def OBJECT[T, A](
+    def OBJECT[T](
+      name: String
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[T]] =
+      for
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[T]](`Type.Var`[T](0, s"$name.type", None))
+        v <- StateT.pure(`Value.VarA`(0, name, t))
+        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Statement.`object`[T]](Statement.`object`(v, None, Nil))
+        _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
+      yield v
+      
+    def OBJECT[T](
       name: String,
-      contents: StateT[ErrorF, (Set[LibDep], List[Statement]), A]
-    ): StateT[ErrorF, (Set[LibDep], List[Statement]), List[Statement]] =
+      contents: StateT[ErrorF, (Set[LibDep], List[Statement]), Unit]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[T]] =
       for
         c <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](contents.runEmptyS)
-        o <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Object[T]](Object(name, None, c._2.map(s => s.addIndent)))
-        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `object`[T]](`object`(0, o))
+        t <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `Type.*`[T]](`Type.Var`[T](0, s"$name.type", None))
+        v <- StateT.pure(`Value.VarA`(0, name, t))
+        d <- StateT.pure(Statement.`object`(v, None, c._2.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
-      yield c._2
+      yield v
 
-    def OBJECT[T, A](
+    def OBJECT[T](
       name: String,
-      parent: `Type`[T],
-      contents: StateT[ErrorF, (Set[LibDep], List[Statement]), A]
-    ): StateT[ErrorF, (Set[LibDep], List[Statement]), List[Statement]] =
+      parent: `Type.*`[T],
+      contents: StateT[ErrorF, (Set[LibDep], List[Statement]), Unit]
+    ): StateT[ErrorF, (Set[LibDep], List[Statement]), `Value.*`[T]] =
       for
         c <- StateT.liftF[ErrorF, (Set[LibDep], List[Statement]), (Set[LibDep], List[Statement])](contents.runEmptyS)
-        o <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), Object[T]](Object(name, Some(parent.tpe), c._2.map(s => s.addIndent)))
-        d <- StateT.pure[ErrorF, (Set[LibDep], List[Statement]), `object`[T]](`object`(0, o))
+        v <- StateT.pure(`Value.VarA`(0, name, parent))
+        d <- StateT.pure(Statement.`object`(v, Some(parent), c._2.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, (Set[LibDep], List[Statement])](ctx => ctx.ext(d))
-      yield c._2
+      yield v
