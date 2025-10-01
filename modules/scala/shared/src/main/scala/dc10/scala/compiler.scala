@@ -1,11 +1,9 @@
 package dc10.scala
 
-import dc10.Compiler
+import cats.data.NonEmptyList
+import dc10.{Compiler, Error, given}
 
 type ErrorF[A] = Either[List[Error], A]
-case class Error(msg: String)
 
-case class LibDep(org: String, nme: String, ver: String)
-
-given compiler: Compiler[Statement, LibDep, Error] =
-  Compiler.impl[Statement, LibDep, Error]
+given compiler: Compiler[NonEmptyList, Statement] =
+  Compiler.impl[NonEmptyList, Statement]

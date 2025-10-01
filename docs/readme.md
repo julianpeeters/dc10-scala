@@ -18,8 +18,8 @@ import scala.language.implicitConversions // for literals, e.g. "hello, world"
 
 val snippet = 
   for
-    s <- VAL("str", STRING) := "hello, world"
-    _ <- VAL("msg", STRING) := s
+    s <- VAL"str"$ STRING := "hello, world"
+    _ <- VAL"msg"$ STRING := s
   yield ()
 ```
 
@@ -27,7 +27,7 @@ Use the `compiler` impl to check and render code to `string` or `virtualFile`:
 
 ```scala mdoc
 import dc10.scala.compiler.{compile, string}
-import dc10.scala.version.`3.5.2`
+import dc10.scala.version.`3.3.6`
 
 val result: String = snippet.compile.string
 ```

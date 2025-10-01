@@ -11,12 +11,12 @@ jobs:
     name: Build and Test
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        scala: [3.5.2]
+        os: [macos-latest, ubuntu-latest, windows/latest]
+        scala: [3.3.6]
         java: ['11', '17', '21']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Java
         uses: actions/setup-java@v4
         with:

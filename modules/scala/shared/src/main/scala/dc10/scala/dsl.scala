@@ -1,21 +1,15 @@
 package dc10.scala
 
-import dc10.scala.predef.binding.{Assignments, References}
-import dc10.scala.predef.calculus.{Applications, Functions, Variables}
-import dc10.scala.predef.datatype.{ComplexTypes, PrimitiveTypes, TemplateTypes}
-import dc10.scala.predef.file.Files
-import dc10.scala.predef.namespace.{Objects, Packages}
-
-trait dsl
-
-object dsl extends dsl
-  // Lambda calculus
-  with Applications.Mixins with Functions.Mixins with Variables.Mixins
-  // Binding
-  with Assignments.Mixins with References.Mixins
-  // Datatypes
-  with ComplexTypes.Mixins with PrimitiveTypes.Mixins with TemplateTypes.Mixins
-  // Namespaces
-  with Objects.Mixins with Packages.Mixins
-  // Source files
-  with Files.Mixins
+object dsl:
+  
+  export dc10.scala.predef.calculus.keyword.*
+  export dc10.scala.predef.calculus.application.*
+  export dc10.scala.predef.calculus.function.*
+  export dc10.scala.predef.calculus.assignment.*
+  export dc10.scala.predef.calculus.variable.impl.{*, given}
+  export dc10.scala.predef.types.primitive.{*, given}
+  export dc10.scala.predef.types.complex.*
+  export dc10.scala.predef.types.signature.{*, given}
+  export dc10.scala.predef.files.SourceFiles.impl.*
+  export dc10.scala.predef.namespace.Objects.impl.*
+  export dc10.scala.predef.namespace.Packages.impl.*

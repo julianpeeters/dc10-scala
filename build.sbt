@@ -1,4 +1,4 @@
-val Dc10V = "0.6.0"
+val Dc10V = "0.6.0+8-628a43c5-SNAPSHOT"
 val MUnitV = "1.0.2"
 
 inThisBuild(List(
@@ -20,21 +20,33 @@ inThisBuild(List(
     "-feature",
     "-Werror",
     "-Wunused:all",
-    "-Xkind-projector:underscores"
+    // "-Xkind-projector:underscores",
   ),
-  scalaVersion := "3.5.2",
+  scalaVersion := "3.3.6",
   versionScheme := Some("semver-spec"),
 ))
 
-lazy val scala = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+lazy val `dc10-sbt` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/sbt"))
+  .settings(
+    name := "dc10-sbt",
+    libraryDependencies ++= Seq(
+      "org.scalameta" %% "munit" % MUnitV % Test
+    )
+  )
+  .jsSettings(test := {})
+  .nativeSettings(test := {})
+  .dependsOn(`dc10-scala`)
+
+lazy val `dc10-scala` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/scala"))
   .settings(
     name := "dc10-scala",
     libraryDependencies ++= Seq(
       // main
-      "com.julianpeeters" %%% "dc10-core" % Dc10V,
+      "com.julianpeeters" %%% "dc10" % Dc10V,
       // test
-      "org.scalameta"     %% "munit"      % MUnitV % Test
+      "org.scalameta"     %% "munit" % MUnitV % Test
     )
   )
   .jsSettings(test := {})
@@ -54,7 +66,7 @@ lazy val metalang = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       "org.scalameta" %% "munit" % MUnitV % Test
     )
   )
-  .dependsOn(scala)
+  .dependsOn(`dc10-scala`)
   .jsSettings(test := {})
   .nativeSettings(test := {})
 
@@ -64,8 +76,9 @@ lazy val docs = project.in(file("docs/gitignored"))
     mdocVariables := Map(
       "SCALA" -> crossScalaVersions.value.map(e => e.takeWhile(_ != '.')).mkString(", "),
       "VERSION" -> version.value.takeWhile(_ != '+'),
-    )
+    ),
+    test := {}
   )
-  .dependsOn(scala.jvm)
+  .dependsOn(`dc10-sbt`.jvm, `dc10-scala`.jvm)
   .enablePlugins(MdocPlugin)
   .enablePlugins(NoPublishPlugin)

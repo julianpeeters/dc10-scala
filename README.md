@@ -21,14 +21,14 @@ val snippet =
     s <- VAL("str", STRING) := "hello, world"
     _ <- VAL("msg", STRING) := s
   yield ()
-// snippet: IndexedStateT[ErrorF, Tuple2[Set[LibDep], List[Statement]], Tuple2[Set[LibDep], List[Statement]], Unit] = cats.data.IndexedStateT@7dba5996
+// snippet: IndexedStateT[ErrorF, Tuple2[Set[Statement], List[Statement]], Tuple2[Set[Statement], List[Statement]], Unit] = cats.data.IndexedStateT@7dba5996
 ```
 
 Use the `compiler` impl to check and render code to `string` or `virtualFile`:
 
 ```scala
 import dc10.scala.compiler.{compile, string}
-import dc10.scala.version.`3.5.2`
+import dc10.scala.version.`3.3.6`
 
 val result: String = snippet.compile.string
 // result: String = """val str: String = "hello, world"
