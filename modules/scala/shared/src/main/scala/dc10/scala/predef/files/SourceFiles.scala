@@ -9,7 +9,6 @@ import dc10.scala.compiler.{Γ, Δ}
 import fs2.io.file.Path
 
 trait SourceFiles[F[_], G[_]]:
-  def FILE(nme: String): FileSym
   
   extension (sym: FileSym)
     def apply[A](statements: G[A]): F[A]
@@ -17,7 +16,7 @@ trait SourceFiles[F[_], G[_]]:
 object SourceFiles:
 
   private def getPackage(ss: List[Statement]): List[String] =
-    ss.get(0).fold(Nil): s =>
+    ss.headOption.fold(Nil): s =>
       s match
         case PackageDef(nme, contents) => nme
         case _ => Nil
@@ -30,9 +29,6 @@ object SourceFiles:
       [X] =>> StateT[ErrorF, Δ, X],
       [X] =>> StateT[ErrorF, Γ, X]
     ]:
-      
-      def FILE(nme: String): FileSym =
-        FileSym(nme)
       
       extension (sym: FileSym)
         def apply[A](

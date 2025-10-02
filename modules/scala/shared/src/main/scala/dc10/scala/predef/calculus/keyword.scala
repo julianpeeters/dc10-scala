@@ -1,6 +1,6 @@
 package dc10.scala.predef.calculus
 
-import dc10.scala.{AliasSym, `DefSym.0`, ObjSym, PkgSym, ValSym}
+import dc10.scala.{AliasSym, `DefSym.0`, FileSym, ObjSym, PkgSym, ValSym}
 
 object keyword:
 
@@ -11,6 +11,9 @@ object keyword:
 
     def DEF(args: Any*): `DefSym.0` =
       `DefSym.0`(nme.parts.mkString)
+
+    def FILE(args: Any*): FileSym =
+      FileSym(nme.raw(args*))
 
     def OBJECT(args: Any*): ObjSym =
       ObjSym(nme.raw(args*))

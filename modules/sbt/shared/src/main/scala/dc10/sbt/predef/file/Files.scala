@@ -18,7 +18,10 @@ import fs2.io.file.Path
 // import java.nio.file.Path
 
 trait Files[F[_], G[_], H[_]]:
-  def BASEDIR[A](nme: String): RepoSym
+  // def BASEDIR[A](nme: String): RepoSym
+
+  extension (nme: StringContext)
+    def BASEDIR(args: Any*): RepoSym
   extension (sym: RepoSym)
     def withSelf[A](files: RepoSym => F[A]): F[Unit]
   
@@ -27,7 +30,7 @@ trait Files[F[_], G[_], H[_]]:
   def LICENSE: F[Unit]
   def README(text: String): F[Unit]
   def SRC[A](files: H[A]): F[SourceDir]
-  given refF: Conversion[SourceFile[NonEmptyList, SbtStatement], F[SourceFile[NonEmptyList, SbtStatement]]]
+  // given refF: Conversion[SourceFile[NonEmptyList, SbtStatement], F[SourceFile[NonEmptyList, SbtStatement]]]
 
 object Files:
 
@@ -55,8 +58,12 @@ object Files:
     //     _ <- c.traverse(f => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f)))
     //   yield ()
 
-    def BASEDIR[A](nme: String): RepoSym =
-      RepoSym(nme)
+    // def BASEDIR[A](nme: String): RepoSym =
+    //   RepoSym(nme)
+
+    extension (nme: StringContext)
+      def BASEDIR(args: Any*): RepoSym =
+        RepoSym(nme.raw(args*))
 
     extension (sym: RepoSym)
       def withSelf[A](files: RepoSym => StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), A]): StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit] =
@@ -138,5 +145,5 @@ object Files:
         _ <- cs.traverse_(f => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f)))
       yield SourceDir(List("."), s._1) // s.map(f => f.copy(path = f.path ++ List("src", "main", "scala"))))
 
-    given refF: Conversion[SourceFile[NonEmptyList, SbtStatement], StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]]] =
-      v => StateT.pure(v)
+    // given refF: Conversion[SourceFile[NonEmptyList, SbtStatement], StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]]] =
+    //   v => StateT.pure(v)

@@ -6,7 +6,7 @@ class SbtSuite extends FunSuite:
   
   import dc10.sbt.dsl.*
   import dc10.sbt.compiler
-  import dc10.sbt.version.`1.10.6`
+  import dc10.sbt.version.`1.11.6`
   import dc10.scala.dsl.{*, given}
   import dc10.scala.version.`3.3.6`
   import scala.language.implicitConversions
@@ -14,14 +14,14 @@ class SbtSuite extends FunSuite:
   test("base dir"):
 
     val `Main.scala` =
-      FILE("Main.scala") {
+      FILE"Main.scala" {
         PACKAGE"example" {
           VAL"hello"$ String := "hello, world"
         }
       }
 
     val ast =
-      BASEDIR("dc10-example").withSelf: self => 
+      BASEDIR"dc10-example".withSelf: self => 
         for
           s <- SRC(`Main.scala`)
           _ <- BUILD(root(self.nme, s))

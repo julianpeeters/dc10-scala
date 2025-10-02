@@ -6,10 +6,10 @@ import cats.data.NonEmptyList
 
 object version:
 
-  given `1.10.6`[A <: String](using
+  given `1.11.6`[A <: String](using
     R: Renderer[NonEmptyList, A, Statement]
-  ): Renderer[NonEmptyList, "sbt-1.10.6", SbtStatement] =
-    new Renderer[NonEmptyList, "sbt-1.10.6", SbtStatement]:
+  ): Renderer[NonEmptyList, "sbt-1.11.6", SbtStatement] =
+    new Renderer[NonEmptyList, "sbt-1.11.6", SbtStatement]:
 
       override def render(input: NonEmptyList[SbtStatement]): String =
         """""".stripMargin ++
@@ -52,8 +52,8 @@ object version:
       override def renderErrors(errors: List[Error]): String =
         errors.map(_.toString()).mkString("\n")
 
-      override def version: "sbt-1.10.6" =
-        "sbt-1.10.6"
+      override def version: "sbt-1.11.6" =
+        "sbt-1.11.6"
 
   val Apache2: String =
     """|                                 Apache License
