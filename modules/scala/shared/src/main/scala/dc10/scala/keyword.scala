@@ -1,6 +1,4 @@
-package dc10.scala.predef.calculus
-
-import dc10.scala.{AliasSym, `DefSym.0`, FileSym, ObjSym, PkgSym, ValSym}
+package dc10.scala
 
 object keyword:
 

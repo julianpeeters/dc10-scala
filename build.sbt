@@ -1,4 +1,4 @@
-val Dc10V = "0.6.0+8-628a43c5-SNAPSHOT"
+val Dc10V = "0.7.0"
 val MUnitV = "1.0.2"
 
 inThisBuild(List(
@@ -25,6 +25,21 @@ inThisBuild(List(
   scalaVersion := "3.3.6",
   versionScheme := Some("semver-spec"),
 ))
+
+lazy val `dc10-cats-effect` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/catseffect"))
+  .settings(
+    name := "dc10-cats-effect",
+    libraryDependencies ++= Seq(
+      // main
+      //
+      // test
+      "org.scalameta" %% "munit" % MUnitV % Test
+    )
+  )
+  .jsSettings(test := {})
+  .nativeSettings(test := {})
+  .dependsOn(`dc10-scala`)
 
 lazy val `dc10-sbt` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/sbt"))
@@ -79,6 +94,6 @@ lazy val docs = project.in(file("docs/gitignored"))
     ),
     test := {}
   )
-  .dependsOn(`dc10-sbt`.jvm, `dc10-scala`.jvm)
+  .dependsOn(`dc10-cats-effect`.jvm, `dc10-sbt`.jvm, `dc10-scala`.jvm)
   .enablePlugins(MdocPlugin)
   .enablePlugins(NoPublishPlugin)

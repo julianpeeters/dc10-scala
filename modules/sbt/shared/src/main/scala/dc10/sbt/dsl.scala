@@ -1,7 +1,6 @@
 package dc10.sbt
 
-import dc10.sbt.predef.file.Files
-
 object dsl:
-  export Files.impl.*
-  export Sbt.impl.*
+  export dc10.sbt.keyword.*
+  export dc10.sbt.predef.file.Files.impl.*
+  export dc10.sbt.Sbt.impl.*

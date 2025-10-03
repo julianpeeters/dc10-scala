@@ -20,8 +20,8 @@ import fs2.io.file.Path
 trait Files[F[_], G[_], H[_]]:
   // def BASEDIR[A](nme: String): RepoSym
 
-  extension (nme: StringContext)
-    def BASEDIR(args: Any*): RepoSym
+  // extension (nme: StringContext)
+  //   def BASEDIR(args: Any*): RepoSym
   extension (sym: RepoSym)
     def withSelf[A](files: RepoSym => F[A]): F[Unit]
   
@@ -61,9 +61,7 @@ object Files:
     // def BASEDIR[A](nme: String): RepoSym =
     //   RepoSym(nme)
 
-    extension (nme: StringContext)
-      def BASEDIR(args: Any*): RepoSym =
-        RepoSym(nme.raw(args*))
+
 
     extension (sym: RepoSym)
       def withSelf[A](files: RepoSym => StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), A]): StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit] =

@@ -2,7 +2,7 @@ package dc10.scala
 
 object dsl:
   
-  export dc10.scala.predef.calculus.keyword.*
+  export dc10.scala.keyword.*
   export dc10.scala.predef.calculus.application.*
   export dc10.scala.predef.calculus.function.*
   export dc10.scala.predef.calculus.assignment.*

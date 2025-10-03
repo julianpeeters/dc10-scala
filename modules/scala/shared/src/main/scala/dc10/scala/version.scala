@@ -55,18 +55,16 @@ object version:
       //   ???
       //   // renderIndent(ext.field.getIndent) ++ s"extension (${ext.field.sym.nme}: ${renderTypeExpr(ext.field.tpe)})\n${render(ext.body)}\n"
 
-
       private def renderLibDep(dep: LibDep): String =
-        s"${dep.org} %% ${dep.nme} %% ${dep.ver}"
-
+        s"\"${dep.org}\" %% \"${dep.nme}\" % \"${dep.ver}\""
 
       private def renderObjectDef[T](d: ObjDef[T]): String =
         renderIndent(d.obj.lvl) ++ (
           (d.obj.parent, d.obj.body) match
-            case (None, Nil)    => s"object ${d.obj.sym.nme}"
-            case (Some(p), Nil) => s"object ${d.obj.sym.nme} extends ${renderType(p)}"
-            case (None, h :: t)      => s"object ${d.obj.sym.nme}:\n\n${render(NonEmptyList(h, t))}"
-            case (Some(p), h :: t)   => s"object ${d.obj.sym.nme} extends ${renderType(p)}:\n\n${render(NonEmptyList(h, t))}"
+            case (None, Nil)       => s"object ${d.obj.sym.nme}"
+            case (Some(p), Nil)    => s"object ${d.obj.sym.nme} extends ${renderType(p)}"
+            case (None, h :: t)    => s"object ${d.obj.sym.nme}:\n\n${render(NonEmptyList(h, t))}"
+            case (Some(p), h :: t) => s"object ${d.obj.sym.nme} extends ${renderType(p)}:\n\n${render(NonEmptyList(h, t))}"
         )
 
       private def renderPackageDef(pkg: PackageDef): String =
