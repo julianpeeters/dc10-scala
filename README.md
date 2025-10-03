@@ -18,8 +18,8 @@ import scala.language.implicitConversions // for literals, e.g. "hello, world"
 
 val snippet = 
   for
-    s <- VAL("str", STRING) := "hello, world"
-    _ <- VAL("msg", STRING) := s
+    s <- VAL"str"$ STRING := "hello, world"
+    _ <- VAL"msg"$ STRING := s
   yield ()
 // snippet: IndexedStateT[ErrorF, Tuple2[Set[Statement], List[Statement]], Tuple2[Set[Statement], List[Statement]], Unit] = cats.data.IndexedStateT@7dba5996
 ```
