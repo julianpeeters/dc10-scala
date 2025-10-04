@@ -18,7 +18,7 @@ import fs2.io.file.Path
 // import java.nio.file.Path
 
 trait Files[F[_], G[_], H[_]]:
-  // def BASEDIR[A](nme: String): RepoSym
+  def BASEDIR[A](nme: String): RepoSym
 
   // extension (nme: StringContext)
   //   def BASEDIR(args: Any*): RepoSym
@@ -58,10 +58,8 @@ object Files:
     //     _ <- c.traverse(f => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f)))
     //   yield ()
 
-    // def BASEDIR[A](nme: String): RepoSym =
-    //   RepoSym(nme)
-
-
+    def BASEDIR[A](nme: String): RepoSym =
+      RepoSym(nme)
 
     extension (sym: RepoSym)
       def withSelf[A](files: RepoSym => StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), A]): StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit] =

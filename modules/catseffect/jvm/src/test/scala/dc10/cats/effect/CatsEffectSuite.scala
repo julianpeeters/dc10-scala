@@ -1,6 +1,7 @@
+package dc10.cats.effect
 
 import _root_.scala.language.implicitConversions
-import dc10.cats.effect.dsl.{IO, IOApp, println}
+import dc10.cats.effect.dsl.{IO, IOApp, Run, println}
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
 import dc10.scala.version.`3.3.6`
@@ -24,14 +25,15 @@ class CatsEffectSuite extends FunSuite:
   test("ioapp val"):
 
     def ast =
-      IOApp("HelloWorld"):
-        VAL"run"$ IO(Unit) := IO.println("Hello, World!")
-    
+      IOApp("Hello"):
+        Run(IO.println("Hello, World!"))
+      
+
     val obtained: String =
       ast.compile.string  
       
     val expected: String =
-      """object HelloWorld extends cats.effect.IOApp.Simple:
+      """object Hello extends cats.effect.IOApp.Simple:
         |
         |  val run: cats.effect.IO[Unit] = cats.effect.IO.println("Hello, World!")
         |

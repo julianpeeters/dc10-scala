@@ -92,7 +92,7 @@ object Objects:
         //   StateT[ErrorF, Γ, `Value.Expr: *`[T]] =
           for
             c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
-            t <- StateT.pure[ErrorF, Γ, `Type: *`[A]](`Type.Var: *`[A](0, TYPE"${sym.nme}.type", None))
+            t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[A]](`Type.Var: *`[A](0, TYPE"${sym.nme}.type", None))
             v <- StateT.pure(`Value.Obj: *`(0, sym, t, None, c._2.map(s => s.addIndent)))
             d <- StateT.pure(ObjDef(v))
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
@@ -105,7 +105,7 @@ object Objects:
         ): StateT[ErrorF, Γ, `Value.Obj: *`[T]] =
           for
             c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
-            t <- StateT.pure[ErrorF, Γ, `Type: *`[T]](`Type.Var: *`[T](0, TYPE"${sym.nme}.type", None))
+            t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[T]](`Type.Var: *`[T](0, TYPE"${sym.nme}.type", None))
             v <- StateT.pure(`Value.Obj: *`(0, sym, t, Some(parent), c._2.map(s => s.addIndent)))
             d <- StateT.pure(ObjDef(v))
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))

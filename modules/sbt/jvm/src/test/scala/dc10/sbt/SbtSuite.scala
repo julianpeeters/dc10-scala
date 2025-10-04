@@ -1,4 +1,4 @@
-package dc10.dsl.predef.datatype
+package dc10.sbt
 
 import munit.FunSuite
 
@@ -16,15 +16,17 @@ class SbtSuite extends FunSuite:
     val `Main.scala` =
       FILE"Main.scala" {
         PACKAGE"example" {
+
           VAL"hello"$ String := "hello, world"
+
         }
       }
 
     val ast =
-      BASEDIR"dc10-example".withSelf: self => 
+      BASEDIR("dc10-example").withSelf: self => 
         for
           s <- SRC(`Main.scala`)
-          _ <- BUILD(root(self.nme, s))
+          _ <- BUILD(Root(self.nme, s))
         yield ()
 
     val obtained: List[String] =

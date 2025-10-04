@@ -23,7 +23,8 @@ object version:
           case d@`ValDef: *`(_)               => renderValDef(d)
           case d@`ValDef: *→* *`(_)           => renderValDef(d)
           case d@`ValDef: *→*→* * *`(_)       => renderValDef(d)
-          case d@`ValDef: (*→*)→*→* *→* *`(_) => renderValDef(d)
+          case d@`ValDef: (*→*)→*→* *→* *`(_)           => renderValDef(d)
+          case d@`ValDef: *→*→* * ((*→*)→*→* *→* *)`(_) => renderValDef(d)
         )
         .toList
         .mkString("\n")
@@ -90,6 +91,7 @@ object version:
           case `Type.App: ((*→*)→*)→* (*→*)→*`(in, tfun, targ)              => s"${renderType(tfun)}[${renderType(targ)}]"
           case `Type.AppInfix: *→*→* * *`(in, tfun, ta, tb)                    => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
           case `Type.AppInfix: *→*→* * (*→* *)`(in, tfun, ta, tb)             => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          case `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`(in, tfun, ta, tb)   => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
           case `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`(in, tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
           case `Type.AppInfix: *→*→*→* * * *`(in, tfun, ta, tb, tc)           => s"(${renderType(ta)}, ${renderType(tb)}) ${renderType(tfun)} ${renderType(tc)}"
           case `Type.AppInfix: *→*→*→*→* * * * *`(in, f, a, b, c, d)         => s"(${renderType(a)}, ${renderType(b)}, ${renderType(c)}) ${renderType(f)} ${renderType(d)}"
@@ -207,14 +209,16 @@ object version:
           case `Value.Val: *→*→*`(l, s, t, _)                 => s.nme
           case `Value.Val: (*→*)→*→*`(l, s, t, i)            => s.nme
           case `Value.Val: (*→*)→*→*→*`(l, s, t, _)         => s.nme
-          case `Value.Val: *→*→* * *`(l, s, r, i)             => s.nme
-          case `Value.Def.1: *→*→* * *`(l, s, a, i)           => s.nme
-          case `Value.Def.0: *`(l, s, a, i)                     => s.nme
+          case `Value.Val: *→*→* * *`(l, s, r, i)                   => s.nme
+          case `Value.Val: *→*→* * ((*→*)→*→* *→* *)`(l, s, a, i)   => s.nme
+          case `Value.Def.1: *→*→* * *`(l, s, a, i)                 => s.nme
+          case `Value.Def.0: *`(l, s, a, i)                         => s.nme
           case `Value.Def.0: *→* *`(l, s, a, i)                           => s.nme
           case `Value.Val: *→* *`(l, s, a, i)                             => s.nme
           case `Value.Val: *→*`(l, s, a, i)                               => s.nme
           case `Value.Val: (*→*)→*→* *→* *`(l, s, a, i)                   => s.nme
           case `Value.Def.1: *→*→* * (*→* *)`(l, s, a, i)                 => s.nme
+          case `Value.Def.1: *→*→* * ((*→*)→*→* *→* *)`(l, s, a, i)       => s.nme
           case `Value.Def.0: *→*→* (*→* *) ((*→*)→*→* *→* *)`(l, s, a, i) => s.nme
 
       private def renderValDef[T](d: `ValDef: *`[T]): String =
@@ -260,6 +264,9 @@ object version:
         renderIndent(d.value.lvl) ++ s"def ${renderValue(d.value)}(${renderValue(d.value.sym.arg1)}: ${renderType(d.value.sym.arg1.tpe)}): ${renderType(d.value.tpe.targ2)}" ++ renderImpl(d.value.impl)
   
       private def renderValDef[T[_, _], A, B](d: `ValDef: *→*→* * *`[T, A, B]): String =
+        renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
+
+      private def renderValDef[T[_, _], G[_[_], _], H[_], A, B](d: `ValDef: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
       extension (s: String)

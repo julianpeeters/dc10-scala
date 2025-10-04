@@ -47,7 +47,7 @@ object signature:
       //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       //   yield v
 
-      infix def $[R](tpe: `Type: *`[R]):  StateT[ErrorF, Γ, `Value.Def.0: *`[R]] =          
+      infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Def.0: *`[R]] =          
         for
           v <- StateT.pure(`Value.Def.0: *`(0, sym, tpe, None))
           d <- StateT.pure(`DefDef: *`(v))
@@ -55,7 +55,7 @@ object signature:
         yield v
 
     extension [A, R] (sym: `DefSym.1`[A, R])
-      infix def $(tpe: `Type: *`[R]):  StateT[ErrorF, Γ, `Value.Def.1: *→*→* * *`[A, R]] =
+      infix def $(tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Def.1: *→*→* * *`[A, R]] =
         for
           v <- StateT.pure(`Value.Def.1: *→*→* * *`(0, sym, FUNCTION1(sym.arg1.tpe, tpe), None))
           d <- StateT.pure(`DefDef: *→*→* * *`(v))
@@ -72,14 +72,14 @@ object signature:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
-//         // infix def $[A, B](tpe: `Type.Var.Comp`[A, B]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Val`[A, B]] =
-//         //   for
-//         //     v <- StateT.pure(`Value.Var.Unbound.Comp.Val`(0, sym, tpe, tpe.ret))
-//         //     d <- StateT.pure(Statement.define(v))
-//         //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
-//         //   yield v
+      infix def $[T[_, _], G[_[_], _], H[_], A, B](tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]):  StateT[ErrorF, Γ, `Value.Val: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]] =
+        for
+          v <- StateT.pure(`Value.Val: *→*→* * ((*→*)→*→* *→* *)`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: *→*→* * ((*→*)→*→* *→* *)`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
 
-      infix def $[R](tpe: `Type: *`[R]):  StateT[ErrorF, Γ, `Value.Val: *`[R]] =
+      infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Val: *`[R]] =
         for
           v <- StateT.pure(`Value.Val: *`(0, sym, tpe, None))
           d <- StateT.pure(`ValDef: *`(v))
@@ -105,5 +105,5 @@ object signature:
         `Value.Val: *→*→* * *`(0, ValSym(str), tpe, None)
       // infix def $[A, B](tpe: `Type.Var.Comp`[A, B]): `Value.Var.Unbound.Comp.Val`[A, B] =
       //   `Value.Var.Unbound.Comp.Val`(0, ValSym(str), tpe, tpe.ret)
-      infix def $[T](tpe: `Type: *`[T]): `Value.Val: *`[T] =
+      infix def $[T](tpe: `Type.Expr: *`[T]): `Value.Val: *`[T] =
         `Value.Val: *`(0, ValSym(str), tpe, None)

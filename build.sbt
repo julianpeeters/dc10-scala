@@ -41,6 +41,22 @@ lazy val `dc10-cats-effect` = crossProject(JSPlatform, JVMPlatform, NativePlatfo
   .nativeSettings(test := {})
   .dependsOn(`dc10-scala`)
 
+lazy val `dc10-fs2` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/fs2"))
+  .settings(
+    name := "dc10-fs2",
+    libraryDependencies ++= Seq(
+      // main
+      //
+      // test
+      "org.scalameta" %% "munit" % MUnitV % Test
+    )
+  )
+  .jsSettings(test := {})
+  .nativeSettings(test := {})
+  .dependsOn(`dc10-cats-effect`)
+
+
 lazy val `dc10-sbt` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/sbt"))
   .settings(
@@ -61,7 +77,7 @@ lazy val `dc10-scala` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       // main
       "com.julianpeeters" %%% "dc10" % Dc10V,
       // test
-      "org.scalameta"     %% "munit" % MUnitV % Test
+      "org.scalameta" %% "munit" % MUnitV % Test
     )
   )
   .jsSettings(test := {})

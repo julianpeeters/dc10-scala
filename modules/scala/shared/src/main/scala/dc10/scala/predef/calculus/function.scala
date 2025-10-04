@@ -29,11 +29,14 @@ object function:
   // def FUNCTION1[A, B](a: `Type.Expr: *`[A], b: `Type.Expr: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
   //   `Type.AppInfix: *→*→* * *`(0, `Type.Var: *→*→*`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[A, B](a: `Type: *`[A], b: `Type: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
+  def FUNCTION1[A, B](a: `Type.Expr: *`[A], b: `Type.Expr: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
     `Type.AppInfix: *→*→* * *`(0, `Type.Var: *→*→*`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[F[_], A, B](a: `Type: *`[A], b: `Type.Expr: *→* *`[F, B]): `Type.AppInfix: *→*→* * (*→* *)`[Function1, F, A, B] =
+  def FUNCTION1[F[_], A, B](a: `Type.Expr: *`[A], b: `Type.Expr: *→* *`[F, B]): `Type.AppInfix: *→*→* * (*→* *)`[Function1, F, A, B] =
     `Type.AppInfix: *→*→* * (*→* *)`(0, `Type.Var: *→*→*`(0, AliasSym("=>"), scala.None), a, b)
+
+  def FUNCTION1[H[_], I[_[_], _], A, B](a: `Type.Expr: *`[A], b: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]): `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`[Function1, I, H, A, B] =
+    `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`(0, `Type.Var: *→*→*`(0, AliasSym("=>"), scala.None), a, b)
 
   def FUNCTION1[G[_], H[_], I[_[_], _], A, B](a: `Type.Expr: *→* *`[G, A], b: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]): `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B] =
     `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`(0, `Type.Var: *→*→*`(0, AliasSym("=>"), scala.None), a, b)
@@ -69,15 +72,21 @@ object function:
   //   def ==>[B](codomain: `Type.Expr: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
   //     FUNCTION1(domain, codomain)
 
-  extension [A] (domain: `Type: *`[A])
-    def ==>[B](codomain: `Type: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
+  // extension [A] (domain: `Type: *`[A])
+  //   def ==>[B](codomain: `Type: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
+  //     FUNCTION1(domain, codomain)
+
+  extension [A] (domain: `Type.Expr: *`[A])
+    def ==>[B](codomain: `Type.Expr: *`[B]): `Type.AppInfix: *→*→* * *`[Function1, A, B] =
       FUNCTION1(domain, codomain)
 
-  extension [A] (domain: `Type: *`[A])
+  extension [A] (domain: `Type.Expr: *`[A])
     def ==>[F[_], B](codomain: `Type.Expr: *→* *`[F, B]): `Type.AppInfix: *→*→* * (*→* *)`[Function1, F, A, B] =
       FUNCTION1(domain, codomain)
-  //   def ==>[F[_], B](codomain: `Type.Expr: *→* *`[F, B]): `Type.AppInfix[A, F[B]]`[Function1, F, A, B] =
-  //     FUNCTION1(domain, codomain)
+
+  extension [G[_[_], _], H[_], A, B] (domain: `Type.Expr: *`[A])
+    def ==>(codomain: `Type.Expr: (*→*)→*→* *→* *`[G, H, B]): `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B] =
+      FUNCTION1(domain, codomain)
 
   extension [G[_], H[_], I[_[_], _], A, B] (domain: `Type.Expr: *→* *`[G, A])
     def ==>(codomain: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]): `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B] =
@@ -91,7 +100,7 @@ object function:
     def ==>[D](codomain: `Type.Expr: *`[D]): `Type.AppInfix: *→*→*→*→* * * * *`[Function3, A, B, C, D] =
       FUNCTION3(domain._1, domain._2, domain._3, codomain)
 
-  // // Values
+  // Values
   extension [A] (domain: `Value.Val: *`[A])
     def ==>[B](codomain: `Value.Val: *`[A] => `Value.Expr: *`[B]): `Value.Lam.1: *→*→* * *`[A, B] =
       function1(domain, codomain(domain))

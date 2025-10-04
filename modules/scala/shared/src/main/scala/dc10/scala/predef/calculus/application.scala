@@ -29,6 +29,10 @@ object application:
     def apply(a: `Value.Expr: *`[A]): `Value.App.1: *→* *`[G, A, B] =
       `Value.App.1: *→* *`(0, f, a, f.tpe.targ2)
 
+  extension [G[_[_], _], H[_], A, B] (f: `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B])
+    def apply(a: `Value.Expr: *`[A]): `Value.App.1: (*→*)→*→* *→* *`[G, H, A, B] =
+      `Value.App.1: (*→*)→*→* *→* *`(0, f, a, f.tpe.targ2)
+
   extension [G[_], H[_], I[_[_], _], A, B] (a: `Value.Expr: *→* *`[G, A])
     def dot(f: `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B]): `Value.AppDot.0: (*→*)→*→* *→* *`[G, H, I, A, B] =
       `Value.AppDot.0: (*→*)→*→* *→* *`(0, f, a, f.tpe.targ2)

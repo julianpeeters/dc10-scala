@@ -10,7 +10,7 @@ import dc10.scala.{ErrorF, LibDep, Statement}
 trait Sbt[F[_], G[_]]:
   def crossProject[A](nme: String, src: SourceDir): F[Project]
   def project[A](nme: String, src: SourceDir): F[Project]
-  def root[A](nme: String, src: SourceDir): F[Unit]
+  def Root[A](nme: String, src: SourceDir): F[Unit]
     
 object Sbt:
 
@@ -51,7 +51,7 @@ object Sbt:
         _ <- StateT.modifyF[ErrorF, (Set[SbtStatement], List[SbtStatement])](ctx => ctx.ext(d))
       yield p
       
-    def root[A](
+    def Root[A](
       nme: String,
       src: SourceDir
     ): StateT[ErrorF, (Set[SbtStatement], List[SbtStatement]), Unit] =

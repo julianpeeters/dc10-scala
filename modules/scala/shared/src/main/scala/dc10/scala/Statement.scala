@@ -16,4 +16,5 @@ case class `TypeDef: *→* *`[F[_], A](tpe: `Type.Var: *→* *`[F, A]) extends S
 case class `ValDef: *`[T](value: `Value.Val: *`[T]) extends Statement
 case class `ValDef: *→* *`[T[_], A](value: `Value.Val: *→* *`[T, A]) extends Statement
 case class `ValDef: *→*→* * *`[T[_, _], A, B](value: `Value.Val: *→*→* * *`[T, A, B]) extends Statement
+case class `ValDef: *→*→* * ((*→*)→*→* *→* *)`[T[_, _], G[_[_], _], H[_], A, B](value: `Value.Val: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]) extends Statement
 case class `ValDef: (*→*)→*→* *→* *`[T[_[_], _], F[_], A](value: `Value.Val: (*→*)→*→* *→* *`[T, F, A]) extends Statement
