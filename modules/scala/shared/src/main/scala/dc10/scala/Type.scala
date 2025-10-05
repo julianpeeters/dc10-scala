@@ -61,6 +61,10 @@ sealed trait `Type.Expr: *→*→* * ((*→*)→*→* *→* *)`[F[_, _], G[_[_],
   def targ2: `Type.Expr: (*→*)→*→* *→* *`[G, H, B]
 case class `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`[T[_,_], G[_[_], _], H[_], A, B](lvl: Int, tfun: `Type.Expr: *→*→*`[T], targ1: `Type.Expr: *`[A], targ2: `Type.Expr: (*→*)→*→* *→* *`[G, H, B]) extends `Type.Expr: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]
 
+sealed trait `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F[_, _], G[_[_], _], H[_], I[_], A, B] extends `Type: *`[F[A, I[G[H, B]]]]:
+  def targ2: `Type.Expr: *→* ((*→*)→*→* *→* *)`[I, G, H, B]
+case class `Type.AppInfix: *→*→* * (*→* ((*→*)→*→* *→* *))`[T[_,_], G[_[_], _], H[_], I[_], A, B](lvl: Int, tfun: `Type.Expr: *→*→*`[T], targ1: `Type.Expr: *`[A], targ2: `Type.Expr: *→* ((*→*)→*→* *→* *)`[I, G, H, B]) extends `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[T, G, H, I, A, B]
+
 sealed trait `Type.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F[_, _], G[_], H[_], I[_[_], _], A, B] extends `Type: *`[F[G[A], I[H, B]]]:
   def targ1: `Type.Expr: *→* *`[G, A]
   def targ2: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]
@@ -71,6 +75,9 @@ sealed trait `Type.Expr: (*→*)→*→* *→* *`[T[_[_], _], F[_], A] extends `
   def targ2: `Type: *`[A]
 case class `Type.App: (*→*)→*→* *→* *`[T[_[_], _], F[_], A](lvl: Int, tfun: `Type.Expr: (*→*)→*→*`[T], targ1: `Type: *→*`[F], targ2: `Type: *`[A]) extends `Type.Expr: (*→*)→*→* *→* *`[T, F, A]
 case class `Type.Var: (*→*)→*→* *→* *`[T[_[_],_], F[_], A](lvl: Int, sym: AliasSym, targ1: `Type: *→*`[F], targ2: `Type: *`[A], impl: Option[`Type: *`[T[F, A]]]) extends `Type.Expr: (*→*)→*→* *→* *`[T, F, A]
+
+sealed trait `Type.Expr: *→* ((*→*)→*→* *→* *)`[F[_], G[_[_], _], H[_], A] extends `Type: *`[F[G[H, A]]]
+case class `Type.App: *→* ((*→*)→*→* *→* *)`[G[_[_], _], F[_], H[_], A](lvl: Int, tfun: `Type.Expr: *→*`[F], targ1: `Type.Expr: (*→*)→*→* *→* *`[G, H, A]) extends `Type.Expr: *→* ((*→*)→*→* *→* *)`[F, G, H, A]
 
 sealed trait `Type.Expr: *→*→*→* * * *`[T[_,_,_], A, B, C] extends `Type: *`[T[A, B, C]]:
   def targ1: `Type: *`[A]
@@ -107,6 +114,17 @@ case class `Type.Var: (*→*)→*→*→*→* (*→*) * * *`[T[_[_],_,_,_], F[_]
 sealed trait `Type.Expr: *→*`[T[_]] extends `Type: *→*`[T]
 case class `Type.Lam: *→*`[F[_], A](lvl: Int, domain: `Type.Var: *`[A], codomain: `Type.App: *→* *`[F, A]) extends `Type.Expr: *→*`[F]
 case class `Type.Var: *→*`[T[_]](lvl: Int, sym: AliasSym, impl: Option[`Type.Expr: *→*`[[A] =>> T[A]]], ctors: () => List[Value]) extends `Type.Expr: *→*`[[A] =>> T[A]]
+
+sealed trait `Type.Expr: (*→*)→*→* *→*`[T[_[_], _], F[_]] extends `Type: *→*`[[A] =>> T[F, A]]:
+  def tfun: `Type.Expr: (*→*)→*→*`[T]
+  def targ1: `Type.Expr: *→*`[F]
+case class `Type.App: (*→*)→*→* *→*`[T[_[_], _], F[_]](lvl: Int, tfun: `Type.Expr: (*→*)→*→*`[T], targ1: `Type.Expr: *→*`[F]) extends `Type.Expr: (*→*)→*→* *→*`[T, F]
+case class `Type.Var: (*→*)→*→* *→*`[T[_[_],_], F[_]](lvl: Int, sym: AliasSym, tfun: `Type.Expr: (*→*)→*→*`[T], targ1: `Type.Expr: *→*`[F], impl: Option[`Type: *→*`[[A] =>> T[F, A]]]) extends `Type.Expr: (*→*)→*→* *→*`[T, F]
+
+sealed trait `Type.Expr: *→*→* * ((*→*)→*→* *→*)`[F[_, _], G[_[_], _], H[_], A] extends `Type: *→*`[[B] =>> F[A, G[H, B]]]:
+  def targ1: `Type.Expr: *`[A]
+  def targ2: `Type.Expr: (*→*)→*→* *→*`[G, H]
+case class `Type.AppInfix: *→*→* * ((*→*)→*→* *→*)`[T[_,_], G[_[_], _], H[_], A](lvl: Int, tfun: `Type.Expr: *→*→*`[T], targ1: `Type.Expr: *`[A], targ2: `Type.Expr: (*→*)→*→* *→*`[G, H]) extends `Type.Expr: *→*→* * ((*→*)→*→* *→*)`[T, G, H, A]
 
 sealed trait `Type.Expr: (*→*)→*`[T[_[_]]] extends `Type: (*→*)→*`[T]
 case class `Type.Lam: (*→*)→*`[F[_[_]], G[_]](lvl: Int, domain: `Type.Var: *→*`[G], codomain: `Type.App: (*→*)→* *→*`[F, G]) extends `Type.Expr: (*→*)→*`[F]
@@ -155,6 +173,7 @@ extension (t: Type)
       case `Type.Var: *`(lvl, sym, impl) => lvl
       case `Type.App: *→* *`(lvl, tfun, targ1) => lvl
       case `Type.Var: *→* *`(lvl, sym, targ1, impl) => lvl
+      case `Type.App: *→* ((*→*)→*→* *→* *)`(lvl, _, _) => lvl
       case `Type.App: (*→*)→* *→*`(lvl, tfun, targ1) => lvl
       case `Type.Var: (*→*)→* *→*`(lvl, sym, targ1, impl) => lvl
       case `Type.App: ((*→*)→*)→* (*→*)→*`(lvl, tfun, targ1) => lvl
@@ -168,6 +187,7 @@ extension (t: Type)
       case `Type.Var: *→*→* * *`(lvl, sym, targ1, targ2, impl) => lvl
       case `Type.AppInfix: *→*→* * (*→* *)`(lvl, tfun, targ1, targ2) => lvl
       case `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`(lvl, tfun, targ1, targ2) => lvl
+      case `Type.AppInfix: *→*→* * ((*→*)→*→* *→*)`(lvl, tfun, targ1, targ2) => lvl
       case `Type.App: (*→*)→*→* *→* *`(lvl, tfun, targ1, targ2) => lvl
       case `Type.Var: (*→*)→*→* *→* *`(lvl, sym, targ1, targ2, impl) => lvl
       case `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`(_, _, _, _) => lvl
@@ -183,6 +203,8 @@ extension (t: Type)
       case `Type.Var: (*→*)→*→*→*→* (*→*) * * *`(lvl, sym, targ1, targ2, targ3, targ4, impl) => lvl
       case `Type.Lam: *→*`(lvl, domain, codomain) => lvl
       case `Type.Var: *→*`(lvl, sym, impl, ctors) => lvl
+      case `Type.Var: (*→*)→*→* *→*`(lvl, sym, tfun, targ1, impl) => lvl
+      case `Type.App: (*→*)→*→* *→*`(lvl, a, b) => lvl
       case `Type.Lam: (*→*)→*`(lvl, domain, codomain) => lvl
       case `Type.Var: (*→*)→*`(lvl, sym, impl) => lvl
       case `Type.Lam: ((*→*)→*)→*`(lvl, domain, codomain) => lvl
@@ -203,3 +225,4 @@ extension (t: Type)
       case `Type.Var: *→*→*→*→*`(lvl, sym, impl) => lvl
       case `Type.Lam: (*→*)→*→*→*→*`(lvl, domain1, domain2, domain3, domain4, codomain) => lvl
       case `Type.Var: (*→*)→*→*→*→*`(lvl, sym, impl) => lvl
+      case `Type.AppInfix: *→*→* * (*→* ((*→*)→*→* *→* *))`(lvl, _, _, _) => lvl

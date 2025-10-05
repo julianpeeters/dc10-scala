@@ -79,6 +79,13 @@ object signature:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
+      infix def $[T[_, _], G[_[_], _], H[_], I[_], A, B](tpe: `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[T, G, H, I, A, B]):  StateT[ErrorF, Γ, `Value.Val: *→*→* * (*→* ((*→*)→*→* *→* *))`[T, G, H, I, A, B]] =
+        for
+          v <- StateT.pure(`Value.Val: *→*→* * (*→* ((*→*)→*→* *→* *))`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: *→*→* * (*→* ((*→*)→*→* *→* *))`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
+
       infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Val: *`[R]] =
         for
           v <- StateT.pure(`Value.Val: *`(0, sym, tpe, None))
@@ -90,6 +97,13 @@ object signature:
         for
           v <- StateT.pure(`Value.Val: *→* *`(0, sym, tpe, None))
           d <- StateT.pure(`ValDef: *→* *`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
+    
+      infix def $[R[_[_], _], F[_], G[_], A](tpe: `Type.Expr: *→* ((*→*)→*→* *→* *)`[F, R, G, A]):  StateT[ErrorF, Γ, `Value.Val: *→* ((*→*)→*→* *→* *)`[F, R, G, A]] =
+        for
+          v <- StateT.pure(`Value.Val: *→* ((*→*)→*→* *→* *)`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: *→* ((*→*)→*→* *→* *)`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
     

@@ -51,10 +51,15 @@ case class `Value.Val: *`[T](lvl: Int, sym: ValSym, tpe: `Type.Expr: *`[T], impl
 sealed trait `Value.Expr: *→* *`[T[_], A] extends `Value: *`[T[A]]:
   def tpe: `Type.Expr: *→* *`[T, A]
 case class `Value.App.1: *→* *`[F[_], A, B](lvl: Int, fun: `Value.Expr: *→*→* * (*→* *)`[Function1, F, A, B], arg: `Value: *`[A], tpe: `Type.Expr: *→* *`[F, B]) extends `Value.Expr: *→* *`[F, B]
-
+case class `Value.AppDot.1: *→* *`[F[_], A, B](lvl: Int, fun: `Value.Expr: *→*→* * (*→* *)`[Function1, F, A, B], targ: `Type.Expr: *→*`[F], arg: `Value: *`[A], tpe: `Type.Expr: *→* *`[F, B]) extends `Value.Expr: *→* *`[F, B]
 case class `Value.AppForComp: *→* *`[G[_], A](lvl: Int, gens: NonEmptyList[Statement], ret: `Value: *`[A], tpe: `Type.Expr: *→* *`[G, A]) extends `Value.Expr: *→* *`[G, A]
 case class `Value.Def.0: *→* *`[T[_], A](lvl: Int, sym: `DefSym.0`, tpe: `Type.Expr: *→* *`[T, A], impl: Option[`Value.Expr: *→* *`[T, A]]) extends `Value.Expr: *→* *`[T, A]
 case class `Value.Val: *→* *`[T[_], A](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→* *`[T, A], impl: Option[`Value.Expr: *→* *`[T, A]]) extends `Value.Expr: *→* *`[T, A]
+
+sealed trait `Value.Expr: *→* ((*→*)→*→* *→* *)`[F[_], G[_[_], _], H[_], A] extends `Value: *`[F[G[H, A]]]:
+  def tpe: `Type.Expr: *→* ((*→*)→*→* *→* *)`[F, G, H, A]
+case class `Value.AppDot.1: *→* ((*→*)→*→* *→* *)`[F[_], G[_[_], _], H[_], A, B](lvl: Int, fun: `Value.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[Function1, G, H, F, A, B], targ1: `Type.Expr: (*→*)→*→* *→*`[G, H], arg1: `Value.Expr: *`[A], tpe: `Type.Expr: *→* ((*→*)→*→* *→* *)`[F, G, H, B]) extends `Value.Expr: *→* ((*→*)→*→* *→* *)`[F, G, H, B]
+case class `Value.Val: *→* ((*→*)→*→* *→* *)`[T[_], G[_[_], _], H[_], A](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→* ((*→*)→*→* *→* *)`[T, G, H, A], impl: Option[`Value.Expr: *→* ((*→*)→*→* *→* *)`[T, G, H, A]]) extends `Value.Expr: *→* ((*→*)→*→* *→* *)`[T, G, H, A]
 
 sealed trait `Value.Expr: *→*→* * *`[F[_, _], A, B] extends `Value: *`[F[A, B]]:
   def tpe: `Type.Expr: *→*→* * *`[F, A, B]
@@ -71,6 +76,11 @@ sealed trait `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[F[_, _], G[_[_]
 case class `Value.Def.1: *→*→* * ((*→*)→*→* *→* *)`[G[_[_], _], H[_], A, B](lvl: Int, sym: `DefSym.1`[A, G[H, B]], tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B], impl: Option[`Value.Expr: (*→*)→*→* *→* *`[G, H, B]]) extends `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B]
 case class `Value.Val: *→*→* * ((*→*)→*→* *→* *)`[F[_, _], G[_[_], _], H[_], A, B](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→* *)`[F, G, H, A, B], impl: Option[`Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[F, G, H, A, B]]) extends `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[F, G, H, A, B]
 
+sealed trait `Value.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F[_, _], G[_[_], _], H[_], I[_], A, B] extends `Value: *`[F[A, I[G[H, B]]]]:
+  def tpe: `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F, G, H, I, A, B]
+case class `Value.Def.1: *→*→* * (*→* ((*→*)→*→* *→* *))`[G[_[_], _], H[_], I[_], A, B](lvl: Int, sym: `DefSym.1`[A, I[G[H, B]]], tpe: `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[Function1, G, H, I, A, B], impl: Option[`Value.Expr: *→* ((*→*)→*→* *→* *)`[I, G, H, B]]) extends `Value.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[Function1, G, H, I, A, B]
+case class `Value.Val: *→*→* * (*→* ((*→*)→*→* *→* *))`[F[_, _], G[_[_], _], H[_], I[_], A, B](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F, G, H, I, A, B], impl: Option[`Value.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F, G, H, I, A, B]]) extends `Value.Expr: *→*→* * (*→* ((*→*)→*→* *→* *))`[F, G, H, I, A, B]
+
 sealed trait `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F[_, _], G[_], H[_], I[_[_], _], A, B] extends `Value: *`[F[G[A], I[H, B]]]:
   def tpe: `Type.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F, G, H, I, A, B]
 case class `Value.Def.0: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F[_, _], G[_], H[_], I[_[_], _], A, B](lvl: Int, sym: `DefSym.0`, tpe: `Type.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F, G, H, I, A, B], impl: Option[`Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F, G, H, I, A, B]]) extends `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[F, G, H, I, A, B]
@@ -80,7 +90,9 @@ sealed trait `Value.Expr: (*→*)→*→* *→* *`[T[_[_], _], F[_], A] extends 
 // case class `Value.App.1: (*→*)→*→* *→* *`[G[_], H[_], I[_[_], _], A, B](lvl: Int, fun: `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B], arg: `Value.Expr: *→* *`[G, A], tpe: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]) extends `Value.Expr: (*→*)→*→* *→* *`[I, H, B]
 case class `Value.App.1: (*→*)→*→* *→* *`[G[_[_], _], H[_], A, B](lvl: Int, fun: `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B], arg: `Value: *`[A], tpe: `Type.Expr: (*→*)→*→* *→* *`[G, H, B]) extends `Value.Expr: (*→*)→*→* *→* *`[G, H, B]
 case class `Value.AppDot.0: (*→*)→*→* *→* *`[G[_], H[_], I[_[_], _], A, B](lvl: Int, fun: `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B], arg1: `Value.Expr: *→* *`[G, A], tpe: `Type.Expr: (*→*)→*→* *→* *`[I, H, B]) extends `Value.Expr: (*→*)→*→* *→* *`[I, H, B]
+case class `Value.AppDot.1: (*→*)→*→* *→* *`[G[_[_], _], H[_], A, B](lvl: Int, fun: `Value.Expr: *→*→* * ((*→*)→*→* *→* *)`[Function1, G, H, A, B], targ1: `Type.Expr: (*→*)→*→* *→*`[G, H], arg1: `Value.Expr: *`[A], tpe: `Type.Expr: (*→*)→*→* *→* *`[G, H, B]) extends `Value.Expr: (*→*)→*→* *→* *`[G, H, B]
 case class `Value.Val: (*→*)→*→* *→* *`[T[_[_], _], F[_], A](lvl: Int, sym: ValSym, tpe: `Type.Expr: (*→*)→*→* *→* *`[T, F, A], impl: Option[`Value.Expr: (*→*)→*→* *→* *`[T, F, A]]) extends `Value.Expr: (*→*)→*→* *→* *`[T, F, A]
+
 
 sealed trait `Value.Expr: *→*→*→* * * *`[F[_, _, _], A, B, C] extends `Value: *`[F[A, B, C]]:
   def tpe: `Type.Expr: *→*→*→* * * *`[F, A, B, C]
@@ -93,6 +105,17 @@ case class `Value.Lam.3: *→*→*→*→* * * * *`[A, B, C, D](lvl: Int, a1: `V
 sealed trait `Value.Expr: *→*`[T[_]] extends `Value: *→*`[T]:
   def tpe: `Type.Expr: *→*`[T]
 case class `Value.Val: *→*`[T[_]](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→*`[T], impl: Option[`Value.Expr: *→*`[T]]) extends `Value.Expr: *→*`[T]
+
+sealed trait `Value.Expr: (*→*)→*→* *→*`[T[_[_], _], F[_]] extends `Value: *→*`[[A] =>> T[F, A]]:
+  def tpe: `Type.Expr: (*→*)→*→* *→*`[T, F]
+case class `Value.App.1: (*→*)→*→* *→*`[G[_[_], _], H[_], A](lvl: Int, fun: `Value.Expr: *→*→* * ((*→*)→*→* *→*)`[Function1, G, H, A], targ: `Type.Expr: *→*`[H], arg: `Value.Expr: *`[A], tpe: `Type.Expr: (*→*)→*→* *→*`[G, H]) extends `Value.Expr: (*→*)→*→* *→*`[G, H]
+case class `Value.AppDot.0: (*→*)→*→* *→*`[G[_], H[_], I[_[_], _], A, B](lvl: Int, fun: `Value.Expr: *→*→* (*→* *) ((*→*)→*→* *→* *)`[Function1, G, H, I, A, B], targ: `Type.Expr: *→*`[H], arg1: `Value.Expr: *→* *`[G, A], tpe: `Type.Expr: (*→*)→*→* *→*`[I, H]) extends `Value.Expr: (*→*)→*→* *→*`[I, H]
+case class `Value.Val: (*→*)→*→* *→*`[T[_[_], _], F[_], A](lvl: Int, sym: ValSym, targ: `Type.Expr: *→*`[F], tpe: `Type.Expr: (*→*)→*→* *→*`[T, F], impl: Option[`Value.Expr: (*→*)→*→* *→*`[T, F]]) extends `Value.Expr: (*→*)→*→* *→*`[T, F]
+
+sealed trait `Value.Expr: *→*→* * ((*→*)→*→* *→*)`[F[_, _], G[_[_], _], H[_], A] extends `Value: *→*`[[B] =>> F[A, G[H, B]]]:
+  def tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→*)`[F, G, H, A]
+// case class `Value.Def.1: *→*→* * ((*→*)→*→* *→*)`[G[_[_], _], H[_], A](lvl: Int, sym: `DefSym.1`[A, [B] =>> G[H, B]], tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→*)`[Function1, G, H, A], impl: Option[`Value.Expr: (*→*)→*→* *→*`[G, H]]) extends `Value.Expr: *→*→* * ((*→*)→*→* *→*)`[Function1, G, H, A]
+case class `Value.Val: *→*→* * ((*→*)→*→* *→*)`[F[_, _], G[_[_], _], H[_], A](lvl: Int, sym: ValSym, tpe: `Type.Expr: *→*→* * ((*→*)→*→* *→*)`[F, G, H, A], impl: Option[`Value.Expr: *→*→* * ((*→*)→*→* *→*)`[F, G, H, A]]) extends `Value.Expr: *→*→* * ((*→*)→*→* *→*)`[F, G, H, A]
 
 sealed trait `Value.Expr: (*→*)→*`[T[_[_]]] extends `Value: (*→*)→*`[T]:
   def tpe: `Type.Expr: (*→*)→*`[T]

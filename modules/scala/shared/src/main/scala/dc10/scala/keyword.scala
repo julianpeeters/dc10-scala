@@ -5,10 +5,10 @@ object keyword:
   extension (nme: StringContext)
 
     def CASECLASS(args: Any*): (AliasSym, `DefSym.0`) =
-      (AliasSym(nme.parts.mkString), `DefSym.0`(nme.parts.mkString))
+      (AliasSym(args.mkString + nme.parts.mkString), `DefSym.0`(nme.parts.mkString))
 
     def DEF(args: Any*): `DefSym.0` =
-      `DefSym.0`(nme.parts.mkString)
+      `DefSym.0`(args.mkString + nme.parts.mkString)
 
     def FILE(args: Any*): FileSym =
       FileSym(nme.raw(args*))

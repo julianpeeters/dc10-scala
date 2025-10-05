@@ -13,12 +13,12 @@ class SignalSuite extends FunSuite:
 
   test("signalling ref"):
 
-    def ast = VAL"foo"$ SignallingRef(IO, String) := SignallingRef.of[IO, String]("Hello, World!")
+    def ast = VAL"foo"$ IO(SignallingRef(IO, String)) := SignallingRef(IO).of("Hello, World")
     
     val obtained: String =
       ast.compile.string
       
     val expected: String =
-      "val foo: fs2.concurrent.SignallingRef[cats.effect.IO, String] = fs2.concurrent.SignallingRef.of(\"Hello, World!\")\n".stripMargin
+      "val foo: cats.effect.IO[fs2.concurrent.SignallingRef[cats.effect.IO, String]] = fs2.concurrent.SignallingRef[cats.effect.IO].of(\"Hello, World\")\n".stripMargin
       
     assertEquals(obtained, expected)

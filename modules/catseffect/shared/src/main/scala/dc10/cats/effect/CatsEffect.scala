@@ -14,7 +14,7 @@ trait CatsEffect[F[_]]:
   def IOApp(name: String)(run: F[`Value.Val: *→* *`[IO, Unit]]): F[Unit]
   def Run(program: `Value.Expr: *→* *`[IO, Unit]): F[`Value.Val: *→* *`[IO, Unit]]
   extension (io: `Type.Expr: *→*`[IO])
-    def println(msg: `Value.Expr: *`[String]): `Value.App.1: *→* *`[IO, String, Unit]
+    def println(msg: `Value.Expr: *`[String]): `Value.AppDot.1: *→* *`[IO, String, Unit]
   extension [A] (io: `Value.Expr: *→* *`[IO, A])
     def toResource: `Value.Expr: (*→*)→*→* *→* *`[Resource, IO, A]
 
@@ -47,13 +47,34 @@ object CatsEffect:
         yield v
     
       extension (io: `Type.Expr: *→*`[IO])
-        def println(msg: `Value.Expr: *`[String]): `Value.App.1: *→* *`[IO, String, Unit] =
-          `Value.Def.1: *→*→* * (*→* *)`(
-            0,
-            `DefSym.1`("cats.effect.IO.println", `Value.Val: *`(0, ValSym("msg"), String, None)),
-            msg.tpe ==> `Type.App: *→* *`(0, IO, Unit),
-            None
-          ).apply(msg)
+        def println(msg: `Value.Expr: *`[String]): `Value.AppDot.1: *→* *`[IO, String, Unit] =
+          io.dot(
+            `Value.Def.1: *→*→* * (*→* *)`(
+              0,
+              `DefSym.1`("println", `Value.Val: *`(0, ValSym("msg"), String, None)),
+              msg.tpe ==> io(Unit),
+              None
+            )
+          )(msg)
+          // `Value.AppDot.1: *→* *`(
+          //   0,
+          //   `Value.Def.1: *→*→* * (*→* *)`(
+          //     0,
+          //     `DefSym.1`("println", `Value.Val: *`(0, ValSym("msg"), String, None)),
+          //     msg.tpe ==> io(Unit),
+          //     None
+          //   ),
+          //   io,
+          //   msg,
+          //   io(Unit)
+          // )
+          // `Value.Def.1: *→*→* * (*→* *)`(
+          //   0,
+          //   `DefSym.1`("println", `Value.Val: *`(0, ValSym("msg"), String, None)),
+          //   msg.tpe ==> io(Unit),
+          //   None
+          // )
+          // .apply(msg)
 
       extension [A] (io: `Value.Expr: *→* *`[IO, A])
         def toResource: `Value.Expr: (*→*)→*→* *→* *`[Resource, IO, A] =

@@ -66,6 +66,17 @@ object assignment:
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
+  extension [T[_], G[_[_], _], H[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: *→* ((*→*)→*→* *→* *)`[T, G, H, A]])
+    def :=(
+      rhs: `Value.Expr: *→* ((*→*)→*→* *→* *)`[T, G, H, A]
+    ): StateT[ErrorF, Γ, `Value.Val: *→* ((*→*)→*→* *→* *)`[T, G, H, A]] =
+      for
+        l <- StateT.liftF(lhs.runEmptyA)
+        v <- StateT.pure(l.implement(rhs))
+        d <- StateT.pure(`ValDef: *→* ((*→*)→*→* *→* *)`(v))
+        _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+      yield v
+
   extension [T[_[_], _], F[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: (*→*)→*→* *→* *`[T, F, A]])
     def :=(
       rhs: `Value.Expr: (*→*)→*→* *→* *`[T, F, A]

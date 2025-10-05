@@ -24,6 +24,10 @@ object implementation:
     def implement(rhs: `Value.Expr: *→* *`[T, A]): `Value.Val: *→* *`[T, A] =
       `Value.Val: *→* *`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
 
+  extension [T[_], G[_[_], _], H[_], A] (lhs: `Value.Val: *→* ((*→*)→*→* *→* *)`[T, G, H, A])
+    def implement(rhs: `Value.Expr: *→* ((*→*)→*→* *→* *)`[T, G, H, A]): `Value.Val: *→* ((*→*)→*→* *→* *)`[T, G, H, A] =
+      `Value.Val: *→* ((*→*)→*→* *→* *)`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
+
   extension [T[_[_], _], F[_], A] (lhs: `Value.Val: (*→*)→*→* *→* *`[T, F, A])
     def implement(rhs: `Value.Expr: (*→*)→*→* *→* *`[T, F, A]): `Value.Val: (*→*)→*→* *→* *`[T, F, A] =
       `Value.Val: (*→*)→*→* *→* *`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
