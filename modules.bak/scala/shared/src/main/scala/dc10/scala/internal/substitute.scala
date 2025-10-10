@@ -4,10 +4,10 @@ import dc10.scala.*
 
 object substitute:
 
-  extension [T] (t: `Type.Expr: *`[T])
-    def sub[A](a: `Type.Expr: *`[A]): Either[List[Error], `Type.Expr: *`[A]] =
+  extension [T] (t: `Type: x`[T])
+    def sub[A](a: `Type: x`[A]): Either[List[Error], `Type: x`[A]] =
       t match
-        case `Type.App[_]`(in, tfun, aarg) => Right(`Type.App[_]`(in, tfun, a).asInstanceOf[`Type.Expr: *`[A]])
+        case `Type.App[_]`(in, tfun, aarg) => Right(`Type.App[_]`(in, tfun, a).asInstanceOf[`Type: x`[A]])
         case `Type.App[_[_]]`(in, tfun, farg) => Left(List(Error(s"Type is not substitutable ${t}")))
         case `Type.App[_[_[_], _]]`(in, tfun, farg) => Left(List(Error(s"Type is not substitutable ${t}")))
         case `Type.App[_, _]`(in, tfun, aarg, barg) => Left(List(Error(s"Type is not substitutable ${t}")))
@@ -18,12 +18,12 @@ object substitute:
         case `Type.AppInfix[_, _]`(in, tfun, aarg, barg) => Left(List(Error(s"Type is not substitutable ${t}")))
         case `Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => Left(List(Error(s"Type is not substitutable ${t}")))
         case `Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => Left(List(Error(s"Type is not substitutable ${t}")))
-        case `Type.Var: *`(in, nme, impl) => Right(a)
-        case `Type.Bot: *`(in) => Left(List(Error(s"Type is not substitutable ${t}")))
+        case `Type.Var: x`(in, nme, impl) => Right(a)
+        case `Type.Bot: x`(in) => Left(List(Error(s"Type is not substitutable ${t}")))
      
-  extension [T[_], A] (t: `Type.Expr: *`[T[A]])
+  extension [T[_], A] (t: `Type: x`[T[A]])
     @scala.annotation.targetName("sub T[A]")
-    def sub(a: `Type.Expr: *`[A]): Either[List[Error], `Type.Expr: *`[T[A]]] =
+    def sub(a: `Type: x`[A]): Either[List[Error], `Type: x`[T[A]]] =
       t match
         case `Type.App[_]`(in, tfun, aarg) => Right(`Type.App[_]`(in, tfun, a))
         case `Type.App[_[_]]`(in, tfun, farg) => Left(List(Error(s"not a substitutable parameterized type ${t}")))
@@ -37,15 +37,15 @@ object substitute:
           for
             a <- aarg.sub(a)
             b <- barg.sub(a)
-          yield `Type.AppInfix[_, _]`(in, tfun, a, b).asInstanceOf[`Type.Expr: *`[T[A]]]
+          yield `Type.AppInfix[_, _]`(in, tfun, a, b).asInstanceOf[`Type: x`[T[A]]]
         case `Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => Left(List(Error(s"not a substitutable parameterized type ${t}")))
         case `Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => Left(List(Error(s"not a substitutable parameterized type ${t}")))
-        case `Type.Var: *`(in, nme, impl) => Left(List(Error(s"not a substitutable parameterized type type ${t}")))
-        case `Type.Bot: *`(in) => Left(List(Error(s"not a substitutable parameterized type type ${t}")))
+        case `Type.Var: x`(in, nme, impl) => Left(List(Error(s"not a substitutable parameterized type type ${t}")))
+        case `Type.Bot: x`(in) => Left(List(Error(s"not a substitutable parameterized type type ${t}")))
 
-  extension [T[_], A] (t: `Type.Expr: *`[A => T[A]])
+  extension [T[_], A] (t: `Type: x`[A => T[A]])
     @scala.annotation.targetName("sub A => T[A]")
-    def sub(a: `Type.Expr: *`[A]): Either[List[Error], `Type.Expr: *`[A => T[A]]] =
+    def sub(a: `Type: x`[A]): Either[List[Error], `Type: x`[A => T[A]]] =
       t match
         case `Type.App[_]`(in, tfun, aarg) => Left(List(Error(s"type does not support substitution ${t}")))
         case `Type.App[_[_]]`(in, tfun, farg) => Left(List(Error(s"type does not support substitution ${t}")))
@@ -62,12 +62,12 @@ object substitute:
           yield `Type.AppInfix[_, _]`(in, tfun, a, b)
         case `Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => Left(List(Error(s"type does not support substitution ${t}")))
         case `Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => Left(List(Error(s"type does not support substitution ${t}")))
-        case `Type.Var: *`(in, nme, impl) => Left(List(Error(s"type does not support substitution ${t}")))
-        case `Type.Bot: *`(in) => Left(List(Error(s"type does not support substitution ${t}")))
+        case `Type.Var: x`(in, nme, impl) => Left(List(Error(s"type does not support substitution ${t}")))
+        case `Type.Bot: x`(in) => Left(List(Error(s"type does not support substitution ${t}")))
 
-  extension [T[_], A] (t: `Type.Expr: *`[List[A] => T[A]])
+  extension [T[_], A] (t: `Type: x`[List[A] => T[A]])
     @scala.annotation.targetName("sub List[A] => T[A]")
-    def sub(a: `Type.Expr: *`[A]): Either[List[Error], `Type.Expr: *`[List[A] => T[A]]] =
+    def sub(a: `Type: x`[A]): Either[List[Error], `Type: x`[List[A] => T[A]]] =
       t match
         case `Type.App[_]`(in, tfun, aarg) => Left(List(Error(s"type does not support substitution ${t}")))
         case `Type.App[_[_]]`(in, tfun, farg) => Left(List(Error(s"type does not support substitution ${t}")))
@@ -79,10 +79,10 @@ object substitute:
         case `Type.App[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => Left(List(Error(s"type does not support substitution ${t}")))
         case `Type.AppInfix[_, _]`(in, tfun, aarg, barg) =>
           for
-            aa <- aarg.asInstanceOf[`Type.Expr: *`[List[A]]].sub(a)
-            bb <- barg.asInstanceOf[`Type.Expr: *`[T[A]]].sub(a)
+            aa <- aarg.asInstanceOf[`Type: x`[List[A]]].sub(a)
+            bb <- barg.asInstanceOf[`Type: x`[T[A]]].sub(a)
           yield `Type.AppInfix[_, _]`(in, tfun, aa, bb)
         case `Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => Left(List(Error(s"type does not support substitution ${t}")))
         case `Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => Left(List(Error(s"type does not support substitution ${t}")))
-        case `Type.Var: *`(in, nme, impl) => Left(List(Error(s"type does not support substitution ${t}")))
-        case `Type.Bot: *`(in) => Left(List(Error(s"type does not support substitution ${t}")))
+        case `Type.Var: x`(in, nme, impl) => Left(List(Error(s"type does not support substitution ${t}")))
+        case `Type.Bot: x`(in) => Left(List(Error(s"type does not support substitution ${t}")))

@@ -51,13 +51,13 @@ class PrimitiveTypeSuite extends FunSuite:
   // test("ext def"):
 
   //   case class ExtensionR(
-  //     f: StateT[ErrorF, Γ, `Value.Expr: *`[String => String]],
-  //     g: StateT[ErrorF, Γ, `Value.Expr: *`[String => String]]
+  //     f: StateT[ErrorF, Γ, `Value: x`[String => String]],
+  //     g: StateT[ErrorF, Γ, `Value: x`[String => String]]
   //   ):
-  //     extension (s: StateT[ErrorF, Γ, `Value.Expr: *`[String]])
-  //       def REPLACE(n: StateT[ErrorF, Γ, `Value.Expr: *`[String]]): StateT[ErrorF, Γ, `Value.Expr: *`[String]] =
+  //     extension (s: StateT[ErrorF, Γ, `Value: x`[String]])
+  //       def REPLACE(n: StateT[ErrorF, Γ, `Value: x`[String]]): StateT[ErrorF, Γ, `Value: x`[String]] =
   //         s.DOT(f)(n)
-  //       def REPLACE2(n: StateT[ErrorF, Γ, `Value.Expr: *`[String]]): StateT[ErrorF, Γ, `Value.Expr: *`[String]] =
+  //       def REPLACE2(n: StateT[ErrorF, Γ, `Value: x`[String]]): StateT[ErrorF, Γ, `Value: x`[String]] =
   //         s.DOT(g)(n)
         
   //   def ast =

@@ -9,29 +9,29 @@ import dc10.scala.compiler.Γ
 object named:
 
   extension (sym: (AliasSym, `DefSym.0`))
-    // def apply[T](): StateT[ErrorF, Γ, (`Type.Expr: *`[T], `Value.Expr: *`[Unit => T])] =
+    // def apply[T](): StateT[ErrorF, Γ, (`Type: x`[T], `Value: x`[Unit => T])] =
     //   ???
     def apply[A, T](
-      field: `Value.Val: *`[A]
-    ): StateT[ErrorF, Γ, (`Type: *`[T], `Value.Expr: *`[A => T])] =
+      field: `Value.Val: x`[A]
+    ): StateT[ErrorF, Γ, (`Type: x`[T], `Value: x`[A => T])] =
       ???
       // for
       //   _ <- StateT.pure(field)
       // yield ???
 
       // for
-      //   // (fields, a) <- StateT.liftF[ErrorF, Γ, (Γ, `Value.Expr: *`[A])](fields.runEmpty)
+      //   // (fields, a) <- StateT.liftF[ErrorF, Γ, (Γ, `Value: x`[A])](fields.runEmpty)
       //   n <- StateT.pure(`Type.Var.Data`[T](0, sym._1, None))
-      //   v <- StateT.liftF[ErrorF, Γ, `Value.Expr: *`[A => T]](
+      //   v <- StateT.liftF[ErrorF, Γ, `Value: x`[A => T]](
       //     field match
       //       case `Value.Var.Unbound.Data.Def.1`(i, sym, arg1, tpe) =>
       //         ???
-      //       //   Right[List[Error], `Value.Expr: *`[A => T]](
+      //       //   Right[List[Error], `Value: x`[A => T]](
       //       //   `Value.Var.Unbound.Data.Def.1`(
       //       //     lvl = 0,
       //       //     sym = sym._2,
       //       //     arg1 = field,
-      //       //     tpe = `Type.App[_, _]`(0, `Type.Var: *→*→*`(0, "=>", None), a.tpe, n),
+      //       //     tpe = `Type.App[_, _]`(0, `Type.Var: x→x→x`(0, "=>", None), a.tpe, n),
       //       //   )
       //       // )
       //       case _ => ??? // Left(List(Error(s"Expected Identifier but found ${a}")))

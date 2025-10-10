@@ -14,9 +14,9 @@ import dc10.scala.compiler.Γ
 trait variable[F[_]]:
 
   extension (sym: AliasSym)
-    def apply[T]: F[`Type.Var: *`[T]]
-    // def apply[G[_], A](targ: __): F[`Type.Var: *`[G[A]]]
-    // def apply[G[_]](underscore: __): F[`Type.Var: *→*`[G]]
+    def apply[T]: F[`Type.Var: x`[T]]
+    // def apply[G[_], A](targ: __): F[`Type.Var: x`[G[A]]]
+    // def apply[G[_]](underscore: __): F[`Type.Var: x→x`[G]]
 
 
 
@@ -27,18 +27,18 @@ trait variable[F[_]]:
   // @scala.annotation.targetName("*")
   // def TYPE[T](nme: String): F[`Type.Var.Data`[T]]
   
-  // @scala.annotation.targetName("*→*")
-  // def TYPE[G[_], A](nme: String, tparam: F[`Type.Var: *`[A]]): F[`Type.Var: *→*`[G]]
+  // @scala.annotation.targetName("x→x")
+  // def TYPE[G[_], A](nme: String, tparam: F[`Type.Var: x`[A]]): F[`Type.Var: x→x`[G]]
   
-  // @scala.annotation.targetName("(*→*)→*")
-  // def TYPE[G[_[_]], H[_]](nme: String, tparam: F[`Type.Var: *→*`[H]]): F[`Type.Var: (*→*)→*`[G]]
+  // @scala.annotation.targetName("(x→x)→x")
+  // def TYPE[G[_[_]], H[_]](nme: String, tparam: F[`Type.Var: x→x`[H]]): F[`Type.Var: (x→x)→x`[G]]
   
-  // @scala.annotation.targetName("(*→*)→*→*")
-  // def TYPE[G[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: *→*`[H]], targA: F[`Type.Var: *`[A]]): F[`Type.Var: (*→*)→*→*`[G]]
+  // @scala.annotation.targetName("(x→x)→x→x")
+  // def TYPE[G[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: x→x`[H]], targA: F[`Type.Var: x`[A]]): F[`Type.Var: (x→x)→x→x`[G]]
   
   // def VAL[T](
   //   // value: `Value.Var.Unbound.Data`[T]
-  //   // nme: String, tpe: `Type.Expr: *`[T]
+  //   // nme: String, tpe: `Type: x`[T]
   //   nme: StringContext
   // ): F[`Value.Var.Unbound.Data`[T]]
 
@@ -48,36 +48,36 @@ trait variable[F[_]]:
 
   // extension (nme: StringContext)
   //   // def TYPE[T](): `Type.Var.Data`[T]
-  //   def type_(args: Any*): AliasSym
+  //   def type_(args: Anyx): AliasSym
   //   // def typer_(): AliasSym
 
 
   // extension (sym: `DefSym.0`)
   //   infix def $[A, B](tpe: `Type.AppInfix[_, _]`[Function1, A, B]):  F[`Value.Var.Unbound.Comp.Def`[A, B]]
   //   infix def $[A, B](tpe: `Type.Var.Comp`[A, B]):  F[`Value.Var.Unbound.Comp.Def`[A, B]]
-  //   infix def $[R](tpe: `Type.Expr: *`[R]):  F[`Value.Var.Unbound.Data.Def`[R]]
+  //   infix def $[R](tpe: `Type: x`[R]):  F[`Value.Var.Unbound.Data.Def`[R]]
 
 
   // extension (sym: `ValSym`)
   //   infix def $[A, B](tpe: `Type.AppInfix[_, _]`[Function1, A, B]):  F[`Value.Var.Unbound.Comp.Val`[A, B]]
   //   infix def $[A, B](tpe: `Type.Var.Comp`[A, B]):  F[`Value.Var.Unbound.Comp.Val`[A, B]]
-  //   infix def $[R](tpe: `Type.Expr: *`[R]):  F[`Value.Var.Unbound.Data.Val`[R]]
+  //   infix def $[R](tpe: `Type: x`[R]):  F[`Value.Var.Unbound.Data.Val`[R]]
 
 
   // extension (str: String)
   //   infix def $[A, B](tpe: `Type.AppInfix[_, _]`[Function1, A, B]):  `Value.Var.Unbound.Comp.Val`[A, B]
   //   infix def $[A, B](tpe: `Type.Var.Comp`[A, B]):  `Value.Var.Unbound.Comp.Val`[A, B]
-  //   infix def $[R](tpe: `Type.Expr: *`[R]):  `Value.Var.Unbound.Data.Val`[R]
+  //   infix def $[R](tpe: `Type: x`[R]):  `Value.Var.Unbound.Data.Val`[R]
 
 
   // extension [R] (sym: `DefSym`)
-  //   infix def $(tpe: `Type.Var: *`[R]): F[`Value.Var.Unbound.Data.Always`[R]]
+  //   infix def $(tpe: `Type.Var: x`[R]): F[`Value.Var.Unbound.Data.Always`[R]]
 
   // extension [A, R] (sym: `DefSym.1`[A, R])
-  //   infix def $(tpe: `Type.Var: *`[R]): F[`Value.Var.Unbound.Comp.Always`[A, R]]
+  //   infix def $(tpe: `Type.Var: x`[R]): F[`Value.Var.Unbound.Comp.Always`[A, R]]
 
   // extension [T] (sym: `ValSym`[T])
-  //   infix def $(tpe: `Type.Var: *`[T]):  F[`Value.Var.Unbound.Data.Eager`[T]]
+  //   infix def $(tpe: `Type.Var: x`[T]):  F[`Value.Var.Unbound.Data.Eager`[T]]
   //   infix def $[A, B](tpe: `Type.AppInfix[_, _]`[Function1, A, B]): F[`Value.Var.Unbound.Comp.Eager`[A, B]]
     
   // extension (str: String)
@@ -89,7 +89,7 @@ trait variable[F[_]]:
 
   // def VAL[A, B](
   //   value: `Value.Var.Unbound.Comp`[A, B]
-  //   // nme: String, tpe: `Type.Expr: *`[T]
+  //   // nme: String, tpe: `Type: x`[T]
   // ): F[`Value.Var.Unbound.Comp`[A, B]]
 
 object variable:
@@ -99,17 +99,17 @@ object variable:
     new variable[[X] =>> StateT[ErrorF, Γ, X]]:
 
       extension (sym: AliasSym)
-        def apply[T]: StateT[ErrorF, Γ, `Type.Var: *`[T]] =
+        def apply[T]: StateT[ErrorF, Γ, `Type.Var: x`[T]] =
 
       // @scala.annotation.targetName("*")
-      // def TYPE[T](nme: String): StateT[ErrorF, Γ, `Type.Var: *`[T]] =
+      // def TYPE[T](nme: String): StateT[ErrorF, Γ, `Type.Var: x`[T]] =
           for
-            t <- StateT.pure[ErrorF, Γ, `Type.Var: *`[T]](`Type.Var: *`(0, sym, None))
-            d <- StateT.pure(`TypeDef: *`(t))
+            t <- StateT.pure[ErrorF, Γ, `Type.Var: x`[T]](`Type.Var: x`(0, sym, None))
+            d <- StateT.pure(`TypeDef: x`(t))
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
           yield t
 
-        // def apply[G[_]](underscore: __): StateT[ErrorF, Γ, `Type.Var: *→*`[G]] =
+        // def apply[G[_]](underscore: __): StateT[ErrorF, Γ, `Type.Var: x→x`[G]] =
         //   ???
 
           //           for
@@ -118,40 +118,40 @@ object variable:
           //   _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(???))
           // yield t
 
-      // @scala.annotation.targetName("*→*")
+      // @scala.annotation.targetName("x→x")
       // def TYPE[G[_], A](
       //   nme: String,
-      //   tparam: StateT[ErrorF, Γ, `Type.Var: *`[A]]
-      // ): StateT[ErrorF, Γ, `Type.Var: *→*`[G]] =
+      //   tparam: StateT[ErrorF, Γ, `Type.Var: x`[A]]
+      // ): StateT[ErrorF, Γ, `Type.Var: x→x`[G]] =
       //   for
       //     a <- StateT.liftF(tparam.runEmptyA)
-      //     t <- StateT.pure(`Type.Var: *→*`[G](0, nme, None, () => Nil))
+      //     t <- StateT.pure(`Type.Var: x→x`[G](0, nme, None, () => Nil))
       //     d <- StateT.pure(Statement.`type`.`[_]`(a, t))
       //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       //   yield t
 
-      // @scala.annotation.targetName("(*→*)→*")
+      // @scala.annotation.targetName("(x→x)→x")
       // def TYPE[G[_[_]], H[_]](
       //   nme: String,
-      //   tparam: StateT[ErrorF, Γ, `Type.Var: *→*`[H]]
-      // ): StateT[ErrorF, Γ, `Type.Var: (*→*)→*`[G]] =
+      //   tparam: StateT[ErrorF, Γ, `Type.Var: x→x`[H]]
+      // ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x`[G]] =
       //   for
       //     a <- StateT.liftF(tparam.runEmptyA)
-      //     t <- StateT.pure(`Type.Var: (*→*)→*`[G](0, nme, None))
+      //     t <- StateT.pure(`Type.Var: (x→x)→x`[G](0, nme, None))
       //     d <- StateT.pure(Statement.`type`.`[_[_]]`(a, t))
       //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       //   yield t
 
-      // @scala.annotation.targetName("(*→*)→*→*")
+      // @scala.annotation.targetName("(x→x)→x→x")
       // def TYPE[G[_[_], _], H[_], A](
       //   nme: String,
-      //   targF: StateT[ErrorF, Γ, `Type.Var: *→*`[H]],
-      //   targA: StateT[ErrorF, Γ, `Type.Var: *`[A]]
-      // ): StateT[ErrorF, Γ, `Type.Var: (*→*)→*→*`[G]] =
+      //   targF: StateT[ErrorF, Γ, `Type.Var: x→x`[H]],
+      //   targA: StateT[ErrorF, Γ, `Type.Var: x`[A]]
+      // ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x→x`[G]] =
       //   for
       //     f <- StateT.liftF(targF.runEmptyA)
       //     a <- StateT.liftF(targA.runEmptyA)
-      //     t <- StateT.pure(`Type.Var: (*→*)→*→*`[G](0, nme, None))
+      //     t <- StateT.pure(`Type.Var: (x→x)→x→x`[G](0, nme, None))
       //     d <- StateT.pure(Statement.`type`.`[_[_], _]`[G, H, A](f, a, t))
       //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       //   yield t
@@ -159,7 +159,7 @@ object variable:
       // def VAL[T](
       //   value: `Value.Var.Unbound.Data`[T]
       //   // nme: String,
-      //   // tpe: `Type.Expr: *`[T]
+      //   // tpe: `Type: x`[T]
       // ): StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]] =
       //   for
       //     // v <- StateT.pure(`Value.Var.Unbound.Data`[T](0, nme, tpe))
@@ -170,7 +170,7 @@ object variable:
       // def VAL[T](
       //   // value: `Value.Var.Unbound.Data`[T]
       //   // nme: String,
-      //   // tpe: `Type.Expr: *`[T]
+      //   // tpe: `Type: x`[T]
       //   nme: StringContext
       // ): StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]] =
       //   for
@@ -184,7 +184,7 @@ object variable:
       // def VAL[A, B](
       //   value: `Value.Var.Unbound.Comp`[A, B]
       //   // nme: String,
-      //   // tpe: `Type.Expr: *`[T]
+      //   // tpe: `Type: x`[T]
       // ): StateT[ErrorF, Γ, `Value.Var.Unbound.Comp`[A, B]] =
       //   for
       //     // v <- StateT.pure(`Value.Var.Unbound.Data`[T](0, nme, tpe))
@@ -205,8 +205,8 @@ object variable:
       // extension (nme: StringContext)
       //   // def type_(): AliasSym =
       //   //   AliasSym(nme.parts.mkString)
-      //   def type_(args: Any*): AliasSym =
-      //     AliasSym(nme.raw(args*))
+      //   def type_(args: Anyx): AliasSym =
+      //     AliasSym(nme.raw(argsx))
 
         // def TYPE[T](): StateT[ErrorF, Γ, `Type.Var.Data`[T]] =
         //   for
@@ -217,7 +217,7 @@ object variable:
 
 
       // extension [R] (sym: `DefSym`)
-      //   infix def $(tpe: `Type.Var: *`[R]): StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Always`[R]] =
+      //   infix def $(tpe: `Type.Var: x`[R]): StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Always`[R]] =
       //     for
       //       v <- StateT.pure(`Value.Var.Unbound.Data.Always`(0, sym, tpe))
       //       d <- StateT.pure(v.define)
@@ -225,7 +225,7 @@ object variable:
       //     yield v
 
       // extension [A, R] (sym: `DefSym.1`[A, R])
-      //   infix def $(tpe: `Type.Var: *`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Always`[A, R]] =
+      //   infix def $(tpe: `Type.Var: x`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Always`[A, R]] =
       //     for
       //       v <- StateT.pure(`Value.Var.Unbound.Comp.Always`(0, sym, FUNCTION1(sym.arg1.tpe, tpe)))
       //       d <- StateT.pure(v.define)
@@ -248,10 +248,10 @@ object variable:
       //       _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       //     yield v
 
-        // infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Def`[R]] =
+        // infix def $[R](tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Def`[R]] =
 
 
-        // infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Def`[R]] =
+        // infix def $[R](tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Def`[R]] =
         //   sym match
         //     case `DefSym.0`(nme) => 
         //     case `DefSym.1`(nme, arg1) =>
@@ -264,7 +264,7 @@ object variable:
       
 
   //     extension (sym: `ValSym`)
-  //       infix def $[A, B](tpe: `Type.AppInfix: *→*→* * *`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Val`[A, B]] =
+  //       infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Val`[A, B]] =
   //         for
   //           v <- StateT.pure(`Value.Var.Unbound.Comp.Val`(0, sym, tpe, tpe.barg))
   //           d <- StateT.pure(Statement.define(v))
@@ -278,7 +278,7 @@ object variable:
   //           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
   //         yield v
 
-  //       infix def $[R](tpe: `Type.Expr: *`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Val`[R]] =
+  //       infix def $[R](tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Val`[R]] =
   //         for
   //           v <- StateT.pure(`Value.Var.Unbound.Data.Val`(0, sym, tpe))
   //           d <- StateT.pure(Statement.define(v))
@@ -294,7 +294,7 @@ object variable:
   //         `Value.Var.Unbound.Comp.Val`(0, ValSym(str), tpe, tpe.barg)
   //       infix def $[A, B](tpe: `Type.Var.Comp`[A, B]): `Value.Var.Unbound.Comp.Val`[A, B] =
   //         `Value.Var.Unbound.Comp.Val`(0, ValSym(str), tpe, tpe.ret)
-  //       infix def $[T](tpe: `Type.Expr: *`[T]): `Value.Var.Unbound.Data.Val`[T] =
+  //       infix def $[T](tpe: `Type: x`[T]): `Value.Var.Unbound.Data.Val`[T] =
   //         `Value.Var.Unbound.Data.Val`(0, ValSym(str), tpe)
 
 
@@ -315,7 +315,7 @@ object variable:
   //     //     yield v
           
   //     // extension (str: String)
-  //     //   infix def $[T](tpe: `Type.Var: *`[T]):  `Value.Var.Unbound.Data.Eager`[T] =
+  //     //   infix def $[T](tpe: `Type.Var: x`[T]):  `Value.Var.Unbound.Data.Eager`[T] =
   //     //     `Value.Var.Unbound.Data.Eager`(0, ValSym(str), tpe)
   //     //   infix def $[A, B](tpe: `Type.AppInfix[_, _]`[Function1, A, B]): `Value.Var.Unbound.Comp.Eager`[A, B] =
   //     //     `Value.Var.Unbound.Comp.Eager`(0, ValSym(str), tpe)
@@ -323,7 +323,7 @@ object variable:
 
 
   //     // extension (sym: Symbol)
-  //     //   infix def |:[T](tpe: `Type.Var: *`[T]): StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]] =
+  //     //   infix def |:[T](tpe: `Type.Var: x`[T]): StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]] =
   //     //     for
   //     //       v <- StateT.pure(sym match
   //     //         case DefSym(nme, args) =>
@@ -350,7 +350,7 @@ object variable:
 
   //   extension [T] (lhs: StateT[ErrorF, Γ, `Type.Var.Data`[T]])
   //     def :=(
-  //       rhs: `Type.Expr: *`[T]
+  //       rhs: `Type: x`[T]
   //     ): StateT[ErrorF, Γ, `Type.Var.Data`[T]] =
   //       for
   //         l <- StateT.liftF(lhs.runEmptyA)
@@ -362,7 +362,7 @@ object variable:
   //   extension [A, B] (lhs: StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Def.1`[A, B]])
   //     @scala.annotation.targetName("assignDef1")
   //     def :=(
-  //       rhs: `Value.Var`[A] => `Value.Expr: *`[B]
+  //       rhs: `Value.Var`[A] => `Value: x`[B]
   //     ): StateT[ErrorF, Γ, `Value.Var.Bound.Comp.Def.1`[A, B]] =
   //       for
   //         l <- StateT.liftF(lhs.runEmptyA)
@@ -374,7 +374,7 @@ object variable:
   //   extension [A, B] (lhs: StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Val`[A, B]])
   //     @scala.annotation.targetName("assignVal1")
   //     def :=(
-  //       rhs: `Value.Lam.1: *→*→* * *`[A, B]
+  //       rhs: `Value.Lam.1: x→x→x x x`[A, B]
   //     ): StateT[ErrorF, Γ, `Value.Var.Bound.Comp.Val`[A, B]] =
   //       for
   //         l <- StateT.liftF(lhs.runEmptyA)
@@ -387,7 +387,7 @@ object variable:
   //   extension [T] (lhs: StateT[ErrorF, Γ, `Value.Var.Unbound.Data.Val`[T]])
   //     @scala.annotation.targetName("assignVal2")
   //     def :=(
-  //       rhs: `Value.Expr: *`[T]
+  //       rhs: `Value: x`[T]
   //     ): StateT[ErrorF, Γ, `Value.Var.Bound.Data.Val`[T]] =
   //       for
   //         l <- StateT.liftF(lhs.runEmptyA)
@@ -413,7 +413,7 @@ object variable:
   // //   extension [T] (lhs: StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]])
   // //     @scala.annotation.targetName("assign value")
   // //     def :=(
-  // //       rhs: `Value.Expr: *`[T]
+  // //       rhs: `Value: x`[T]
   // //     ): StateT[ErrorF, Γ, `Value.Var.Bound.Data`[T]] =
   // //       for
   // //         l <- StateT.liftF(lhs.runEmptyA)

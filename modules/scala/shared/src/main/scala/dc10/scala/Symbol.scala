@@ -9,10 +9,11 @@ sealed trait DefSym extends Symbol
 
 case class `DefSym.0`(nme: String) extends DefSym
 
-case class `DefSym.1`[A, R](nme: String, arg1: `Value.Val: *`[A]) extends DefSym
+case class `DefSym.1`[A, R](nme: String, arg1: `Value.Val: x`[A]) extends DefSym
+case class `DefSym.1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[G[_[_], _], H[_], A](nme: String, arg1: `Value.Val: (x→x)→x→x x→x x`[G, H, A]) extends DefSym
 object DefSym:
   extension (sym: `DefSym.0`)
-    def apply[A, R](a: `Value.Val: *`[A]): `DefSym.1`[A, R] =
+    def apply[A, R](a: `Value.Val: x`[A]): `DefSym.1`[A, R] =
       `DefSym.1`(sym.nme, a)
 
 case class FileSym(nme: String) extends Symbol

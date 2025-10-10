@@ -26,6 +26,20 @@ inThisBuild(List(
   versionScheme := Some("semver-spec"),
 ))
 
+lazy val `dc10-calico` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/calico"))
+  .settings(
+    name := "dc10-calico",
+    libraryDependencies ++= Seq(
+      // main
+      //
+      // test
+      "org.scalameta" %% "munit" % MUnitV % Test
+    )
+  )
+  .jsSettings(test := {})
+  .dependsOn(`dc10-fs2`, `dc10-fs2-dom`)
+
 lazy val `dc10-cats-effect` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/catseffect"))
   .settings(
@@ -56,6 +70,19 @@ lazy val `dc10-fs2` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .nativeSettings(test := {})
   .dependsOn(`dc10-cats-effect`)
 
+lazy val `dc10-fs2-dom` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("modules/fs2dom"))
+  .settings(
+    name := "dc10-fs2-dom",
+    libraryDependencies ++= Seq(
+      // main
+      //
+      // test
+      "org.scalameta" %% "munit" % MUnitV % Test
+    )
+  )
+  .jsSettings(test := {})
+  .dependsOn(`dc10-scala`)
 
 lazy val `dc10-sbt` = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("modules/sbt"))

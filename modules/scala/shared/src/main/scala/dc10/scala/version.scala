@@ -12,21 +12,22 @@ object version:
         input.map(stmt => stmt match
           case d@CaseDef(_)                   => renderCaseExpr(d)
           case d@CaseClassDef(_, _, _)        => renderCaseClassDef(d)
-          case d@`DefDef: *`(_)               => renderDefDef(d)
-          case d@`DefDef: *→* *`(_)           => renderDefDef(d)
-          case d@`DefDef: *→*→* * *`(_)       => renderDefDef(d)
+          case d@`DefDef: x`(_)               => renderDefDef(d)
+          case d@`DefDef: x→x x`(_)           => renderDefDef(d)
+          case d@`DefDef: x→x→x x x`(_)       => renderDefDef(d)
           case d@LibDep(_, _, _)              => renderLibDep(d)
           case d@ObjDef(_)                    => renderObjectDef(d)
           case d@PackageDef(_, _)             => renderPackageDef(d)
-          case d@`TypeDef: *`(_)              => renderTypeDef(d)
-          case d@`TypeDef: *→* *`(_)          => renderTypeDef(d)
-          case d@`ValDef: *`(_)               => renderValDef(d)
-          case d@`ValDef: *→* *`(_)           => renderValDef(d)
-          case d@`ValDef: *→* ((*→*)→*→* *→* *)`(_)           => renderValDef(d)
-          case d@`ValDef: *→*→* * *`(_)                       => renderValDef(d)
-          case d@`ValDef: (*→*)→*→* *→* *`(_)                 => renderValDef(d)
-          case d@`ValDef: *→*→* * ((*→*)→*→* *→* *)`(_)       => renderValDef(d)
-          case d@`ValDef: *→*→* * (*→* ((*→*)→*→* *→* *))`(_) => renderValDef(d)
+          case d@`TypeDef: x`(_)              => renderTypeDef(d)
+          case d@`TypeDef: x→x x`(_)          => renderTypeDef(d)
+          case d@`ValDef: x`(_)               => renderValDef(d)
+          case d@`ValDef: x→x x`(_)           => renderValDef(d)
+          case d@`ValDef: x→x ((x→x)→x→x x→x x)`(_)           => renderValDef(d)
+          case d@`ValDef: x→x→x x x`(_)                       => renderValDef(d)
+          case d@`ValDef: (x→x)→x→x x→x x`(_)                 => renderValDef(d)
+          case d@`ValDef: x→x→x x ((x→x)→x→x x→x x)`(_)       => renderValDef(d)
+          case d@`ValDef: x→x→x x (x→x ((x→x)→x→x x→x x))`(_) => renderValDef(d)
+          case d@`ValDef: (x→x)→x→x x→x ((x→x)→x x→x)`(_)     => renderValDef(d)
         )
         .toList
         .mkString("\n")
@@ -80,63 +81,65 @@ object version:
         
       private def renderType[T](tpe: Type): String =
         tpe match
-          case `Type.App: *→* *`(in, tfun, targ)                              => s"${renderType(tfun)}[${renderType(targ)}]"
-          case `Type.App: *→* ((*→*)→*→* *→* *)`(in, tfun, farg)              => s"${renderType(tfun)}[${renderType(farg)}]"
-          case `Type.App: (*→*)→* *→*`(in, tfun, farg)                        => s"${renderType(tfun)}[${renderType(farg)}]"
-          case `Type.App: (*→*→*)→* *→*→*`(in, tfun, farg)                  => s"${renderType(tfun)}[${renderType(farg)}]"
-          case `Type.App: (*→*)→*→* *→* *`(in, tfun, farg, aarg)             => s"${renderType(tfun)}[${renderType(farg)}, ${renderType(aarg)}]"
-          case `Type.App: (*→*)→*→* *→*`(in, tfun, farg)                     => s"${renderType(tfun)}[${renderType(farg)}]"
-          case `Type.App: *→*→* * *`(in, tfun, ta, tb)                         => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
-          case `Type.App: *→*→*→* * * *`(in, tfun, ta1, ta2, tb)              => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
-          case `Type.App: (*→*)→*→*→* (*→*) * *`(in, tfun, f, a, b)         => s"${renderType(tfun)}[${renderType(f)}, ${renderType(a)}, ${renderType(b)}]"
-          case `Type.App: ((*→*)→*→*)→* (*→*)→*→*`(in, tfun, arg)         => s"${renderType(tfun)}[${renderType(arg)}]"
-          case `Type.App: *→*→*→*→* * * * *`(in, tfun, a, b, c, d)           => s"${renderType(tfun)}[${renderType(a)}, ${renderType(b)}, ${renderType(c)}, ${renderType(d)}]"
-          case `Type.App: (*→*)→*→*→*→* (*→*) * * *`(in, tfun, f, a, b, c) => s"${renderType(tfun)}[${renderType(f)}, ${renderType(a)}, ${renderType(b)}, ${renderType(c)}]"
-          case `Type.App: ((*→*)→*)→* (*→*)→*`(in, tfun, targ)              => s"${renderType(tfun)}[${renderType(targ)}]"
-          case `Type.AppInfix: *→*→* * *`(in, tfun, ta, tb)                    => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-          case `Type.AppInfix: *→*→* * (*→* *)`(in, tfun, ta, tb)             => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-          case `Type.AppInfix: *→*→* * ((*→*)→*→* *→* *)`(in, tfun, ta, tb)   => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-          case `Type.AppInfix: *→*→* * ((*→*)→*→* *→*)`(in, tfun, ta, tb)     => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-          case `Type.AppInfix: *→*→* * (*→* ((*→*)→*→* *→* *))`(in, tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}%%"
-          case `Type.AppInfix: *→*→* (*→* *) ((*→*)→*→* *→* *)`(in, tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
-          case `Type.AppInfix: *→*→*→* * * *`(in, tfun, ta, tb, tc)           => s"(${renderType(ta)}, ${renderType(tb)}) ${renderType(tfun)} ${renderType(tc)}"
-          case `Type.AppInfix: *→*→*→*→* * * * *`(in, f, a, b, c, d)         => s"(${renderType(a)}, ${renderType(b)}, ${renderType(c)}) ${renderType(f)} ${renderType(d)}"
-          case `Type.Lam: *→*`(in, ta, tb)                                      => s"[${renderType(ta)}] =>> ${renderType(tb)}"
-          case `Type.Lam: (*→*)→*→*`(in, ta1, ta2, tb)                        => s"[${renderType(ta1)}, ${renderType(ta2)}] =>> ${renderType(tb)}"
-          case `Type.Lam: (*→*)→*`(in, ta, tb)                                 => s"[${renderType(ta)}] =>> ${renderType(tb)}"
-          case `Type.Lam: (*→*→*)→*`(in, ta, tb)                              => s"[${renderType(ta)}] =>> ${renderType(tb)}"
-          case `Type.Lam: *→*→*`(in, ta1, ta2, tb)                             => s"[${renderType(ta1)}, ${renderType(ta2)}] =>> ${renderType(tb)}"
-          case `Type.Lam: ((*→*)→*→*)→*`(in, ta, tb)                         => s"[${renderType(ta)}] =>> ${renderType(tb)}"
-          case `Type.Lam: *→*→*→*`(in, ta1, ta2, ta3, tb)                     => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}] =>> ${renderType(tb)}"
-          case `Type.Lam: *→*→*→*→*`(in, ta1, ta2, ta3, ta4, tb)             => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}, ${renderType(ta4)}] =>> ${renderType(tb)}"
-          case `Type.Lam: (*→*)→*→*→*`(in, ta1, ta2, ta3, tb)                => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}] =>> ${renderType(tb)}"
-          case `Type.Lam: (*→*)→*→*→*→*`(in, ta1, ta2, ta3, ta4, tb)        => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}, ${renderType(ta4)}] =>> ${renderType(tb)}"
-          case `Type.Lam: ((*→*)→*)→*`(in, ta, tb)                            => s"[${renderType(ta)}] =>> ${renderType(tb)}"
-          case `Type.Lit: *`(in, s)                                              => s
-          case `Type.Var: *`(in, s, i)                                           => s.nme
-          case `Type.Var: *→* *`(in, s, i, c)                                   => s.nme
-          case `Type.Var: (*→*)→* *→*`(in, s, arg, i)                         => s.nme
-          case `Type.Var: (*→*)→*→* *→* *`(in, s, arg1, arg2, i)             => s.nme
-          case `Type.Var: *→*→* * *`(in, s, aarg, barg, i)                     => s.nme
-          case `Type.Var: *→*→*`(l, s, i)                                      => s.nme
-          case `Type.Var: *→*→*→*`(in, s, i)                                  => s.nme
-          case `Type.Var: (*→*)→*→*`(in, s, i)                                => s.nme
-          case `Type.Var: (*→*)→*→*→*`(in, s, i)                             => s.nme
-          case `Type.Var: ((*→*)→*→*)→*`(in, s, i)                           => s.nme
-          case `Type.Var: *→*→*→*→*`(in, s, i)                               => s.nme
-          case `Type.Var: (*→*→*)→* *→*→*`(in, s, _, _)                     => s.nme
-          case `Type.Var: ((*→*)→*)→* (*→*)→*`(in, s, _, _)                 => s.nme
-          case `Type.Var: ((*→*)→*→*)→* (*→*)→*→*`(in, s, _, _)           => s.nme
-          case `Type.Var: *→*→*→* * * *`(in, s, _, _, _, _)                   => s.nme
-          case `Type.Var: (*→*)→*→*→* (*→*) * *`(in, s, _, _, _, _)         => s.nme
-          case `Type.Var: *→*→*→*→* * * * *`(in, s, _, _, _, _, _)           => s.nme
-          case `Type.Var: (*→*)→*→*→*→* (*→*) * * *`(in, s, _, _, _, _, _) => s.nme
-          case `Type.Var: *→*`(in, s, i, _)                                     => s.nme
-          case `Type.Var: (*→*)→*→* *→*`(in, s, tfun, targ1, impl)             => s.nme
-          case `Type.Var: (*→*)→*`(in, s, _)                                   => s.nme
-          case `Type.Var: (*→*→*)→*`(in, s, _)                                => s.nme
-          case `Type.Var: (*→*)→*→*→*→*`(in, s, _)                          => s.nme
-          case `Type.Var: ((*→*)→*)→*`(in, s, _)                              => s.nme
+          case `Type.App: x→x x`(in, tfun, targ)                              => s"${renderType(tfun)}[${renderType(targ)}]"
+          case `Type.App: x→x ((x→x)→x→x x→x x)`(in, tfun, farg)              => s"${renderType(tfun)}[${renderType(farg)}]"
+          case `Type.App: (x→x)→x x→x`(in, tfun, farg)                        => s"${renderType(tfun)}[${renderType(farg)}]"
+          case `Type.App: (x→x→x)→x x→x→x`(in, tfun, farg)                  => s"${renderType(tfun)}[${renderType(farg)}]"
+          case `Type.App: (x→x)→x→x x→x x`(in, tfun, farg, aarg)             => s"${renderType(tfun)}[${renderType(farg)}, ${renderType(aarg)}]"
+          case `Type.App: (x→x)→x→x x→x`(in, tfun, farg)                     => s"${renderType(tfun)}[${renderType(farg)}]"
+          case `Type.App: x→x→x x x`(in, tfun, ta, tb)                         => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]"
+          // case `Type.App: x→x→x→x x * x`(in, tfun, ta1, ta2, tb)              => s"${renderType(tfun)}[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(tb)}]"
+          // case `Type.App: (x→x)→x→x→x (x→x) x x`(in, tfun, f, a, b)         => s"${renderType(tfun)}[${renderType(f)}, ${renderType(a)}, ${renderType(b)}]"
+          case `Type.App: (x→x)→x→x x→x ((x→x)→x x→x)`(in, tfun, ta, tb)        => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]**"
+          case `Type.App: (x→x)→x→x x→x ((x→x)→x→x x→x x)`(in, tfun, ta, tb)    => s"${renderType(tfun)}[${renderType(ta)}, ${renderType(tb)}]^^"
+          case `Type.App: ((x→x)→x→x)→x (x→x)→x→x`(in, tfun, arg)         => s"${renderType(tfun)}[${renderType(arg)}]"
+          // case `Type.App: x→x→x→x→x x * x x`(in, tfun, a, b, c, d)           => s"${renderType(tfun)}[${renderType(a)}, ${renderType(b)}, ${renderType(c)}, ${renderType(d)}]"
+          // case `Type.App: (x→x)→x→x→x→x (x→x) x * x`(in, tfun, f, a, b, c) => s"${renderType(tfun)}[${renderType(f)}, ${renderType(a)}, ${renderType(b)}, ${renderType(c)}]"
+          case `Type.App: ((x→x)→x)→x (x→x)→x`(in, tfun, targ)              => s"${renderType(tfun)}[${renderType(targ)}]"
+          case `Type.AppInfix: x→x→x x x`(in, tfun, ta, tb)                    => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          case `Type.AppInfix: x→x→x x (x→x x)`(in, tfun, ta, tb)             => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          case `Type.AppInfix: x→x→x x ((x→x)→x→x x→x x)`(in, tfun, ta, tb)   => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          case `Type.AppInfix: x→x→x x ((x→x)→x→x x→x)`(in, tfun, ta, tb)     => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          case `Type.AppInfix: x→x→x x (x→x ((x→x)→x→x x→x x))`(in, tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}%%"
+          case `Type.AppInfix: x→x→x (x→x x) ((x→x)→x→x x→x x)`(in, tfun, ta, tb) => s"${renderType(ta)} ${renderType(tfun)} ${renderType(tb)}"
+          // case `Type.AppInfix: x→x→x→x x * x`(in, tfun, ta, tb, tc)           => s"(${renderType(ta)}, ${renderType(tb)}) ${renderType(tfun)} ${renderType(tc)}"
+          // case `Type.AppInfix: x→x→x→x→x x * x x`(in, f, a, b, c, d)         => s"(${renderType(a)}, ${renderType(b)}, ${renderType(c)}) ${renderType(f)} ${renderType(d)}"
+          case `Type.Lam: x→x`(in, ta, tb)                                      => s"[${renderType(ta)}] =>> ${renderType(tb)}"
+          case `Type.Lam: (x→x)→x→x`(in, ta1, ta2, tb)                        => s"[${renderType(ta1)}, ${renderType(ta2)}] =>> ${renderType(tb)}"
+          case `Type.Lam: (x→x)→x`(in, ta, tb)                                 => s"[${renderType(ta)}] =>> ${renderType(tb)}"
+          case `Type.Lam: (x→x→x)→x`(in, ta, tb)                              => s"[${renderType(ta)}] =>> ${renderType(tb)}"
+          case `Type.Lam: x→x→x`(in, ta1, ta2, tb)                             => s"[${renderType(ta1)}, ${renderType(ta2)}] =>> ${renderType(tb)}"
+          case `Type.Lam: ((x→x)→x→x)→x`(in, ta, tb)                         => s"[${renderType(ta)}] =>> ${renderType(tb)}"
+          // case `Type.Lam: x→x→x→x`(in, ta1, ta2, ta3, tb)                     => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}] =>> ${renderType(tb)}"
+          // case `Type.Lam: x→x→x→x→x`(in, ta1, ta2, ta3, ta4, tb)             => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}, ${renderType(ta4)}] =>> ${renderType(tb)}"
+          // case `Type.Lam: (x→x)→x→x→x`(in, ta1, ta2, ta3, tb)                => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}] =>> ${renderType(tb)}"
+          // case `Type.Lam: (x→x)→x→x→x→x`(in, ta1, ta2, ta3, ta4, tb)        => s"[${renderType(ta1)}, ${renderType(ta2)}, ${renderType(ta3)}, ${renderType(ta4)}] =>> ${renderType(tb)}"
+          case `Type.Lam: ((x→x)→x)→x`(in, ta, tb)                            => s"[${renderType(ta)}] =>> ${renderType(tb)}"
+          case `Type.Lit: x`(in, s)                                              => s
+          case `Type.Var: x`(in, s, i)                                           => s.nme
+          case `Type.Var: x→x x`(in, s, i, c)                                   => s.nme
+          case `Type.Var: (x→x)→x x→x`(in, s, arg, i)                         => s.nme
+          case `Type.Var: (x→x)→x→x x→x x`(in, s, arg1, arg2, i)             => s.nme
+          case `Type.Var: x→x→x x x`(in, s, aarg, barg, i)                     => s.nme
+          case `Type.Var: x→x→x`(l, s, i)                                      => s.nme
+          // case `Type.Var: x→x→x→x`(in, s, i)                                  => s.nme
+          case `Type.Var: (x→x)→x→x`(in, s, i)                                => s.nme
+          // case `Type.Var: (x→x)→x→x→x`(in, s, i)                             => s.nme
+          case `Type.Var: ((x→x)→x→x)→x`(in, s, i)                           => s.nme
+          // case `Type.Var: x→x→x→x→x`(in, s, i)                               => s.nme
+          case `Type.Var: (x→x→x)→x x→x→x`(in, s, _, _)                     => s.nme
+          case `Type.Var: ((x→x)→x)→x (x→x)→x`(in, s, _, _)                 => s.nme
+          case `Type.Var: ((x→x)→x→x)→x (x→x)→x→x`(in, s, _, _)           => s.nme
+          // case `Type.Var: x→x→x→x x * x`(in, s, _, _, _, _)                   => s.nme
+          // case `Type.Var: (x→x)→x→x→x (x→x) x x`(in, s, _, _, _, _)         => s.nme
+          // case `Type.Var: x→x→x→x→x x * x x`(in, s, _, _, _, _, _)           => s.nme
+          // case `Type.Var: (x→x)→x→x→x→x (x→x) x * x`(in, s, _, _, _, _, _) => s.nme
+          case `Type.Var: x→x`(in, s, i, _)                                     => s.nme
+          case `Type.Var: (x→x)→x→x x→x`(in, s, tfun, targ1, impl)             => s.nme
+          case `Type.Var: (x→x)→x`(in, s, _)                                   => s.nme
+          case `Type.Var: (x→x→x)→x`(in, s, _)                                => s.nme
+          // case `Type.Var: (x→x)→x→x→x→x`(in, s, _)                          => s.nme
+          case `Type.Var: ((x→x)→x)→x`(in, s, _)                              => s.nme
           
 
       // private def renderTraitDef[T](t: `trait`[T]): String =
@@ -155,14 +158,14 @@ object version:
       //   renderIndent(t.tpe.lvl) ++ s"""trait ${t.tpe.nme}[${renderType(t.tparamf)}[_], ${renderType(t.tparama)}]${t.parent.fold("")(p => s" extends ${renderType(p)}")}:
       //       |${t.body.map(s => render(List(s))).mkString("\n")}""".stripMargin
         
-      private def renderTypeDef[T](t: `TypeDef: *`[T]): String =
+      private def renderTypeDef[T](t: `TypeDef: x`[T]): String =
         // renderIndent(t.binding.getIndent) //++ t.tpe.impl.fold(s"type ${renderType(t.tpe)}")(i => s"type ${renderType(t.tpe)} = ${renderType(i)}")
         renderIndent(t.tpe.lvl) ++ t.tpe.impl.fold(s"type ${renderType(t.tpe)}")(i => s"type ${renderType(t.tpe)} = ${renderType(i)}")
 
       // private def renderTypeDef[T[_,_], A, B](t: `TypeDef[A, B]`[T, A, B]): String =
       //   renderIndent(t.tpe.lvl) ++ t.tpe.impl.fold(s"type ${renderType(t.tpe)}")(i => s"type ${renderType(t.tpe)} = ${renderType(i)}")
 
-      private def renderTypeDef[F[_], A](t: `TypeDef: *→* *`[F, A]): String =
+      private def renderTypeDef[F[_], A](t: `TypeDef: x→x x`[F, A]): String =
         renderIndent(t.tpe.lvl) ++ t.tpe.impl.fold(s"type ${renderType(t.tpe)}")(i => s"type ${renderType(t.tpe)} = ${renderType(i)}")
 
       // private def renderTypeDef[T[_[_]], F[_]](t: `TypeDef[F[_]]`[T, F]): String =
@@ -185,75 +188,86 @@ object version:
         
       private def renderValue(value: Value): String =
         value match 
-          case `Value.App.1: *`(i, f, a, t)                      => s"${renderValue(f)}(${renderValue(a)})"
-          case `Value.App.2: *`(i, f, a, b, t)                   => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)})"
-          case `Value.App.3: *`(i, f, a, b, c, t)                => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)}, ${renderValue(c)})"
-          case `Value.App.Vargs: *`(i, f, t, as*)                => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
-          case `Value.AppDot.0: *`(i, f, a, t)                  => s"${renderValue(a)}.${renderValue(f)}"
-          case `Value.AppDot.0: (*→*)→*→* *→* *`(i, f, a, t)    => s"${renderValue(a)}.${renderValue(f)}"
-          case `Value.AppDot.0: (*→*)→*→* *→*`(l, f, t, a, i)   => s"${renderValue(a)}.${renderValue(f)}"
-          case `Value.AppDot.1: *`(i, f, a, b, t)               => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
-          case `Value.AppDot.1: *→* *`(i, f, a, b, t)           => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
-          case `Value.AppDot.1: *→* ((*→*)→*→* *→* *)`(i, f, a, b, t) => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
-          case `Value.AppDot.1: (*→*)→*→* *→* *`(i, f, a, b, t)    => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
-          case `Value.AppDotless: *`(i, f, a, b, t)             => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
-          case `Value.AppForComp: *→* *`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
+          case `Value.App.1: x`(i, f, a, t)                      => s"${renderValue(f)}(${renderValue(a)})"
+          // case `Value.App.2: x`(i, f, a, b, t)                   => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)})"
+          // case `Value.App.3: x`(i, f, a, b, c, t)                => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)}, ${renderValue(c)})"
+          case `Value.App.Vargs: x`(i, f, t, as*)                => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
+          case `Value.AppDot.0: x`(i, f, a, t)                  => s"${renderValue(a)}.${renderValue(f)}"
+          case `Value.AppDot.0: (x→x)→x→x x→x x`(i, f, a, t)    => s"${renderValue(a)}.${renderValue(f)}"
+          case `Value.AppDot.0: (x→x)→x→x x→x`(l, f, t, a, i)   => s"${renderValue(a)}.${renderValue(f)}"
+          case `Value.AppDot.1: x`(i, f, a, b, t)               => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
+          case `Value.AppDot.1: x→x x`(i, f, a, b, t)           => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
+          case `Value.AppDot.1: x→x ((x→x)→x→x x→x x)`(i, f, a, b, t) => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
+          case `Value.AppDot.1: (x→x)→x→x x→x x`(i, f, a, b, t) => s"${renderType(a)}.${renderValue(f)}(${renderValue(b)})"
+          case `Value.AppDot.1: (x→x)→x→x x→x ((x→x)→x x→x)`(i, f, a, b, t) =>s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
+          case `Value.AppDotless: x`(i, f, a, b, t)             => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
+          case `Value.AppForComp: x→x x`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
           // case `Value.App.Match`(i, a, t, l)                  => s"${renderValue(a)} match\n${render(l)}"
-          case `Value.App.1: (*→*)→*→* *→*`(i, f, u, a, t)      => s"${renderValue(f)}[${renderType(u)}](${renderValue(a)})"
-          case `Value.App.0: *→*`(i, f, a, t)                => s"${renderValue(f)}[${renderType(a)}]"
-          case `Value.App.0: (*→*)→*→*`(i, f, g, a, t)       => s"${renderValue(f)}[${renderType(g)}, ${renderType(a)}]"
-          case `Value.App.0: (*→*)→*→*→*`(i, f, g, a, b, t) => s"${renderValue(f)}[${renderType(g)}, ${renderType(a)}, ${renderType(b)}]"
-          case `Value.App.1: *→* *`(l, f, a, t)                => s"${renderValue(f)}(${renderValue(a)})"
-          case `Value.App.1: (*→*)→*→* *→* *`(l, f, a, t)      => s"${renderValue(f)}(${renderValue(a)})"
-          case `Value.Lam.1: *→*→* * *`(i, a, b, t)                     => s"${renderValue(a)} => ${renderValue(b)}"
-          case `Value.Lam.2: *→*→*→* * * *`(i, a1, a2, r, t)                => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
-          case `Value.Lam.3: *→*→*→*→* * * * *`(i, a1, a2, a3, r, t)            => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
-          case `Value.Lit.Boolean: *`(i, tpe, b)                => s"$b"
-          case `Value.Lit.Int: *`(i, tpe, int)                  => s"$int"
-          case `Value.Lit.Long: *`(i, tpe, long)                => s"$long"
-          case `Value.Lit.Float: *`(i, tpe, f)                  => s"$f"
-          case `Value.Lit.Double: *`(i, tpe, d)                 => s"$d"
-          case `Value.Lit.String: *`(i, tpe, s)                 => s"\"$s\""
-          case `Value.Lit.Unit: *`(i, tpe, u)                   => s"$u"
-          case `Value.Obj: *`(in, s, _, _, _)                   => s.nme
-          case `Value.Val: *`(l, s, t, i)                       => s.nme
-          case `Value.Val: (*→*)→*`(l, s, t, _)               => s.nme
-          case `Value.Val: *→*→*`(l, s, t, _)                 => s.nme
-          case `Value.Val: (*→*)→*→*`(l, s, t, i)            => s.nme
-          case `Value.Val: (*→*)→*→*→*`(l, s, t, _)         => s.nme
-          case `Value.Val: *→*→* * *`(l, s, r, i)                   => s.nme
-          case `Value.Val: *→*→* * ((*→*)→*→* *→* *)`(l, s, a, i)   => s.nme
-          case `Value.Val: *→*→* * ((*→*)→*→* *→*)`(l, s, t, i)     => s.nme
-          case `Value.Val: *→*→* * (*→* ((*→*)→*→* *→* *))`(l, s, t, i)   => s.nme
-          case `Value.Def.1: *→*→* * *`(l, s, a, i)                       => s.nme
-          case `Value.Def.0: *`(l, s, a, i)                               => s.nme
-          case `Value.Def.0: *→* *`(l, s, a, i)                           => s.nme
-          case `Value.Val: *→* *`(l, s, a, i)                             => s.nme
-          case `Value.Val: *→*`(l, s, a, i)                               => s.nme
-          case `Value.Val: (*→*)→*→* *→* *`(l, s, a, i)                   => s.nme
-          case `Value.Def.1: *→*→* * (*→* *)`(l, s, a, i)                 => s.nme
-          case `Value.Def.1: *→*→* * ((*→*)→*→* *→* *)`(l, s, a, i)       => s.nme
-          case `Value.Def.1: *→*→* * (*→* ((*→*)→*→* *→* *))`(l, s, a, i) => s.nme
-          case `Value.Def.0: *→*→* (*→* *) ((*→*)→*→* *→* *)`(l, s, a, i) => s.nme
-          case `Value.Val: (*→*)→*→* *→*`(l, s, t, a, i)                  => s.nme
-          case `Value.Val: *→* ((*→*)→*→* *→* *)`(l, s, a, i)             => s.nme
+          case `Value.App.1: (x→x)→x→x x→x`(i, f, u, a, t)      => s"${renderValue(f)}[${renderType(u)}](${renderValue(a)})"
+          case `Value.App.0: x→x`(i, f, a, t)                => s"${renderValue(f)}[${renderType(a)}]"
+          case `Value.App.0: (x→x)→x→x`(i, f, g, a, t)       => s"${renderValue(f)}[${renderType(g)}, ${renderType(a)}]"
+          // case `Value.App.0: (x→x)→x→x→x`(i, f, g, a, b, t) => s"${renderValue(f)}[${renderType(g)}, ${renderType(a)}, ${renderType(b)}]"
+          case `Value.App.1: x→x x`(l, f, a, t)                => s"${renderValue(f)}(${renderValue(a)})"
+          case `Value.App.1: (x→x)→x→x x→x x`(l, f, a, t)      => s"${renderValue(f)}(${renderValue(a)})"
+          case `Value.App.1: (x→x)→x→x x→x ((x→x)→x x→x)`(l, f, a, t) => s"${renderValue(f)}(${renderValue(a)})"
+          case `Value.Lam.1: x→x→x x x`(i, a, b, t)                     => s"${renderValue(a)} => ${renderValue(b)}"
+          case `Value.Lam1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`(l, a, b, t) => s"${renderValue(a)} => ${renderValue(b)}"
+          // case `Value.Lam.2: x→x→x→x x * x`(i, a1, a2, r, t)                => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
+          // case `Value.Lam.3: x→x→x→x→x x * x x`(i, a1, a2, a3, r, t)            => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
+          case `Value.Lit.Boolean: x`(i, tpe, b)                => s"$b"
+          case `Value.Lit.Int: x`(i, tpe, int)                  => s"$int"
+          case `Value.Lit.Long: x`(i, tpe, long)                => s"$long"
+          case `Value.Lit.Float: x`(i, tpe, f)                  => s"$f"
+          case `Value.Lit.Double: x`(i, tpe, d)                 => s"$d"
+          case `Value.Lit.String: x`(i, tpe, s)                 => s"\"$s\""
+          case `Value.Lit.Unit: x`(i, tpe, u)                   => s"$u"
+          case `Value.Obj: x`(in, s, _, _, _)                   => s.nme
+          case `Value.Val: x`(l, s, t, i)                       => s.nme
+          case `Value.Val: (x→x)→x`(l, s, t, _)               => s.nme
+          case `Value.Val: x→x→x`(l, s, t, _)                 => s.nme
+          case `Value.Val: (x→x)→x→x`(l, s, t, i)            => s.nme
+          // case `Value.Val: (x→x)→x→x→x`(l, s, t, _)         => s.nme
+          case `Value.Val: x→x→x x x`(l, s, r, i)                   => s.nme
+          case `Value.Val: x→x→x x ((x→x)→x→x x→x x)`(l, s, a, i)   => s.nme
+          case `Value.Val: x→x→x x ((x→x)→x→x x→x)`(l, s, t, i)     => s.nme
+          case `Value.Val: x→x→x x (x→x ((x→x)→x→x x→x x))`(l, s, t, i)   => s.nme
+          case `Value.Def.1: x→x→x x x`(l, s, a, i)                       => s.nme
+          case `Value.Def.0: x`(l, s, a, i)                               => s.nme
+          case `Value.Def.0: x→x x`(l, s, a, i)                           => s.nme
+          case `Value.Val: x→x x`(l, s, a, i)                             => s.nme
+          case `Value.Val: x→x`(l, s, a, i)                               => s.nme
+          case `Value.Val: (x→x)→x x→x`(l, s, a, i)                       => s.nme
+          case `Value.Val: (x→x)→x→x x→x x`(l, s, a, i)                   => s.nme
+          case `Value.Def.1: x→x→x x (x→x x)`(l, s, a, i)                 => s.nme
+          case `Value.Def.1: x→x→x x ((x→x)→x→x x→x x)`(l, s, a, i)       => s.nme
+          case `Value.Def.1: x→x→x x (x→x ((x→x)→x→x x→x x))`(l, s, a, i) => s.nme
+          case `Value.Def.0: x→x→x (x→x x) ((x→x)→x→x x→x x)`(l, s, a, i) => s.nme
+          case `Value.Val: (x→x)→x→x x→x`(l, s, t, a, i)                  => s.nme
+          case `Value.Val: x→x ((x→x)→x→x x→x x)`(l, s, a, i)             => s.nme
+          case `Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`(l, s, a, i)       => s.nme
+          case `Value.Val: (x→x)→x→x x→x ((x→x)→x→x x→x x)`(l, s, a, i)   => s.nme
+          case `Value.Val: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`(l, s, a, i) => s.nme
+          case `Value.Def.1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`(l, s, a, i) => s.nme
 
-      private def renderValDef[T](d: `ValDef: *`[T]): String =
+      private def renderValDef[T](d: `ValDef: x`[T]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderDefDef[T](d: `DefDef: *`[T]): String =
+      private def renderDefDef[T](d: `DefDef: x`[T]): String =
         renderIndent(d.value.lvl) ++ s"def ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderDefDef[T[_], A](d: `DefDef: *→* *`[T, A]): String =
+      private def renderDefDef[T[_], A](d: `DefDef: x→x x`[T, A]): String =
         renderIndent(d.value.lvl) ++ s"def ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderValDef[T[_], A](d: `ValDef: *→* *`[T, A]): String =
+      private def renderValDef[T[_], A](d: `ValDef: x→x x`[T, A]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderValDef[T[_], G[_[_], _], H[_], A](d: `ValDef: *→* ((*→*)→*→* *→* *)`[T, G, H, A]): String =
+      private def renderValDef[T[_], G[_[_], _], H[_], A](d: `ValDef: x→x ((x→x)→x→x x→x x)`[T, G, H, A]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderValDef[T[_[_], _], F[_], A](d: `ValDef: (*→*)→*→* *→* *`[T, F, A]): String =
+      private def renderValDef[T[_[_], _], F[_], A](d: `ValDef: (x→x)→x→x x→x x`[T, F, A]): String =
+        renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
+
+      private def renderValDef[T[_[_], _], F[_], G[_[_]], H[_]](d: `ValDef: (x→x)→x→x x→x ((x→x)→x x→x)`[T, F, G, H]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
 
@@ -280,16 +294,16 @@ object version:
       //     i => renderIndent(d.value.getIndent) ++ s"def ${renderValue(d.value)}[${renderTypeExpr(d.tparamf)}[_], ${renderTypeExpr(d.tparama)}]: ${renderTypeExpr(d.value.tpe)} = ${renderValue(i)}"
       //   )
 
-      private def renderDefDef[A, B](d: `DefDef: *→*→* * *`[A, B]): String =
+      private def renderDefDef[A, B](d: `DefDef: x→x→x x x`[A, B]): String =
         renderIndent(d.value.lvl) ++ s"def ${renderValue(d.value)}(${renderValue(d.value.sym.arg1)}: ${renderType(d.value.sym.arg1.tpe)}): ${renderType(d.value.tpe.targ2)}" ++ renderImpl(d.value.impl)
   
-      private def renderValDef[T[_, _], A, B](d: `ValDef: *→*→* * *`[T, A, B]): String =
+      private def renderValDef[T[_, _], A, B](d: `ValDef: x→x→x x x`[T, A, B]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderValDef[T[_, _], G[_[_], _], H[_], A, B](d: `ValDef: *→*→* * ((*→*)→*→* *→* *)`[T, G, H, A, B]): String =
+      private def renderValDef[T[_, _], G[_[_], _], H[_], A, B](d: `ValDef: x→x→x x ((x→x)→x→x x→x x)`[T, G, H, A, B]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
-      private def renderValDef[T[_, _], G[_[_], _], H[_], I[_], A, B](d: `ValDef: *→*→* * (*→* ((*→*)→*→* *→* *))`[T, G, H, I, A, B]): String =
+      private def renderValDef[T[_, _], G[_[_], _], H[_], I[_], A, B](d: `ValDef: x→x→x x (x→x ((x→x)→x→x x→x x))`[T, G, H, I, A, B]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl)
 
       extension (s: String)

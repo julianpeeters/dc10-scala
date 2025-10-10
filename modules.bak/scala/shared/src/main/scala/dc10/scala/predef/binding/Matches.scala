@@ -10,19 +10,19 @@ import dc10.scala.predef.calculus.Functions.function1
 
 trait Matches[F[_]]:
 
-  extension [A] (v: F[`Value.Expr: *`[A]])
+  extension [A] (v: F[`Value: x`[A]])
     infix def MATCH[B](
       cases: F[Statement.`case`[A => B]]*
-    ): F[`Value.Expr: *`[B]]
+    ): F[`Value: x`[B]]
   
   def CASE[T, B](
     lhs: F[`Value.Var`[T]],
-    rhs: F[`Value.Expr: *`[B]]
+    rhs: F[`Value: x`[B]]
   ): F[Statement.`case`[T => B]]
 
-  def CASE[T, A, B, `T.*`[t] <: `Type.Expr: *`[t], `V.*`[t] <: `Value.Expr: *`[t]](
-    lhs: F[`Value.App.1: *`[A, T, `T.*`, `V.*`]],
-    rhs: `Value.Expr: *`[A] => F[`Value.Expr: *`[B]]
+  def CASE[T, A, B, `T.x`[t] <: `Type: x`[t], `V.x`[t] <: `Value: x`[t]](
+    lhs: F[`Value.App.1: x`[A, T, `T.x`, `V.x`]],
+    rhs: `Value: x`[A] => F[`Value: x`[B]]
   ): F[Statement.`case`[T => B]]
 
 
@@ -30,10 +30,10 @@ object Matches:
 
   trait Mixins extends Matches[StateT[ErrorF, Γ, _]]:
 
-    extension [A] (v: StateT[ErrorF, Γ, `Value.Expr: *`[A]])
+    extension [A] (v: StateT[ErrorF, Γ, `Value: x`[A]])
       infix def MATCH[B](
         cases: StateT[ErrorF, Γ, Statement.`case`[A => B]]*
-      ): StateT[ErrorF, Γ, `Value.Expr: *`[B]] =
+      ): StateT[ErrorF, Γ, `Value: x`[B]] =
         for
           a <- StateT.liftF(v.runEmptyA)
           l <- cases.toList.sequence
@@ -42,16 +42,16 @@ object Matches:
 
     def CASE[T, B](
       lhs: StateT[ErrorF, Γ, `Value.Var`[T]],
-      rhs: StateT[ErrorF, Γ, `Value.Expr: *`[B]]
+      rhs: StateT[ErrorF, Γ, `Value: x`[B]]
     ): StateT[ErrorF, Γ, Statement.`case`[T => B]] =
       for
         a <- StateT.liftF(lhs.runEmptyA)
         b <- StateT.liftF(rhs.runEmptyA)
       yield Statement.`case`(function1(a, b))
 
-    def CASE[T, A, B, `T.*`[t] <: `Type.Expr: *`[t], `V.*`[t] <: `Value.Expr: *`[t]](
-      lhs: StateT[ErrorF, Γ, `Value.App.1: *`[A, T, `T.*`, `V.*`]],
-      rhs: `Value.Expr: *`[A] => StateT[ErrorF, Γ, `Value.Expr: *`[B]]
+    def CASE[T, A, B, `T.x`[t] <: `Type: x`[t], `V.x`[t] <: `Value: x`[t]](
+      lhs: StateT[ErrorF, Γ, `Value.App.1: x`[A, T, `T.x`, `V.x`]],
+      rhs: `Value: x`[A] => StateT[ErrorF, Γ, `Value: x`[B]]
     ): StateT[ErrorF, Γ, Statement.`case`[T => B]] =
       for
         a <- StateT.liftF(lhs.runEmptyA)

@@ -59,32 +59,32 @@ object indent:
         case Statement.`type`.`[_[_], _]`(tparamF, tparamA, tpe)                => tpe.in
         case Statement.`val`(value)                                             => value.getIndent
 
-  extension [A] (term: `Type.Var: *`[A])
-    def addIndent: `Type.Var: *`[A] =
+  extension [A] (term: `Type.Var: x`[A])
+    def addIndent: `Type.Var: x`[A] =
       term.copy(in = term.in + 1)
     def getIndent: Int =
       term.in
 
-  extension [F[_]] (term: `Type.Var: *→*`[F])
-    def addIndent: `Type.Var: *→*`[F] =
+  extension [F[_]] (term: `Type.Var: x→x`[F])
+    def addIndent: `Type.Var: x→x`[F] =
       term.copy(in = term.in + 1)
     def getIndent: Int =
       term.in
 
-  extension [F[_[_]]] (term: `Type.Var: (*→*)→*`[F])
-    def addIndent: `Type.Var: (*→*)→*`[F] =
+  extension [F[_[_]]] (term: `Type.Var: (x→x)→x`[F])
+    def addIndent: `Type.Var: (x→x)→x`[F] =
       term.copy(in = term.in + 1)
     def getIndent: Int =
       term.in  
 
-  extension [F[_[_], _]] (term: `Type.Var: (*→*)→*→*`[F])
-    def addIndent: `Type.Var: (*→*)→*→*`[F] =
+  extension [F[_[_], _]] (term: `Type.Var: (x→x)→x→x`[F])
+    def addIndent: `Type.Var: (x→x)→x→x`[F] =
       term.copy(in = term.in + 1)
     def getIndent: Int =
       term.in
 
-  extension [A] (term: `Type.Expr: *`[A])
-    def addIndent: `Type.Expr: *`[A] =
+  extension [A] (term: `Type: x`[A])
+    def addIndent: `Type: x`[A] =
       term match
         case t@`Type.App[_]`(in, tfun, aarg) =>  t.copy(in = in + 1)
         case t@`Type.App[_[_]]`(in, tfun, farg) => t.copy(in = in + 1)
@@ -97,8 +97,8 @@ object indent:
         case t@`Type.AppInfix[_, _]`(in, tfun, aarg, barg) => t.copy(in = in + 1)
         case t@`Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => t.copy(in = in + 1)
         case t@`Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => t.copy(in = in + 1)
-        case t@`Type.Var: *`(in, nme, impl) => t.copy(in = in + 1)
-        case t@`Type.Bot: *`(in) => t.copy(in = in + 1)
+        case t@`Type.Var: x`(in, nme, impl) => t.copy(in = in + 1)
+        case t@`Type.Bot: x`(in) => t.copy(in = in + 1)
 
     def getIndent: Int =
       term match
@@ -113,54 +113,54 @@ object indent:
         case `Type.AppInfix[_, _]`(in, tfun, aarg, barg) => in
         case `Type.AppInfix[_, _, _]`(in, tfun, aarg, barg, carg) => in
         case `Type.AppInfix[_, _, _, _]`(in, tfun, aarg, barg, carg, darg) => in
-        case `Type.Var: *`(in, nme, impl) => in
-        case `Type.Bot: *`(in) => in
+        case `Type.Var: x`(in, nme, impl) => in
+        case `Type.Bot: x`(in) => in
 
-  extension [F[_]] (term: `Type.Expr: *→*`[F])
-    def addIndent: `Type.Expr: *→*`[F] =
+  extension [F[_]] (term: `Type: x→x`[F])
+    def addIndent: `Type: x→x`[F] =
       term match
-        case t@`Type.Lam: *→*`(in, domain, codomain) => t.copy(in = in + 1)
-        case t@`Type.Var: *→*`(in, nme, impl, c) => t.copy(in = in + 1)
+        case t@`Type.Lam: x→x`(in, domain, codomain) => t.copy(in = in + 1)
+        case t@`Type.Var: x→x`(in, nme, impl, c) => t.copy(in = in + 1)
         // case t@`Type.Var2[_]`(in, _, _, _, _) => t.copy(in = in + 1)
     def getIndent: Int =
       term match
-        case `Type.Lam: *→*`(in, domain, codomain) => in
-        case `Type.Var: *→*`(in, nme, impl, c) => in
+        case `Type.Lam: x→x`(in, domain, codomain) => in
+        case `Type.Var: x→x`(in, nme, impl, c) => in
         // case `Type.Var2[_]`(in, _, _, _, _) => in
       
-  extension [F[_, _]] (term: `Type: *→*→*`[F])
-    def addIndent: `Type: *→*→*`[F] =
+  extension [F[_, _]] (term: `Type: x→x→x`[F])
+    def addIndent: `Type: x→x→x`[F] =
       term match
-        case t@`Type.Var: *→*→*`(in, nme, impl) => t.copy(in = in + 1)
+        case t@`Type.Var: x→x→x`(in, nme, impl) => t.copy(in = in + 1)
     def getIndent: Int =
       term match
-        case `Type.Var: *→*→*`(in, nme, impl) => in
+        case `Type.Var: x→x→x`(in, nme, impl) => in
         
-  extension [F[_[_], _]] (term: `Type: (*→*)→*→*`[F])
-    def addIndent: `Type: (*→*)→*→*`[F] =
+  extension [F[_[_], _]] (term: `Type: (x→x)→x→x`[F])
+    def addIndent: `Type: (x→x)→x→x`[F] =
       term match
-        case t@`Type.Var: (*→*)→*→*`(in, nme, impl) => t.copy(in = in + 1)
-        case t@`Type.Lam: (*→*)→*→*`(in, _, _, _) => t.copy(in = in + 1)
+        case t@`Type.Var: (x→x)→x→x`(in, nme, impl) => t.copy(in = in + 1)
+        case t@`Type.Lam: (x→x)→x→x`(in, _, _, _) => t.copy(in = in + 1)
     def getIndent: Int =
       term match
-        case `Type.Var: (*→*)→*→*`(in, nme, impl) => in
-        case `Type.Lam: (*→*)→*→*`(in, _, _, _) => in
+        case `Type.Var: (x→x)→x→x`(in, nme, impl) => in
+        case `Type.Lam: (x→x)→x→x`(in, _, _, _) => in
       
-  extension [F[_, _, _]] (term: `Type.*→*→*→*`[F])
-    def addIndent: `Type.*→*→*→*`[F] =
+  extension [F[_, _, _]] (term: `Type.x→x→x→x`[F])
+    def addIndent: `Type.x→x→x→x`[F] =
       term match
-        case t@`Type.Var: *→*→*→*`(in, nme, impl) => t.copy(in = in + 1)
+        case t@`Type.Var: x→x→x→x`(in, nme, impl) => t.copy(in = in + 1)
     def getIndent: Int =
       term match
-        case `Type.Var: *→*→*→*`(in, nme, impl) => in 
+        case `Type.Var: x→x→x→x`(in, nme, impl) => in 
 
-  extension [F[_[_], _, _]] (term: `Type.(*→*)→*→*→*`[F])
-    def addIndent: `Type.(*→*)→*→*→*`[F] =
+  extension [F[_[_], _, _]] (term: `Type.(x→x)→x→x→x`[F])
+    def addIndent: `Type.(x→x)→x→x→x`[F] =
       term match
-        case t@`Type.Var: (*→*)→*→*→*`(in, nme, impl) => t.copy(in = in + 1)
+        case t@`Type.Var: (x→x)→x→x→x`(in, nme, impl) => t.copy(in = in + 1)
     def getIndent: Int =
       term match
-        case `Type.Var: (*→*)→*→*→*`(in, nme, impl) => in
+        case `Type.Var: (x→x)→x→x→x`(in, nme, impl) => in
 
   extension [A] (term: `Value.Var`[A])
     def addIndent: `Value.Var`[A] =
@@ -184,63 +184,63 @@ object indent:
     def getIndent: Int =
       term.in
       
-  extension [A] (term: `Value.Expr: *`[A])
-    def addIndent: `Value.Expr: *`[A] =
+  extension [A] (term: `Value: x`[A])
+    def addIndent: `Value: x`[A] =
       term match
-        case v@`Value.App.1: *`(in, fun, arg, tpe) => v.copy(in = in + 1)
-        case v@`Value.App.2: *`(in, fun, arg, arg2, tpe) => v.copy(in = in + 1)
-        case v@`Value.App.3: *`(in, fun, arg, arg2, arg3, tpe) => v.copy(in = in + 1)
-        case `Value.App.Vargs: *`(in, fun, tpe, vargs*) => `Value.App.Vargs: *`(in + 1, fun, tpe, vargs*)
-        case v@`Value.AppDot.0: *`(in, fun, arg1, tpe) => v.copy(in = in + 1)
-        case v@`Value.AppDot.1: *`(in, fun, arg1, arg2, tpe) => v.copy(in = in + 1)
-        case v@`Value.AppDotless: *`(in, fun, arg1, arg2, tpe) => v.copy(in = in + 1)
-        case v@`Value.AppForComp: *→* *`(in, gens, ret, tpe) => v.copy(in = in + 1, gens.map(s => s.addIndent))
+        case v@`Value.App.1: x`(in, fun, arg, tpe) => v.copy(in = in + 1)
+        case v@`Value.App.2: x`(in, fun, arg, arg2, tpe) => v.copy(in = in + 1)
+        case v@`Value.App.3: x`(in, fun, arg, arg2, arg3, tpe) => v.copy(in = in + 1)
+        case `Value.App.Vargs: x`(in, fun, tpe, vargs*) => `Value.App.Vargs: x`(in + 1, fun, tpe, vargsx)
+        case v@`Value.AppDot.0: x`(in, fun, arg1, tpe) => v.copy(in = in + 1)
+        case v@`Value.AppDot.1: x`(in, fun, arg1, arg2, tpe) => v.copy(in = in + 1)
+        case v@`Value.AppDotless: x`(in, fun, arg1, arg2, tpe) => v.copy(in = in + 1)
+        case v@`Value.AppForComp: x→x x`(in, gens, ret, tpe) => v.copy(in = in + 1, gens.map(s => s.addIndent))
         case `Value.App.Match`(in, value, tpe, l) => `Value.App.Match`(in + 1, value, tpe, l)
-        case v@`Value.App.0: *→*`(in, fun, targ, tpe) => v.copy(in = in + 1)
-        case v@`Value.App.0: (*→*)→*→*`(in, fun, targf, targa, tpe) => v.copy(in = in + 1)
-        case v@`Value.App.0: (*→*)→*→*`(in, fun, targf, targa, targb, tpe) => v.copy(in = in + 1)
-        case v@`Value.Lit.Boolean: *`(in, tpe, b) => v.copy(in = in + 1)
-        case v@`Value.Lit.Int: *`(in, tpe, i) => v.copy(in = in + 1)
-        case v@`Value.Lit.String: *`(in, tpe, s) => v.copy(in = in + 1)
-        case v@`Value.Lit.Unit: *`(in, tpe, u) => v.copy(in = in + 1)
-        case v@`Value.Lam.1: *→*→* * *`(in, a, b, tpe) => v.copy(in = in + 1)
-        case v@`Value.Lam.2: *→*→*→* * * *`(in, a1, a2, r, tpe) => v.copy(in = in + 1)
-        case v@`Value.Lam.3: *→*→*→*→* * * * *`(in, a1, a2, a3, r, tpe) => v.copy(in = in + 1)
+        case v@`Value.App.0: x→x`(in, fun, targ, tpe) => v.copy(in = in + 1)
+        case v@`Value.App.0: (x→x)→x→x`(in, fun, targf, targa, tpe) => v.copy(in = in + 1)
+        case v@`Value.App.0: (x→x)→x→x`(in, fun, targf, targa, targb, tpe) => v.copy(in = in + 1)
+        case v@`Value.Lit.Boolean: x`(in, tpe, b) => v.copy(in = in + 1)
+        case v@`Value.Lit.Int: x`(in, tpe, i) => v.copy(in = in + 1)
+        case v@`Value.Lit.String: x`(in, tpe, s) => v.copy(in = in + 1)
+        case v@`Value.Lit.Unit: x`(in, tpe, u) => v.copy(in = in + 1)
+        case v@`Value.Lam.1: x→x→x x x`(in, a, b, tpe) => v.copy(in = in + 1)
+        case v@`Value.Lam.2: x→x→x→x x * x`(in, a1, a2, r, tpe) => v.copy(in = in + 1)
+        case v@`Value.Lam.3: x→x→x→x→x x * x x`(in, a1, a2, a3, r, tpe) => v.copy(in = in + 1)
         case v@`Value.Var.Unbound.Data`(in, nme, tpe) => v.copy(in = in + 1)
         case v@`Value.Var.Bound.Data`(in, nme, tpe, impl) => v.copy(in = in + 1)
       
     def getIndent: Int =
       term match
-        case `Value.App.1: *`(in, fun, arg, tpe) => in
-        case `Value.App.2: *`(in, fun, arg, arg2, tpe) => in
-        case `Value.App.3: *`(in, fun, arg, arg2, arg3, tpe) => in
-        case `Value.App.Vargs: *`(in, fun, tpe, vargs*) => in
-        case `Value.AppDot.0: *`(in, fun, arg1, tpe) => in
-        case `Value.AppDot.1: *`(in, fun, arg1, arg2, tpe) => in
-        case `Value.AppDotless: *`(in, fun, arg1, arg2, tpe) => in
-        case `Value.AppForComp: *→* *`(in, gens, ret, tpe) => in
+        case `Value.App.1: x`(in, fun, arg, tpe) => in
+        case `Value.App.2: x`(in, fun, arg, arg2, tpe) => in
+        case `Value.App.3: x`(in, fun, arg, arg2, arg3, tpe) => in
+        case `Value.App.Vargs: x`(in, fun, tpe, vargsx) => in
+        case `Value.AppDot.0: x`(in, fun, arg1, tpe) => in
+        case `Value.AppDot.1: x`(in, fun, arg1, arg2, tpe) => in
+        case `Value.AppDotless: x`(in, fun, arg1, arg2, tpe) => in
+        case `Value.AppForComp: x→x x`(in, gens, ret, tpe) => in
         case `Value.App.Match`(in, value, tpe, cases) => in
-        case `Value.App.0: *→*`(in, fun, targ, tpe) => in
-        case `Value.App.0: (*→*)→*→*`(in, fun, targf, targa, tpe) => in
-        case `Value.App.0: (*→*)→*→*`(in, fun, targf, targa, targb, tpe) => in
-        case `Value.Lit.Boolean: *`(in, tpe, b) => in
-        case `Value.Lit.Int: *`(in, tpe, i) => in
-        case `Value.Lit.String: *`(in, tpe, s) => in
-        case `Value.Lit.Unit: *`(in, tpe, u) => in
-        case `Value.Lam.1: *→*→* * *`(in, a, b, tpe) => in
-        case `Value.Lam.2: *→*→*→* * * *`(in, a1, a2, r, tpe) => in
-        case `Value.Lam.3: *→*→*→*→* * * * *`(in, a1, a2, a3, r, tpe) => in
+        case `Value.App.0: x→x`(in, fun, targ, tpe) => in
+        case `Value.App.0: (x→x)→x→x`(in, fun, targf, targa, tpe) => in
+        case `Value.App.0: (x→x)→x→x`(in, fun, targf, targa, targb, tpe) => in
+        case `Value.Lit.Boolean: x`(in, tpe, b) => in
+        case `Value.Lit.Int: x`(in, tpe, i) => in
+        case `Value.Lit.String: x`(in, tpe, s) => in
+        case `Value.Lit.Unit: x`(in, tpe, u) => in
+        case `Value.Lam.1: x→x→x x x`(in, a, b, tpe) => in
+        case `Value.Lam.2: x→x→x→x x * x`(in, a1, a2, r, tpe) => in
+        case `Value.Lam.3: x→x→x→x→x x * x x`(in, a1, a2, a3, r, tpe) => in
         case `Value.Var.Unbound.Data`(in, nme, tpe) => in
         case `Value.Var.Bound.Data`(in, nme, tpe, impl) => in
       
-  extension [F[_]] (term: `Value.*→*`[F])
-    def addIndent: `Value.*→*`[F] =
+  extension [F[_]] (term: `Value.x→x`[F])
+    def addIndent: `Value.x→x`[F] =
       term match
         case v@`Value.Var0[_]`(in, nme, tpe, impl) => v.copy(in = in +1)
         case v@`Value.Var1[_]`(in, nme, tpe, impl) => v.copy(in = in +1)
-        case v@`Value.Lam.1: *→*`(in, fa, tpe) => v.copy(in = in +1)
+        case v@`Value.Lam.1: x→x`(in, fa, tpe) => v.copy(in = in +1)
     def getIndent: Int =
       term match
         case `Value.Var0[_]`(in, nme, tpe, impl) => in
         case `Value.Var1[_]`(in, nme, tpe, impl) => in
-        case `Value.Lam.1: *→*`(in, fa, tpe) => in
+        case `Value.Lam.1: x→x`(in, fa, tpe) => in

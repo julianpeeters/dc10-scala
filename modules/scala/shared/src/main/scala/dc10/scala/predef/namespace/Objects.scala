@@ -12,9 +12,9 @@ import dc10.scala.internal.indentation.addIndent
 // import dc10.CompilerError
 
 trait Objects[F[_]]:
-  // def OBJECT[T](name: String): F[`Value.Expr: *`[T]]
-  // def OBJECT[T](name: String, contents: F[Unit]): F[`Value.Expr: *`[T]]
-  // def OBJECT[T](name: String, parent: `Type.Expr: *`[T], contents: F[Unit]): F[`Value.Expr: *`[T]]
+  // def OBJECT[T](name: String): F[`Value: x`[T]]
+  // def OBJECT[T](name: String, contents: F[Unit]): F[`Value: x`[T]]
+  // def OBJECT[T](name: String, parent: `Type: x`[T], contents: F[Unit]): F[`Value: x`[T]]
 
   // extension (nme: StringContext)
   //   def OBJECT(): LzySym
@@ -22,8 +22,8 @@ trait Objects[F[_]]:
 
   extension (sym: ObjSym)
     // def apply[A](contents: F[A]): F[`Value.Var.Bound.Data.Obj`[A]]
-    def apply[A](contents: F[A]): F[`Value.Obj: *`[A]]
-    def EXTENDS[T, A](parent: `Type: *`[T])(contents: F[A]): F[`Value.Obj: *`[T]]
+    def apply[A](contents: F[A]): F[`Value.Obj: x`[A]]
+    def EXTENDS[T, A](parent: `Type: x`[T])(contents: F[A]): F[`Value.Obj: x`[T]]
 
 object Objects:
 
@@ -32,10 +32,10 @@ object Objects:
       
       // def OBJECT[T](
       //   name: String
-      // ): StateT[ErrorF, Γ, `Value.Expr: *`[T]] =
+      // ): StateT[ErrorF, Γ, `Value: x`[T]] =
       //   ???
       //   // for
-      //   //   t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[T]](`Type.Var.Data`[T](0, type_"$name.type", None))
+      //   //   t <- StateT.pure[ErrorF, Γ, `Type: x`[T]](`Type.Var.Data`[T](0, type_"$name.type", None))
       //   //   v <- StateT.pure(`Value.Var.Bound.Data.Obj`(0, LzySym(name), t, None, Nil))
       //   //   d <- StateT.pure(Statement.define(v))
       //   //   _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
@@ -44,11 +44,11 @@ object Objects:
       // def OBJECT[T](
       //   name: String,
       //   contents: StateT[ErrorF, Γ, Unit]
-      // ): StateT[ErrorF, Γ, `Value.Expr: *`[T]] =
+      // ): StateT[ErrorF, Γ, `Value: x`[T]] =
       //   ???
         // for
         //   c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
-        //   t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[T]](`Type.Var.Data`[T](0, type_"$name.type", None))
+        //   t <- StateT.pure[ErrorF, Γ, `Type: x`[T]](`Type.Var.Data`[T](0, type_"$name.type", None))
         //   v <- StateT.pure(`Value.Var.Bound.Data.Obj`(0, LzySym(name), t, None, c._2.map(s => s.addIndent)))
         //   d <- StateT.pure(Statement.define(v))
         //   _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
@@ -56,9 +56,9 @@ object Objects:
 
       // def OBJECT[T](
       //   name: String,
-      //   parent: `Type.Expr: *`[T],
+      //   parent: `Type: x`[T],
       //   contents: StateT[ErrorF, Γ, Unit]
-      // ): StateT[ErrorF, Γ, `Value.Expr: *`[T]] =
+      // ): StateT[ErrorF, Γ, `Value: x`[T]] =
       //   for
       //     c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
       //     v <- StateT.pure(`Value.Var.Bound.Data.Obj`(0, LzySym(name), parent, Some(parent), c._2.map(s => s.addIndent)))
@@ -78,7 +78,7 @@ object Objects:
       extension (sym: ObjSym)
         def apply[A](
           contents: StateT[ErrorF, Γ, A]
-        ): StateT[ErrorF, Γ, `Value.Obj: *`[A]] =
+        ): StateT[ErrorF, Γ, `Value.Obj: x`[A]] =
           // for
           //   ((ds, ms), a) <- StateT.liftF[ErrorF, (Set[Statement], List[Source[NonEmptyList, Statement]]), (Γ, A)](statements.runEmpty)
           //   // n <- StateT.pure(getPackage(ms))
@@ -89,24 +89,24 @@ object Objects:
           //   _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[Statement], List[Source[NonEmptyList, Statement]])](ctx => ctx.dep(l)))
           //   _ <- StateT.modifyF[ErrorF, (Set[Statement], List[Source[NonEmptyList, Statement]])](ctx => ctx.ext(d))
           // yield a
-        //   StateT[ErrorF, Γ, `Value.Expr: *`[T]] =
+        //   StateT[ErrorF, Γ, `Value: x`[T]] =
           for
             c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
-            t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[A]](`Type.Var: *`[A](0, TYPE"${sym.nme}.type", None))
-            v <- StateT.pure(`Value.Obj: *`(0, sym, t, None, c._2.map(s => s.addIndent)))
+            t <- StateT.pure[ErrorF, Γ, `Type.Var: x`[A]](`Type.Var: x`[A](0, TYPE"${sym.nme}.type", None))
+            v <- StateT.pure(`Value.Obj: x`(0, sym, t, None, c._2.map(s => s.addIndent)))
             d <- StateT.pure(ObjDef(v))
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
           yield v
 
         def EXTENDS[T, A](
-          parent: `Type: *`[T]
+          parent: `Type: x`[T]
         )(
           contents: StateT[ErrorF, Γ, A]
-        ): StateT[ErrorF, Γ, `Value.Obj: *`[T]] =
+        ): StateT[ErrorF, Γ, `Value.Obj: x`[T]] =
           for
             c <- StateT.liftF[ErrorF, Γ, Γ](contents.runEmptyS)
-            t <- StateT.pure[ErrorF, Γ, `Type.Expr: *`[T]](`Type.Var: *`[T](0, TYPE"${sym.nme}.type", None))
-            v <- StateT.pure(`Value.Obj: *`(0, sym, t, Some(parent), c._2.map(s => s.addIndent)))
+            t <- StateT.pure[ErrorF, Γ, `Type: x`[T]](`Type.Var: x`[T](0, TYPE"${sym.nme}.type", None))
+            v <- StateT.pure(`Value.Obj: x`(0, sym, t, Some(parent), c._2.map(s => s.addIndent)))
             d <- StateT.pure(ObjDef(v))
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
           yield v

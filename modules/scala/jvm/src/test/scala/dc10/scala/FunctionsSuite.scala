@@ -8,7 +8,7 @@ import dc10.scala.version.`3.3.6`
 import munit.FunSuite
 
 object DEF:
-  def apply[F[_], T](v: `Value.Expr: *`[T]): Unit = ()
+  def apply[F[_], T](v: `Value: x`[T]): Unit = ()
 
 class FunctionsSuite extends FunSuite:
 
