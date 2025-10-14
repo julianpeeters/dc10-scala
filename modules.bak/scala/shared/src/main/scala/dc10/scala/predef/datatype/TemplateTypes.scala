@@ -15,12 +15,12 @@ trait TemplateTypes[F[_]]:
   def TRAIT[T](nme: String, members: F[Unit]): F[`Type: x`[T]]
   @scala.annotation.targetName("trait*extends")
   def TRAIT[T, A](nme: String, parent: F[`Type: x`[A]], members: F[Unit]): F[`Type: x`[T]]
-  @scala.annotation.targetName("traitx→x")
-  def TRAIT[T[_], A](nme: String, tparam: F[`Type.Var: x`[A]], members: `Type.Var: x`[A] => F[Unit]): F[`Type.Var: x→x`[T]]
-  @scala.annotation.targetName("trait(x→x)→x")
-  def TRAIT[T[_[_]], H[_]](nme: String, tparam: F[`Type.Var: x→x`[H]], members: `Type.Var: x→x`[H] => F[Unit]): F[`Type: (x→x)→x`[T]]
-  @scala.annotation.targetName("trait(x→x)→x→x")
-  def TRAIT[T[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: x→x`[H]], tparamA: F[`Type.Var: x`[A]], members: (`Type.Var: x→x`[H], `Type.Var: x`[A]) => F[Unit]): F[`Type.Var: (x→x)→x→x`[T]]
+  @scala.annotation.targetName("traitx_x")
+  def TRAIT[T[_], A](nme: String, tparam: F[`Type.Var: x`[A]], members: `Type.Var: x`[A] => F[Unit]): F[`Type.Var: x_x`[T]]
+  @scala.annotation.targetName("traitlx_xl_x")
+  def TRAIT[T[_[_]], H[_]](nme: String, tparam: F[`Type.Var: x_x`[H]], members: `Type.Var: x_x`[H] => F[Unit]): F[`Type: lx_xl_x`[T]]
+  @scala.annotation.targetName("traitlx_xl_x_x")
+  def TRAIT[T[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: x_x`[H]], tparamA: F[`Type.Var: x`[A]], members: (`Type.Var: x_x`[H], `Type.Var: x`[A]) => F[Unit]): F[`Type.Var: lx_xl_x_x`[T]]
 
 object TemplateTypes:
 
@@ -40,7 +40,7 @@ object TemplateTypes:
               `Value.Var.Unbound.Data`(
                 in = 0,
                 nme = name,
-                tpe = `Type.App[_, _]`(0, `Type.Var: x→x→x`(0, "=>", None), a.tpe, n),
+                tpe = `Type.App[_, _]`(0, `Type.Var: x_x_x`(0, "=>", None), a.tpe, n),
               )
             )
             case _ => Left(List(Error(s"Expected Identifier but found ${a}")))
@@ -66,7 +66,7 @@ object TemplateTypes:
                   nme = name,
                   tpe = `Type.App[_, _, _]`(
                     0,
-                    `Type.Var: x→x→x→x`(0, "=>", None),
+                    `Type.Var: x_x_x_x`(0, "=>", None),
                     a.tpe,
                     b.tpe,
                     n
@@ -116,49 +116,49 @@ object TemplateTypes:
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield `Type.Var: x`(0, nme, None)
 
-    @scala.annotation.targetName("traitx→x")
+    @scala.annotation.targetName("traitx_x")
     def TRAIT[T[_], A](
       nme: String,
       tparam: StateT[ErrorF, Γ, `Type.Var: x`[A]],
       members: `Type.Var: x`[A] => StateT[ErrorF, Γ, Unit]
-    ): StateT[ErrorF, Γ, `Type.Var: x→x`[T]] =
+    ): StateT[ErrorF, Γ, `Type.Var: x_x`[T]] =
       for
         a <- StateT.liftF(tparam.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, Γ, Γ](members(a).runEmptyS)
-        t <- StateT.pure(`Type.Var: x→x`(0, nme, None, () => Nil))
+        t <- StateT.pure(`Type.Var: x_x`(0, nme, None, () => Nil))
         d <- StateT.pure(Statement.`trait`.`[_]`(t, a, None, ms.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
-      yield `Type.Var: x→x`(0, nme, None, () => Nil)
+      yield `Type.Var: x_x`(0, nme, None, () => Nil)
 
-    @scala.annotation.targetName("trait(x→x)→x")
+    @scala.annotation.targetName("traitlx_xl_x")
     def TRAIT[T[_[_]], H[_]](
       nme: String,
-      tparam: StateT[ErrorF, Γ, `Type.Var: x→x`[H]],
-      members: `Type.Var: x→x`[H] => StateT[ErrorF, Γ, Unit]
-    ): StateT[ErrorF, Γ, `Type: (x→x)→x`[T]] =
+      tparam: StateT[ErrorF, Γ, `Type.Var: x_x`[H]],
+      members: `Type.Var: x_x`[H] => StateT[ErrorF, Γ, Unit]
+    ): StateT[ErrorF, Γ, `Type: lx_xl_x`[T]] =
       for
         a <- StateT.liftF(tparam.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, Γ, Γ](members(a).runEmptyS)
-        t <- StateT.pure(`Type.Var: (x→x)→x`(0, nme, None))
+        t <- StateT.pure(`Type.Var: lx_xl_x`(0, nme, None))
         d <- StateT.pure(Statement.`trait`.`[_[_]]`(t, a, None, ms.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
-      yield `Type.Var: (x→x)→x`(0, nme, None)
+      yield `Type.Var: lx_xl_x`(0, nme, None)
 
-    @scala.annotation.targetName("trait(x→x)→x→x")
+    @scala.annotation.targetName("traitlx_xl_x_x")
     def TRAIT[T[_[_], _], H[_], A](
       nme: String,
-      tparamF: StateT[ErrorF, Γ, `Type.Var: x→x`[H]],
+      tparamF: StateT[ErrorF, Γ, `Type.Var: x_x`[H]],
       tparamA: StateT[ErrorF, Γ, `Type.Var: x`[A]],
-      members: (`Type.Var: x→x`[H], `Type.Var: x`[A]) => StateT[ErrorF, Γ, Unit]
-    ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x→x`[T]] =
+      members: (`Type.Var: x_x`[H], `Type.Var: x`[A]) => StateT[ErrorF, Γ, Unit]
+    ): StateT[ErrorF, Γ, `Type.Var: lx_xl_x_x`[T]] =
       for
         f <- StateT.liftF(tparamF.runEmptyA)
         a <- StateT.liftF(tparamA.runEmptyA)
         (ds, ms) <- StateT.liftF[ErrorF, Γ, Γ](members(f, a).runEmptyS)
-        t <- StateT.pure(`Type.Var: (x→x)→x→x`(0, nme, None))
+        t <- StateT.pure(`Type.Var: lx_xl_x_x`(0, nme, None))
         d <- StateT.pure(Statement.`trait`.`[_[_], _]`(t, f, a, None, ms.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
-      yield `Type.Var: (x→x)→x→x`(0, nme, None)
+      yield `Type.Var: lx_xl_x_x`(0, nme, None)

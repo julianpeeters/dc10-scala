@@ -79,19 +79,19 @@ object version:
           case `Value.App.1: x`(i, f, a, t)                      => s"${renderPattern(f)}(${renderValue(a)})"
           case `Value.App.2: x`(i, f, a, b, t)                   => s"${renderPattern(f)}(${renderValue(a)}, ${renderValue(b)})"
           case `Value.App.3: x`(i, f, a, b, c, t)                => s"${renderPattern(f)}(${renderValue(a)}, ${renderValue(b)}, ${renderValue(c)})"
-          case `Value.App.Vargs: x`(i, f, t, asx)                => s"${renderPattern(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
+          case `Value.App.Vargs: x`(i, f, t, asxl                => s"${renderPattern(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
           case `Value.AppDot.0: x`(i, f, a, t)                   => s"${renderValue(a)}.${renderValue(f)}"
           case `Value.AppDot.1: x`(i, f, a, b, t)                => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
           case `Value.AppDotless: x`(i, f, a, b, t)              => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
-          case `Value.AppForComp: x→x x`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
+          case `Value.AppForComp: x_x x`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
           case `Value.App.Match`(i, a, t, l)                     => s"${renderValue(a)} match\n${render(l)}"
-          case `Value.App.0: x→x`(i, f, a, t)                   => s"${renderValue(f)}"
-          case `Value.App.0: (x→x)→x→x`(i, f, g, a, t)        => s"${renderValue(f)}"
-          case `Value.App.0: (x→x)→x→x`(i, f, g, a, b, t)     => s"${renderValue(f)}"
-          case `Value.Lam.1: x→x→x x x`(i, a, b, t)                      => s"${renderPattern(a)} => ${renderValue(b)}"
-          case `Value.Lam.2: x→x→x→x x * x`(i, a1, a2, r, t)                 => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
-          case `Value.Lam.3: x→x→x→x→x x * x x`(i, a1, a2, a3, r, t)             => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
-          case `Value.Lam.1: x→x`(i, fa, t)                     => s"[] =>> ${renderTypeExpr(fa.tpe)}"
+          case `Value.App.0: x_x`(i, f, a, t)                   => s"${renderValue(f)}"
+          case `Value.App.0: lx_xl_x_x`(i, f, g, a, t)        => s"${renderValue(f)}"
+          case `Value.App.0: lx_xl_x_x`(i, f, g, a, b, t)     => s"${renderValue(f)}"
+          case `Value.Lam.1: x_x_x x x`(i, a, b, t)                      => s"${renderPattern(a)} => ${renderValue(b)}"
+          case `Value.Lam.2: x_x_x_x x * x`(i, a1, a2, r, t)                 => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
+          case `Value.Lam.3: x_x_x_x_x x * x x`(i, a1, a2, a3, r, t)             => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
+          case `Value.Lam.1: x_x`(i, fa, t)                     => s"[] =>> ${renderTypeExpr(fa.tpe)}"
           case `Value.Lit.Boolean: x`(i, tpe, b)                 => s"$b"
           case `Value.Lit.Int: x`(i, tpe, int)                   => s"$int"
           case `Value.Lit.String: x`(i, tpe, s)                  => s"\"$s\""
@@ -118,18 +118,18 @@ object version:
           case `Type.AppInfix[_, _]`(in, tfun, ta, tb)        => s"${renderTypeExpr(ta)} ${renderTypeExpr(tfun)} ${renderTypeExpr(tb)}"
           case `Type.AppInfix[_, _, _]`(in, tfun, ta, tb, tc) => s"(${renderTypeExpr(ta)}, ${renderTypeExpr(tb)}) ${renderTypeExpr(tfun)} ${renderTypeExpr(tc)}"
           case `Type.AppInfix[_, _, _, _]`(in, f, a, b, c, d) => s"(${renderTypeExpr(a)}, ${renderTypeExpr(b)}, ${renderTypeExpr(c)}) ${renderTypeExpr(f)} ${renderTypeExpr(d)}"
-          case `Type.Lam: x→x`(in, ta, tb)                      => s"[${renderTypeExpr(ta)}] =>> ${renderTypeExpr(tb)}"
-          case `Type.Lam: (x→x)→x→x`(in, ta1, ta2, tb)          => s"[${renderTypeExpr(ta1)}, ${renderTypeExpr(ta2)}] =>> ${renderTypeExpr(tb)}"
+          case `Type.Lam: x_x`(in, ta, tb)                      => s"[${renderTypeExpr(ta)}] =>> ${renderTypeExpr(tb)}"
+          case `Type.Lam: lx_xl_x_x`(in, ta1, ta2, tb)          => s"[${renderTypeExpr(ta1)}, ${renderTypeExpr(ta2)}] =>> ${renderTypeExpr(tb)}"
           case `Type.Var: x`(in, s, i)               => s
-          case `Type.Var: x→x`(in, s, i, c)        => s
+          case `Type.Var: x_x`(in, s, i, c)        => s
           // case `Type.Var2[_]`(in, s, i, _, _)     => s
-          case `Type.Var: (x→x)→x`(in, s, i)         => s
-          case `Type.Var: x→x→x`(in, s, i)         => s
-          case `Type.Var: x→x→x→x`(in, s, i)      => s
-          case `Type.Var: (x→x)→x→x`(in, s, i)      => s
-          case `Type.Var: (x→x)→x→x→x`(in, s, i)   => s
-          case `Type.Var: ((x→x)→x→x)→x`(in, s, i)   => s
-          case `Type.Var: x→x→x→x→x`(in, s, i)   => s
+          case `Type.Var: lx_xl_x`(in, s, i)         => s
+          case `Type.Var: x_x_x`(in, s, i)         => s
+          case `Type.Var: x_x_x_x`(in, s, i)      => s
+          case `Type.Var: lx_xl_x_x`(in, s, i)      => s
+          case `Type.Var: lx_xl_x_x_x`(in, s, i)   => s
+          case `Type.Var: llx_xl_x_xl_x`(in, s, i)   => s
+          case `Type.Var: x_x_x_x_x`(in, s, i)   => s
           case `Type.Bot: x`(in) => "Nothing"
 
       private def renderTraitDef[T](t: Statement.`trait`[T]): String =
@@ -168,19 +168,19 @@ object version:
           case `Value.App.1: x`(i, f, a, t)                      => s"${renderValue(f)}(${renderValue(a)})"
           case `Value.App.2: x`(i, f, a, b, t)                   => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)})"
           case `Value.App.3: x`(i, f, a, b, c, t)                => s"${renderValue(f)}(${renderValue(a)}, ${renderValue(b)}, ${renderValue(c)})"
-          case `Value.App.Vargs: x`(i, f, t, asx)                => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
+          case `Value.App.Vargs: x`(i, f, t, asxl                => s"${renderValue(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
           case `Value.AppDot.0: x`(i, f, a, t)                   => s"${renderValue(a)}.${renderValue(f)}"
           case `Value.AppDot.1: x`(i, f, a, b, t)                => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
           case `Value.AppDotless: x`(i, f, a, b, t)             => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"
-          case `Value.AppForComp: x→x x`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
+          case `Value.AppForComp: x_x x`(i, l, v, t)                => s"\n${renderIndent(i)}for\n${render(l)}\n${renderIndent(i)}yield ${renderValue(v)}"
           case `Value.App.Match`(i, a, t, l)                  => s"${renderValue(a)} match\n${render(l)}"
-          case `Value.App.0: x→x`(i, f, a, t)                => s"${renderValue(f)}[${renderTypeExpr(a)}]"
-          case `Value.App.0: (x→x)→x→x`(i, f, g, a, t)       => s"${renderValue(f)}[${renderTypeExpr(g)}, ${renderTypeExpr(a)}]"
-          case `Value.App.0: (x→x)→x→x`(i, f, g, a, b, t) => s"${renderValue(f)}[${renderTypeExpr(g)}, ${renderTypeExpr(a)}, ${renderTypeExpr(b)}]"
-          case `Value.Lam.1: x→x→x x x`(i, a, b, t)                      => s"${renderValue(a)} => ${renderValue(b)}"
-          case `Value.Lam.2: x→x→x→x x * x`(i, a1, a2, r, t)                 => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
-          case `Value.Lam.3: x→x→x→x→x x * x x`(i, a1, a2, a3, r, t)             => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
-          case `Value.Lam.1: x→x`(i, fa, t)                     => s"[] =>> ${renderTypeExpr(fa.tpe)}"
+          case `Value.App.0: x_x`(i, f, a, t)                => s"${renderValue(f)}[${renderTypeExpr(a)}]"
+          case `Value.App.0: lx_xl_x_x`(i, f, g, a, t)       => s"${renderValue(f)}[${renderTypeExpr(g)}, ${renderTypeExpr(a)}]"
+          case `Value.App.0: lx_xl_x_x`(i, f, g, a, b, t) => s"${renderValue(f)}[${renderTypeExpr(g)}, ${renderTypeExpr(a)}, ${renderTypeExpr(b)}]"
+          case `Value.Lam.1: x_x_x x x`(i, a, b, t)                      => s"${renderValue(a)} => ${renderValue(b)}"
+          case `Value.Lam.2: x_x_x_x x * x`(i, a1, a2, r, t)                 => s"(${renderValue(a1)}, ${renderValue(a2)}) => ${renderValue(r)}"
+          case `Value.Lam.3: x_x_x_x_x x * x x`(i, a1, a2, a3, r, t)             => s"(${renderValue(a1)}, ${renderValue(a2)}, ${renderValue(a3)}) => ${renderValue(r)}"
+          case `Value.Lam.1: x_x`(i, fa, t)                     => s"[] =>> ${renderTypeExpr(fa.tpe)}"
           case `Value.Lit.Boolean: x`(i, tpe, b)                 => s"$b"
           case `Value.Lit.Int: x`(i, tpe, int)                   => s"$int"
           case `Value.Lit.String: x`(i, tpe, s)                  => s"\"$s\""

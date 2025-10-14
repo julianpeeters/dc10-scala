@@ -9,7 +9,7 @@ import dc10.scala.predef.calculus.function.FUNCTION1
 // trait Signature[F[_]]
 
 //   extension (sym: `DefSym.0`)
-//     infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]): F[`Value.Var.Unbound.Comp.Def.0`[A, B]]
+//     infix def $[A, B](tpe: `Type.AppInfix: x_x_x x x`[Function1, A, B]): F[`Value.Var.Unbound.Comp.Def.0`[A, B]]
 //     // infix def $[A, B](tpe: `Type.Var.Comp`[A, B]): F[`Value.Var.Unbound.Comp.Def.0`[A, B]]
 //     infix def $[R](tpe: `Type: x`[R]): F[`Value.Var.Unbound.Data.Def.0`[R]]
 
@@ -17,12 +17,12 @@ import dc10.scala.predef.calculus.function.FUNCTION1
 //     infix def $(tpe: `Type: x`[R]):  F[`Value.Var.Unbound.Comp.Def.1`[A, R]]
 
 //   extension (sym: `ValSym`)
-//     infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]): F[`Value.Var.Unbound.Comp.Val`[A, B]]
+//     infix def $[A, B](tpe: `Type.AppInfix: x_x_x x x`[Function1, A, B]): F[`Value.Var.Unbound.Comp.Val`[A, B]]
 //     // infix def $[A, B](tpe: `Type.Var.Comp`[A, B]): F[`Value.Var.Unbound.Comp.Val`[A, B]]
 //     infix def $[R](tpe: `Type: x`[R]): F[`Value.Var.Unbound.Data.Val`[R]]
 
 //   extension (str: String)
-//     infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]): `Value.Var.Unbound.Comp.Val`[A, B]
+//     infix def $[A, B](tpe: `Type.AppInfix: x_x_x x x`[Function1, A, B]): `Value.Var.Unbound.Comp.Val`[A, B]
 //     // infix def $[A, B](tpe: `Type.Var.Comp`[A, B]): `Value.Var.Unbound.Comp.Val`[A, B]
 //     infix def $[R](tpe: `Type: x`[R]): `Value.Var.Unbound.Data.Val`[R]
 
@@ -33,14 +33,14 @@ object signature:
 //     new Signature[StateT[ErrorF, Γ, _]]:
 
     extension (sym: `DefSym.0`)
-//         infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Def.0`[A, B]] =
+//         infix def $[A, B](tpe: `Type.AppInfix: x_x_x x x`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var.Unbound.Comp.Def.0`[A, B]] =
 //           for
 //             v <- StateT.pure(`Value.Var.Unbound.Comp.Def.0`(0, sym, tpe, tpe.barg))
 //             d <- StateT.pure(Statement.define(v))
 //             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
 //           yield v
 
-      // infix def $[A, B](tpe: `Type.Var: x→x→x`[A, B]):  StateT[ErrorF, Γ, `Value.Def.0: x`[A, B]] =
+      // infix def $[A, B](tpe: `Type.Var: x_x_x`[A, B]):  StateT[ErrorF, Γ, `Value.Def.0: x`[A, B]] =
       //   for
       //     v <- StateT.pure(`Value.Var.Unbound.Comp.Def.0`(0, sym, tpe, tpe.ret))
       //     d <- StateT.pure(Statement.define(v))
@@ -55,10 +55,10 @@ object signature:
         yield v
 
     extension [A, R] (sym: `DefSym.1`[A, R])
-      infix def $(tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Def.1: x→x→x x x`[A, R]] =
+      infix def $(tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Def.1: x_x_x x x`[A, R]] =
         for
-          v <- StateT.pure(`Value.Def.1: x→x→x x x`(0, sym, FUNCTION1(sym.arg1.tpe, tpe), None))
-          d <- StateT.pure(`DefDef: x→x→x x x`(v))
+          v <- StateT.pure(`Value.Def.1: x_x_x x x`(0, sym, FUNCTION1(sym.arg1.tpe, tpe), None))
+          d <- StateT.pure(`DefDef: x_x_x x x`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
@@ -71,55 +71,55 @@ object signature:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
-      infix def $[R[_], A](tpe: `Type: x→x x`[R, A]):  StateT[ErrorF, Γ, `Value.Val: x→x x`[R, A]] =
+      infix def $[R[_], A](tpe: `Type: x_x x`[R, A]):  StateT[ErrorF, Γ, `Value.Val: x_x x`[R, A]] =
         for
-          v <- StateT.pure(`Value.Val: x→x x`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: x→x x`(v))
+          v <- StateT.pure(`Value.Val: x_x x`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: x_x x`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
     
 
-      // infix def $[A, B](tpe: `Type.AppInfix: x→x→x x x`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var[_, _].x`[A, B]] =
-      infix def $[T[_, _], A, B](tpe: `Type: x→x→x x x`[T, A, B]):  StateT[ErrorF, Γ, `Value.Val: x→x→x x x`[T, A, B]] =
+      // infix def $[A, B](tpe: `Type.AppInfix: x_x_x x x`[Function1, A, B]):  StateT[ErrorF, Γ, `Value.Var[_, _].x`[A, B]] =
+      infix def $[T[_, _], A, B](tpe: `Type: x_x_x x x`[T, A, B]):  StateT[ErrorF, Γ, `Value.Val: x_x_x x x`[T, A, B]] =
         for
           // v <- StateT.pure(`Value.Var.Unbound.Comp.Val`(0, sym, tpe, tpe.barg))
-          v <- StateT.pure(`Value.Val: x→x→x x x`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: x→x→x x x`(v))
+          v <- StateT.pure(`Value.Val: x_x_x x x`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: x_x_x x x`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
-      infix def $[T[_, _], G[_[_], _], H[_], A, B](tpe: `Type: x→x→x x ((x→x)→x→x x→x x)`[T, G, H, A, B]):  StateT[ErrorF, Γ, `Value.Val: x→x→x x ((x→x)→x→x x→x x)`[T, G, H, A, B]] =
+      infix def $[T[_, _], G[_[_], _], H[_], A, B](tpe: `Type: x_x_x x llx_xl_x_x x_x xl`[T, G, H, A, B]):  StateT[ErrorF, Γ, `Value.Val: x_x_x x llx_xl_x_x x_x xl`[T, G, H, A, B]] =
         for
-          v <- StateT.pure(`Value.Val: x→x→x x ((x→x)→x→x x→x x)`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: x→x→x x ((x→x)→x→x x→x x)`(v))
+          v <- StateT.pure(`Value.Val: x_x_x x llx_xl_x_x x_x xl`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: x_x_x x llx_xl_x_x x_x xl`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
-      infix def $[T[_, _], G[_[_], _], H[_], I[_], A, B](tpe: `Type: x→x→x x (x→x ((x→x)→x→x x→x x))`[T, G, H, I, A, B]):  StateT[ErrorF, Γ, `Value.Val: x→x→x x (x→x ((x→x)→x→x x→x x))`[T, G, H, I, A, B]] =
+      infix def $[T[_, _], G[_[_], _], H[_], I[_], A, B](tpe: `Type: x_x_x x lx_x llx_xl_x_x x_x xll`[T, G, H, I, A, B]):  StateT[ErrorF, Γ, `Value.Val: x_x_x x lx_x llx_xl_x_x x_x xll`[T, G, H, I, A, B]] =
         for
-          v <- StateT.pure(`Value.Val: x→x→x x (x→x ((x→x)→x→x x→x x))`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: x→x→x x (x→x ((x→x)→x→x x→x x))`(v))
+          v <- StateT.pure(`Value.Val: x_x_x x lx_x llx_xl_x_x x_x xll`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: x_x_x x lx_x llx_xl_x_x x_x xll`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
-      infix def $[R[_[_], _], F[_], G[_], A](tpe: `Type: x→x ((x→x)→x→x x→x x)`[F, R, G, A]):  StateT[ErrorF, Γ, `Value.Val: x→x ((x→x)→x→x x→x x)`[F, R, G, A]] =
+      infix def $[R[_[_], _], F[_], G[_], A](tpe: `Type: x_x llx_xl_x_x x_x xl`[F, R, G, A]):  StateT[ErrorF, Γ, `Value.Val: x_x llx_xl_x_x x_x xl`[F, R, G, A]] =
         for
-          v <- StateT.pure(`Value.Val: x→x ((x→x)→x→x x→x x)`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: x→x ((x→x)→x→x x→x x)`(v))
+          v <- StateT.pure(`Value.Val: x_x llx_xl_x_x x_x xl`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: x_x llx_xl_x_x x_x xl`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
     
-      infix def $[R[_[_], _], F[_], A](tpe: `Type: (x→x)→x→x x→x x`[R, F, A]):  StateT[ErrorF, Γ, `Value.Val: (x→x)→x→x x→x x`[R, F, A]] =
+      infix def $[R[_[_], _], F[_], A](tpe: `Type: lx_xl_x_x x_x x`[R, F, A]):  StateT[ErrorF, Γ, `Value.Val: lx_xl_x_x x_x x`[R, F, A]] =
         for
-          v <- StateT.pure(`Value.Val: (x→x)→x→x x→x x`(0, sym, tpe, None))
-          d <- StateT.pure(`ValDef: (x→x)→x→x x→x x`(v))
+          v <- StateT.pure(`Value.Val: lx_xl_x_x x_x x`(0, sym, tpe, None))
+          d <- StateT.pure(`ValDef: lx_xl_x_x x_x x`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
     extension (str: String)
-      infix def $[T[_, _], A, B](tpe: `Type.AppInfix: x→x→x x x`[T, A, B]): `Value.Val: x→x→x x x`[T, A, B] =
-        `Value.Val: x→x→x x x`(0, ValSym(str), tpe, None)
+      infix def $[T[_, _], A, B](tpe: `Type.AppInfix: x_x_x x x`[T, A, B]): `Value.Val: x_x_x x x`[T, A, B] =
+        `Value.Val: x_x_x x x`(0, ValSym(str), tpe, None)
       infix def $[T](tpe: `Type: x`[T]): `Value.Val: x`[T] =
         `Value.Val: x`(0, ValSym(str), tpe, None)
-      infix def $[T[_[_], _], F[_], A](tpe: `Type: (x→x)→x→x x→x x`[T, F, A]): `Value.Val: (x→x)→x→x x→x x`[T, F, A] =
-        `Value.Val: (x→x)→x→x x→x x`(0, ValSym(str), tpe, None)
+      infix def $[T[_[_], _], F[_], A](tpe: `Type: lx_xl_x_x x_x x`[T, F, A]): `Value.Val: lx_xl_x_x x_x x`[T, F, A] =
+        `Value.Val: lx_xl_x_x x_x x`(0, ValSym(str), tpe, None)

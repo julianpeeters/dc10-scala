@@ -5,9 +5,9 @@ import dc10.scala.*
 
 trait References[F[_]]:
   given `refT`[`T.x`[t] <: `Type: x`[t], T]: Conversion[`T.x`[T], F[`T.x`[T]]]
-  given `refT[_]`[`T.x→x`[t[_]] <: `Type: x→x`[t], T[_]]: Conversion[`T.x→x`[T], F[`T.x→x`[T]]]
-  given `refT[_[_]]`[`T.(x→x)→x`[t[_[_]]] <: `Type: (x→x)→x`[t], T[_[_]]]: Conversion[`T.(x→x)→x`[T], F[`T.(x→x)→x`[T]]]
-  given `refT[_[_], _]`[`T.(x→x)→x→x`[t[_[_], _]] <: `Type: (x→x)→x→x`[t], T[_[_], _]]: Conversion[`T.(x→x)→x→x`[T], F[`T.(x→x)→x→x`[T]]]
+  given `refT[_]`[`T.x_x`[t[_]] <: `Type: x_x`[t], T[_]]: Conversion[`T.x_x`[T], F[`T.x_x`[T]]]
+  given `refT[_[_]]`[`T.lx_xl_x`[t[_[_]]] <: `Type: lx_xl_x`[t], T[_[_]]]: Conversion[`T.lx_xl_x`[T], F[`T.lx_xl_x`[T]]]
+  given `refT[_[_], _]`[`T.lx_xl_x_x`[t[_[_], _]] <: `Type: lx_xl_x_x`[t], T[_[_], _]]: Conversion[`T.lx_xl_x_x`[T], F[`T.lx_xl_x_x`[T]]]
   given `refV`[`V.x`[t] <: `Value: x`[t], T]: Conversion[`V.x`[T], F[`V.x`[T]]]
 
 object References:
@@ -21,21 +21,21 @@ object References:
       t => StateT.pure(t)
 
     given `refT[_]`[
-      `T.x→x`[t[_]] <: `Type: x→x`[t],
+      `T.x_x`[t[_]] <: `Type: x_x`[t],
       T[_]
-    ]: Conversion[`T.x→x`[T], StateT[ErrorF, Γ, `T.x→x`[T]]] =
+    ]: Conversion[`T.x_x`[T], StateT[ErrorF, Γ, `T.x_x`[T]]] =
       t => StateT.pure(t)
 
     given `refT[_[_]]`[
-      `T.(x→x)→x`[t[_[_]]] <: `Type: (x→x)→x`[t],
+      `T.lx_xl_x`[t[_[_]]] <: `Type: lx_xl_x`[t],
       T[_[_]]
-    ]: Conversion[`T.(x→x)→x`[T], StateT[ErrorF, Γ, `T.(x→x)→x`[T]]] =
+    ]: Conversion[`T.lx_xl_x`[T], StateT[ErrorF, Γ, `T.lx_xl_x`[T]]] =
       t => StateT.pure(t)
 
     given `refT[_[_], _]`[
-      `T.(x→x)→x→x`[t[_[_], _]] <: `Type: (x→x)→x→x`[t],
+      `T.lx_xl_x_x`[t[_[_], _]] <: `Type: lx_xl_x_x`[t],
       T[_[_], _]
-    ]: Conversion[`T.(x→x)→x→x`[T], StateT[ErrorF, Γ, `T.(x→x)→x→x`[T]]] =
+    ]: Conversion[`T.lx_xl_x_x`[T], StateT[ErrorF, Γ, `T.lx_xl_x_x`[T]]] =
       t => StateT.pure(t)
 
     given `refV`[

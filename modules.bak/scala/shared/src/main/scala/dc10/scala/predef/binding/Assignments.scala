@@ -11,10 +11,10 @@ trait Assignments[F[_]]:
     def :=(rhs: F[`Type.Var: x`[T]]): F[`Type.Var: x`[T]]
     @scala.annotation.targetName("App*")
     def :=[G[_], A](rhs: F[`Type.App[_]`[G, A]]): F[`Type.Var: x`[G[A]]]
-    @scala.annotation.targetName("App(x→x)→x→x")
+    @scala.annotation.targetName("Applx_xl_x_x")
     def :=[G[_[_], _], H[_], A](rhs: F[`Type.App[_[_], _]`[G, H, A]]): F[`Type.Var: x`[G[H, A]]]
-    @scala.annotation.targetName("Lamx→x")
-    def :=[G[_], A](rhs: F[`Type.Lam: x→x`[G, A]]): F[`Type.Var: x→x`[G]]
+    @scala.annotation.targetName("Lamx_x")
+    def :=[G[_], A](rhs: F[`Type.Lam: x_x`[G, A]]): F[`Type.Var: x_x`[G]]
  
   extension [`V.x`[t] <: `Value: x`[t],  T] (lhs: F[`Value.Var.Unbound.Data`[T]])
     @scala.annotation.targetName("assign value")
@@ -31,7 +31,7 @@ object Assignments:
   extension (s: String)
     // def :=[A](rhs: `Value: x`[A]): `Value.Var.Bound.Data`[A] =
     //   `Value.Var.Bound.Data`[A](0, s, rhs.tpe, rhs)
-    def :=[F[_], G[_]](rhs: `Value.x→x`[[A] =>> F[A] => G[A]]): `Value.Var1[_]`[F, G] =
+    def :=[F[_], G[_]](rhs: `Value.x_x`[[A] =>> F[A] => G[A]]): `Value.Var1[_]`[F, G] =
       `Value.Var1[_]`(0, s, rhs.tpe, Some(rhs))
 
   trait Mixins extends Assignments[StateT[ErrorF, Γ, _]]:
@@ -61,7 +61,7 @@ object Assignments:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield t
 
-      @scala.annotation.targetName("App(x→x)→x→x")
+      @scala.annotation.targetName("Applx_xl_x_x")
       def :=[G[_[_], _], H[_], A](
         rhs: StateT[ErrorF, Γ, `Type.App[_[_], _]`[G, H, A]]
       ): StateT[ErrorF, Γ, `Type.Var: x`[G[H, A]]] =
@@ -73,10 +73,10 @@ object Assignments:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield t
 
-      @scala.annotation.targetName("Lamx→x")
+      @scala.annotation.targetName("Lamx_x")
       def :=[G[_], A](
-        rhs: StateT[ErrorF, Γ, `Type.Lam: x→x`[G, A]]
-      ): StateT[ErrorF, Γ, `Type.Var: x→x`[G]] =
+        rhs: StateT[ErrorF, Γ, `Type.Lam: x_x`[G, A]]
+      ): StateT[ErrorF, Γ, `Type.Var: x_x`[G]] =
         for
           l <- StateT.liftF(lhs.runEmptyA)
           r <- StateT.liftF(rhs.runEmptyA)

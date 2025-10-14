@@ -45,7 +45,7 @@ object Val:
     //     _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
     //   yield v
 
-    // @scala.annotation.targetName("0x→x→x")
+    // @scala.annotation.targetName("0x_x_x")
     // def DEF[A, B, T](
     //   nme: String,
     //   tparam1: StateT[ErrorF, Γ, `Type.Var: x`[A]],
@@ -62,11 +62,11 @@ object Val:
     //     _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
     //   yield v
 
-    // @scala.annotation.targetName("0x→x")
+    // @scala.annotation.targetName("0x_x")
     // def DEF[G[_], T](
     //   nme: String,
-    //   tparam: StateT[ErrorF, Γ, `Type: x→x`[G]],
-    //   tpe: `Type: x→x`[G] => StateT[ErrorF, Γ, `Type: x`[T]]
+    //   tparam: StateT[ErrorF, Γ, `Type: x_x`[G]],
+    //   tpe: `Type: x_x`[G] => StateT[ErrorF, Γ, `Type: x`[T]]
     // ): StateT[ErrorF, Γ, `Value: x`[T]] =
     //   for
     //     f <- StateT.liftF(tparam.runEmptyA)
@@ -77,12 +77,12 @@ object Val:
     //     _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
     //   yield v
       
-    // @scala.annotation.targetName("0(x→x)→x→x")
-    // def DEF[G[_], A, T, `F.x→x`[t[_]] <: `Type: x→x`[t], `A.x`[t] <: `Type: x`[t], `T.x`[t] <: `Type: x`[t]](
+    // @scala.annotation.targetName("0lx_xl_x_x")
+    // def DEF[G[_], A, T, `F.x_x`[t[_]] <: `Type: x_x`[t], `A.x`[t] <: `Type: x`[t], `T.x`[t] <: `Type: x`[t]](
     //   nme: String,
-    //   tparamf: StateT[ErrorF, Γ, `F.x→x`[G]],
+    //   tparamf: StateT[ErrorF, Γ, `F.x_x`[G]],
     //   tparama: StateT[ErrorF, Γ, `A.x`[A]],
-    //   tpe: (`F.x→x`[G], `A.x`[A]) => StateT[ErrorF, Γ, `T.x`[T]]
+    //   tpe: (`F.x_x`[G], `A.x`[A]) => StateT[ErrorF, Γ, `T.x`[T]]
     // ): StateT[ErrorF, Γ, `Value.Var.Unbound.Data`[T]] =
     //   for
     //     f <- StateT.liftF(tparamf.runEmptyA)
@@ -119,13 +119,13 @@ object Val:
     // ): StateT[ErrorF, Γ, `Value: x`[T]] =
     //   ???
 
-    // @scala.annotation.targetName("1(x→x)→x")
+    // @scala.annotation.targetName("1lx_xl_x")
     // def DEF[G[_], A, B, T](
     //   nme: String,
-    //   tparamf: StateT[ErrorF, Γ, `Type: x→x`[G]],
+    //   tparamf: StateT[ErrorF, Γ, `Type: x_x`[G]],
     //   tparama: StateT[ErrorF, Γ, `Type: x`[A]],
     //   arg: StateT[ErrorF, Γ, `Value: x`[B]],
-    //   tpe: (`Type: x→x`[G], `Type: x`[A]) => StateT[ErrorF, Γ, `Type: x`[T]]
+    //   tpe: (`Type: x_x`[G], `Type: x`[A]) => StateT[ErrorF, Γ, `Type: x`[T]]
     // ): StateT[ErrorF, Γ, `Value: x`[T]] =
     //   ???
   
@@ -138,40 +138,40 @@ object Val:
     //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
     //   yield t
 
-    // @scala.annotation.targetName("x→x")
+    // @scala.annotation.targetName("x_x")
     // def TYPE[G[_], A](
     //   nme: String,
     //   tparam: StateT[ErrorF, Γ, `Type.Var: x`[A]]
-    // ): StateT[ErrorF, Γ, `Type.Var: x→x`[G]] =
+    // ): StateT[ErrorF, Γ, `Type.Var: x_x`[G]] =
     //   for
     //     a <- StateT.liftF(tparam.runEmptyA)
-    //     t <- StateT.pure(`Type.Var: x→x`[G](0, nme, None, () => Nil))
+    //     t <- StateT.pure(`Type.Var: x_x`[G](0, nme, None, () => Nil))
     //     d <- StateT.pure(Statement.`type`.`[_]`(a, t))
     //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
     //   yield t
 
-    // @scala.annotation.targetName("(x→x)→x")
-    // def TYPE[G[_[_]], H[_], `T.x→x`[t[_]] <: `Type: x→x`[t]](
+    // @scala.annotation.targetName("lx_xl_x")
+    // def TYPE[G[_[_]], H[_], `T.x_x`[t[_]] <: `Type: x_x`[t]](
     //   nme: String,
-    //   tparam: StateT[ErrorF, Γ, `T.x→x`[H]]
-    // ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x`[G]] =
+    //   tparam: StateT[ErrorF, Γ, `T.x_x`[H]]
+    // ): StateT[ErrorF, Γ, `Type.Var: lx_xl_x`[G]] =
     //   for
     //     a <- StateT.liftF(tparam.runEmptyA)
-    //     t <- StateT.pure(`Type.Var: (x→x)→x`[G](0, nme, None))
+    //     t <- StateT.pure(`Type.Var: lx_xl_x`[G](0, nme, None))
     //     d <- StateT.pure(Statement.`type`.`[_[_]]`(a, t))
     //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
     //   yield t
 
-    // @scala.annotation.targetName("(x→x)→x→x")
+    // @scala.annotation.targetName("lx_xl_x_x")
     // def TYPE[G[_[_], _], H[_], A](
     //   nme: String,
-    //   targF: StateT[ErrorF, Γ, `Type: x→x`[H]],
+    //   targF: StateT[ErrorF, Γ, `Type: x_x`[H]],
     //   targA: StateT[ErrorF, Γ, `Type.Var: x`[A]]
-    // ): StateT[ErrorF, Γ, `Type: (x→x)→x→x`[G]] =
+    // ): StateT[ErrorF, Γ, `Type: lx_xl_x_x`[G]] =
     //   for
     //     f <- StateT.liftF(targF.runEmptyA)
     //     a <- StateT.liftF(targA.runEmptyA)
-    //     t <- StateT.pure(`Type.Var: (x→x)→x→x`[G](0, nme, None))
+    //     t <- StateT.pure(`Type.Var: lx_xl_x_x`[G](0, nme, None))
     //     d <- StateT.pure(Statement.`type`.`[_[_], _]`[G, H, A](f, a, t))
     //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
     //   yield t

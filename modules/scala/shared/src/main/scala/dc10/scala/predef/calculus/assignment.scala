@@ -18,27 +18,27 @@ object assignment:
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t
     
-  extension [T[_, _], A, B] (lhs: StateT[ErrorF, Γ, `Value.Def.1: x→x→x x x`[A, B]])
+  extension [T[_, _], A, B] (lhs: StateT[ErrorF, Γ, `Value.Def.1: x_x_x x x`[A, B]])
     @scala.annotation.targetName("assignDef1")
     def :=(
       rhs: `Value: x`[A] => `Value: x`[B]
-    ): StateT[ErrorF, Γ, `Value.Def.1: x→x→x x x`[A, B]] =
+    ): StateT[ErrorF, Γ, `Value.Def.1: x_x_x x x`[A, B]] =
       for
         l <- StateT.liftF(lhs.runEmptyA)
         v <- StateT.pure(l.implement(rhs(l.sym.arg1)))
-        d <- StateT.pure(`DefDef: x→x→x x x`(v))
+        d <- StateT.pure(`DefDef: x_x_x x x`(v))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
-  extension [A, B] (lhs: StateT[ErrorF, Γ, `Value.Val: x→x→x x x`[Function1, A, B]])
+  extension [A, B] (lhs: StateT[ErrorF, Γ, `Value.Val: x_x_x x x`[Function1, A, B]])
     @scala.annotation.targetName("assignVal1")
     def :=(
-      rhs: `Value.Lam.1: x→x→x x x`[A, B]
-    ): StateT[ErrorF, Γ, `Value.Val: x→x→x x x`[Function1, A, B]] =
+      rhs: `Value.Lam.1: x_x_x x x`[A, B]
+    ): StateT[ErrorF, Γ, `Value.Val: x_x_x x x`[Function1, A, B]] =
       for
         l <- StateT.liftF(lhs.runEmptyA)
         v <- StateT.pure(l.implement(rhs))
-        d <- StateT.pure(`ValDef: x→x→x x x`(v))
+        d <- StateT.pure(`ValDef: x_x_x x x`(v))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
@@ -55,36 +55,36 @@ object assignment:
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
-  extension [T[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: x→x x`[T, A]])
+  extension [T[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: x_x x`[T, A]])
     def :=(
-      rhs: `Value: x→x x`[T, A]
-    ): StateT[ErrorF, Γ, `Value.Val: x→x x`[T, A]] =
+      rhs: `Value: x_x x`[T, A]
+    ): StateT[ErrorF, Γ, `Value.Val: x_x x`[T, A]] =
       for
         l <- StateT.liftF(lhs.runEmptyA)
         v <- StateT.pure(l.implement(rhs))
-        d <- StateT.pure(`ValDef: x→x x`(v))
+        d <- StateT.pure(`ValDef: x_x x`(v))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
-  extension [T[_], G[_[_], _], H[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: x→x ((x→x)→x→x x→x x)`[T, G, H, A]])
+  extension [T[_], G[_[_], _], H[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: x_x llx_xl_x_x x_x xl`[T, G, H, A]])
     def :=(
-      rhs: `Value: x→x ((x→x)→x→x x→x x)`[T, G, H, A]
-    ): StateT[ErrorF, Γ, `Value.Val: x→x ((x→x)→x→x x→x x)`[T, G, H, A]] =
+      rhs: `Value: x_x llx_xl_x_x x_x xl`[T, G, H, A]
+    ): StateT[ErrorF, Γ, `Value.Val: x_x llx_xl_x_x x_x xl`[T, G, H, A]] =
       for
         l <- StateT.liftF(lhs.runEmptyA)
         v <- StateT.pure(l.implement(rhs))
-        d <- StateT.pure(`ValDef: x→x ((x→x)→x→x x→x x)`(v))
+        d <- StateT.pure(`ValDef: x_x llx_xl_x_x x_x xl`(v))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 
-  extension [T[_[_], _], F[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: (x→x)→x→x x→x x`[T, F, A]])
+  extension [T[_[_], _], F[_], A] (lhs: StateT[ErrorF, Γ, `Value.Val: lx_xl_x_x x_x x`[T, F, A]])
     def :=(
-      rhs: `Value: (x→x)→x→x x→x x`[T, F, A]
-    ): StateT[ErrorF, Γ, `Value.Val: (x→x)→x→x x→x x`[T, F, A]] =
+      rhs: `Value: lx_xl_x_x x_x x`[T, F, A]
+    ): StateT[ErrorF, Γ, `Value.Val: lx_xl_x_x x_x x`[T, F, A]] =
       for
         l <- StateT.liftF(lhs.runEmptyA)
         v <- StateT.pure(l.implement(rhs))
-        d <- StateT.pure(`ValDef: (x→x)→x→x x→x x`(v))
+        d <- StateT.pure(`ValDef: lx_xl_x_x x_x x`(v))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield v
 

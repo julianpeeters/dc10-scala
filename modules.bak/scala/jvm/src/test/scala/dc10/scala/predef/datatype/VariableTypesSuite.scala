@@ -100,7 +100,7 @@ class VariableTypesSuite extends FunSuite:
   //   def ast = MATCHTYPES("Elem", TYPE("X"), x =>
   //     for
   //       _ <- CASE(STRING ==> STRING) 
-  //       _ <- CASE(x ==> x)
+  //       _ <- CASElx ==> xl
   //     yield ()
   //   )
   

@@ -18,36 +18,36 @@ import dc10.scala.predef.datatype.PrimitiveTypes.{nothing}
 
 trait ComplexTypes[F[_]]:
 
-  def LIST: F[`Type.Var: x→x`[List]]
+  def LIST: F[`Type.Var: x_x`[List]]
   def List: F[`Value: x`[scala.List.type]]
   extension (l: F[`Value: x`[scala.List.type]])
     @scala.annotation.targetName("applyList")
-    def apply: F[`Value.x→x`[[A] =>> List[A] => List[A]]]
+    def apply: F[`Value.x_x`[[A] =>> List[A] => List[A]]]
 
   def None[A]: F[`Value.Var`[Option[A]]]
   
-  def OPTION: F[`Type.Var: x→x`[[A] =>> Option[A]]]
+  def OPTION: F[`Type.Var: x_x`[[A] =>> Option[A]]]
   def Option: F[`Value: x`[scala.Option.type]]
   extension (o: F[`Value: x`[scala.Option.type]])
     @scala.annotation.targetName("applyOption")
-    def apply: F[`Value.x→x`[[A] =>> A => Option[A]]]
+    def apply: F[`Value.x_x`[[A] =>> A => Option[A]]]
 
-  def SET: F[`Type.Var: x→x`[Set]]
+  def SET: F[`Type.Var: x_x`[Set]]
   def Set: F[`Value: x`[scala.Predef.Set.type]]
   extension (s: F[`Value: x`[scala.Predef.Set.type]])
     @scala.annotation.targetName("applySet")
-    def apply: F[`Value.x→x`[[A] =>> List[A] => Set[A]]]
+    def apply: F[`Value.x_x`[[A] =>> List[A] => Set[A]]]
 
-  def Some: F[`Value.x→x`[[A] =>> A => Option[A]]]
-  def TUPLE: F[`Type.Var: x→x→x`[Tuple2]]
+  def Some: F[`Value.x_x`[[A] =>> A => Option[A]]]
+  def TUPLE: F[`Type.Var: x_x_x`[Tuple2]]
   def Tuple[A, B]: (F[`Value: x`[A]], F[`Value: x`[B]]) => F[`Value: x`[Tuple2[A, B]]]
-  def TUPLE3: F[`Type.x→x→x→x`[Tuple3]]
+  def TUPLE3: F[`Type.x_x_x_x`[Tuple3]]
   def Tuple3[A, B, C]: (F[`Value: x`[A]], F[`Value: x`[B]], F[`Value: x`[C]]) => F[`Value: x`[Tuple3[A, B, C]]]
 
 object ComplexTypes:
 
-  def option[A]: `Type.Var: x→x`[Option] =
-    `Type.Var: x→x`[Option](0, "Option", scala.None, () => scala.List(some, none))
+  def option[A]: `Type.Var: x_x`[Option] =
+    `Type.Var: x_x`[Option](0, "Option", scala.None, () => scala.List(some, none))
   
 
   // TODO
@@ -57,7 +57,7 @@ object ComplexTypes:
   def none[A]: `Value.Var.Unbound.Data`[Option[Nothing]] =
     `Value.Var.Unbound.Data`(0, "None", option(nothing))
 
-  def some[A]: `Value.x→x`[[A] =>> Id[A] => Option[A]] =
+  def some[A]: `Value.x_x`[[A] =>> Id[A] => Option[A]] =
     `Value.Var1[_]`(
       0,
       "Some",
@@ -65,8 +65,8 @@ object ComplexTypes:
       scala.None
     )
 
-  // extension (o: StateT[ErrorF, Γ, `Value.x→x`[[A] =>> Id[A] => Option[A]]])
-  //   def unapply[B[_]](x: `Value.x→x`[B]) = scala.Some(StateT.pure[ErrorF, Γ, `Value.x→x`[B]](x))
+  // extension (o: StateT[ErrorF, Γ, `Value.x_x`[[A] =>> Id[A] => Option[A]]])
+  //   def unapply[B[_]]lx: `Value.x_x`[B]) = scala.Some(StateT.pure[ErrorF, Γ, `Value.x_x`[B]]lxll
     // Id(`function1[_]`[[A] =>> A => Option[A], A](
     //   A,
     //   `Value.Var.Unbound.Data`[A => Option[A]](0, "Some", function1(`A`, `Option[A]`))
@@ -84,7 +84,7 @@ object ComplexTypes:
 
 
   // def someA: 
-      // val f  = `Value.Lam.1: x→x`[[A] =>> A => Option[A], A](
+      // val f  = `Value.Lam.1: x_x`[[A] =>> A => Option[A], A](
       //   0,
       //   function1[A, Option[A]](
       //       "x" :: A,
@@ -93,7 +93,7 @@ object ComplexTypes:
       //   typeLambda1[[A] =>> A => Option[A], A](
       //     A[A],
       //     function1(A[A], t)
-      //     // ???//function1(targ, `Type.Var: x→x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
+      //     // ???//function1(targ, `Type.Var: x_x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
       //   )
       // )
 
@@ -123,7 +123,7 @@ object ComplexTypes:
         //   typeLambda1[[A] =>> A => Option[A], A](
         //     `Type.Var: x`[A](0, "A", scala.None),
         //     function1(`Type.Var: x`[A](0, "A", scala.None), t)
-        //     // ???//function1(targ, `Type.Var: x→x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
+        //     // ???//function1(targ, `Type.Var: x_x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
         //   ),
         //   scala.Some(
         //     function1[[A] =>> A => Option[A], A](
@@ -140,15 +140,15 @@ object ComplexTypes:
 
   trait Mixins extends ComplexTypes[StateT[ErrorF, Γ, _]]:
       
-    def LIST: StateT[ErrorF, Γ, `Type.Var: x→x`[List]] =
-      StateT.pure(`Type.Var: x→x`[List](0, "List", scala.None, () => scala.Nil))
+    def LIST: StateT[ErrorF, Γ, `Type.Var: x_x`[List]] =
+      StateT.pure(`Type.Var: x_x`[List](0, "List", scala.None, () => scala.Nil))
 
     def List: StateT[ErrorF, Γ, `Value: x`[scala.List.type]] =
       StateT.pure(`Value.Var.Unbound.Data`(0, "List", `Type.Var: x`(0, "List.type", scala.None)))
 
     extension (l: StateT[ErrorF, Γ,`Value: x`[scala.List.type]])
       @scala.annotation.targetName("applyList")
-      def apply: StateT[ErrorF, Γ, `Value.x→x`[[A] =>> List[A] => List[A]]] =
+      def apply: StateT[ErrorF, Γ, `Value.x_x`[[A] =>> List[A] => List[A]]] =
         ???
         // for
         //   t <- TYPE("A").==>>[[A] =>> List[A] => List[A]](a => dsl.apply(LIST)(refT(a)) ==> dsl.apply(LIST)(a))
@@ -161,42 +161,42 @@ object ComplexTypes:
       //   t <- dsl.apply(OPTION)(NOTHING)
       // yield `Value.Var.Unbound.Data`[Option[A]](0, "None", t)
        
-    def OPTION: StateT[ErrorF, Γ, `Type.Var: x→x`[[A] =>> Option[A]]] =
+    def OPTION: StateT[ErrorF, Γ, `Type.Var: x_x`[[A] =>> Option[A]]] =
       for
         s <- Some
         // n <- None
-      // yield `Type.Var: x→x`(0, "Option", scala.None)
+      // yield `Type.Var: x_x`(0, "Option", scala.None)
       yield 
-        `Type.Var: x→x`(0, "Option", scala.None, () => scala.List(s))
+        `Type.Var: x_x`(0, "Option", scala.None, () => scala.List(s))
 
     def Option: StateT[ErrorF, Γ, `Value: x`[scala.Option.type]] =
       StateT.pure(`Value.Var.Unbound.Data`(0, "Option", `Type.Var: x`(0, "Option.type", scala.None)))
 
     extension (o: StateT[ErrorF, Γ,`Value: x`[scala.Option.type]])
       @scala.annotation.targetName("applyOption")
-      def apply: StateT[ErrorF, Γ, `Value.x→x`[[A] =>> A => Option[A]]] =
+      def apply: StateT[ErrorF, Γ, `Value.x_x`[[A] =>> A => Option[A]]] =
         ???
 
         // for
         //   t <- TYPE("A").==>>[[A] =>> A => Option[A]](a => refT(a) ==> dsl.apply(OPTION)(a))
         // yield `Value.Var1[_]`[Id, Option](0, "Option", t, scala.None)
 
-    def SET: StateT[ErrorF, Γ, `Type.Var: x→x`[Set]] =
-      StateT.pure(`Type.Var: x→x`[Set](0, "Set", scala.None, () => Nil))
+    def SET: StateT[ErrorF, Γ, `Type.Var: x_x`[Set]] =
+      StateT.pure(`Type.Var: x_x`[Set](0, "Set", scala.None, () => Nil))
 
     def Set: StateT[ErrorF, Γ, `Value: x`[scala.Predef.Set.type]] =
       StateT.pure(`Value.Var.Unbound.Data`(0, "Set", `Type.Var: x`(0, "Set.type", scala.None)))
 
     extension (l: StateT[ErrorF, Γ,`Value: x`[scala.Predef.Set.type]])
       @scala.annotation.targetName("applySet")
-      def apply: StateT[ErrorF, Γ, `Value.x→x`[[A] =>> List[A] => Set[A]]] =
+      def apply: StateT[ErrorF, Γ, `Value.x_x`[[A] =>> List[A] => Set[A]]] =
         ???
         // for
         //   t <- TYPE("A").==>>[[A] =>> List[A] => Set[A]](a => dsl.apply(LIST)(refT(a)) ==> dsl.apply(SET)(a))
         // yield `Value.Var1[_]`(0, "Set", t, scala.None)
 
    
-    def Some: StateT[ErrorF, Γ, `Value.x→x`[[A] =>> A => Option[A]]] =
+    def Some: StateT[ErrorF, Γ, `Value.x_x`[[A] =>> A => Option[A]]] =
       StateT.pure(some)
     
       // for
@@ -204,8 +204,8 @@ object ComplexTypes:
       //   t <- TYPE("A").==>>[[A]=>> Id[A] => Option[A]](a => StateT.liftF(option.applyType(a).map(o => function1(a, o))))
       // yield `Value.Var1[_]`[Id, Option](0, "Some", t, scala.None)
 
-    def TUPLE: StateT[ErrorF, Γ, `Type.Var: x→x→x`[Tuple2]] =
-      StateT.pure(`Type.Var: x→x→x`(0, "Tuple2", scala.None))
+    def TUPLE: StateT[ErrorF, Γ, `Type.Var: x_x_x`[Tuple2]] =
+      StateT.pure(`Type.Var: x_x_x`(0, "Tuple2", scala.None))
       
     def Tuple[A, B]: (
       StateT[ErrorF, Γ, `Value: x`[A]],
@@ -219,7 +219,7 @@ object ComplexTypes:
           v <- StateT.pure[ErrorF, Γ, `Value: x`[Tuple2[A, B]]](
             `Value.App.2: x`(
               0,
-              `Value.Var.Unbound.Data`(0, "", `Type.App[_, _, _]`(0, `Type.Var: x→x→x→x`(0, "=>", scala.None), a.tpe, b.tpe, t)),
+              `Value.Var.Unbound.Data`(0, "", `Type.App[_, _, _]`(0, `Type.Var: x_x_x_x`(0, "=>", scala.None), a.tpe, b.tpe, t)),
               a,
               b,
               t
@@ -227,8 +227,8 @@ object ComplexTypes:
           )
         yield v
 
-    def TUPLE3: StateT[ErrorF, Γ, `Type.x→x→x→x`[Tuple3]] =
-      StateT.pure(`Type.Var: x→x→x→x`(0, "Tuple3", scala.None))
+    def TUPLE3: StateT[ErrorF, Γ, `Type.x_x_x_x`[Tuple3]] =
+      StateT.pure(`Type.Var: x_x_x_x`(0, "Tuple3", scala.None))
 
     def Tuple3[A, B, C]: (
       StateT[ErrorF, Γ, `Value: x`[A]],
@@ -244,7 +244,7 @@ object ComplexTypes:
           v <- StateT.pure[ErrorF, Γ, `Value: x`[Tuple3[A, B, C]]](
             `Value.App.3: x`(
               0,
-              `Value.Var.Unbound.Data`(0, "", `Type.App[_, _, _, _]`(0, `Type.Var: x→x→x→x→x`(0, "=>", scala.None), a.tpe, b.tpe, c.tpe, t)),
+              `Value.Var.Unbound.Data`(0, "", `Type.App[_, _, _, _]`(0, `Type.Var: x_x_x_x_x`(0, "=>", scala.None), a.tpe, b.tpe, c.tpe, t)),
               a,
               b,
               c,

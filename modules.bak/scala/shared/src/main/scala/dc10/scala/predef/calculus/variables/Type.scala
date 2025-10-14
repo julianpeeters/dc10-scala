@@ -9,12 +9,12 @@ trait Type[F[_]]:
   
   @scala.annotation.targetName("*")
   def TYPE[T](nme: String): F[`Type.Var: x`[T]]
-  @scala.annotation.targetName("x→x")
-  def TYPE[G[_], A](nme: String, tparam: F[`Type.Var: x`[A]]): F[`Type.Var: x→x`[G]]
-  @scala.annotation.targetName("(x→x)→x")
-  def TYPE[G[_[_]], H[_]](nme: String, tparam: F[`Type.Var: x→x`[H]]): F[`Type.Var: (x→x)→x`[G]]
-  @scala.annotation.targetName("(x→x)→x→x")
-  def TYPE[G[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: x→x`[H]], targA: F[`Type.Var: x`[A]]): F[`Type.Var: (x→x)→x→x`[G]]
+  @scala.annotation.targetName("x_x")
+  def TYPE[G[_], A](nme: String, tparam: F[`Type.Var: x`[A]]): F[`Type.Var: x_x`[G]]
+  @scala.annotation.targetName("lx_xl_x")
+  def TYPE[G[_[_]], H[_]](nme: String, tparam: F[`Type.Var: x_x`[H]]): F[`Type.Var: lx_xl_x`[G]]
+  @scala.annotation.targetName("lx_xl_x_x")
+  def TYPE[G[_[_], _], H[_], A](nme: String, tparamF: F[`Type.Var: x_x`[H]], targA: F[`Type.Var: x`[A]]): F[`Type.Var: lx_xl_x_x`[G]]
 
   
 object Type:
@@ -35,40 +35,40 @@ object Type:
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t
 
-    @scala.annotation.targetName("x→x")
+    @scala.annotation.targetName("x_x")
     def TYPE[G[_], A](
       nme: String,
       tparam: StateT[ErrorF, Γ, `Type.Var: x`[A]]
-    ): StateT[ErrorF, Γ, `Type.Var: x→x`[G]] =
+    ): StateT[ErrorF, Γ, `Type.Var: x_x`[G]] =
       for
         a <- StateT.liftF(tparam.runEmptyA)
-        t <- StateT.pure(`Type.Var: x→x`[G](0, nme, None, () => Nil))
+        t <- StateT.pure(`Type.Var: x_x`[G](0, nme, None, () => Nil))
         d <- StateT.pure(Statement.`type`.`[_]`(a, t))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t
 
-    @scala.annotation.targetName("(x→x)→x")
+    @scala.annotation.targetName("lx_xl_x")
     def TYPE[G[_[_]], H[_]](
       nme: String,
-      tparam: StateT[ErrorF, Γ, `Type.Var: x→x`[H]]
-    ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x`[G]] =
+      tparam: StateT[ErrorF, Γ, `Type.Var: x_x`[H]]
+    ): StateT[ErrorF, Γ, `Type.Var: lx_xl_x`[G]] =
       for
         a <- StateT.liftF(tparam.runEmptyA)
-        t <- StateT.pure(`Type.Var: (x→x)→x`[G](0, nme, None))
+        t <- StateT.pure(`Type.Var: lx_xl_x`[G](0, nme, None))
         d <- StateT.pure(Statement.`type`.`[_[_]]`(a, t))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t
 
-    @scala.annotation.targetName("(x→x)→x→x")
+    @scala.annotation.targetName("lx_xl_x_x")
     def TYPE[G[_[_], _], H[_], A](
       nme: String,
-      targF: StateT[ErrorF, Γ, `Type.Var: x→x`[H]],
+      targF: StateT[ErrorF, Γ, `Type.Var: x_x`[H]],
       targA: StateT[ErrorF, Γ, `Type.Var: x`[A]]
-    ): StateT[ErrorF, Γ, `Type.Var: (x→x)→x→x`[G]] =
+    ): StateT[ErrorF, Γ, `Type.Var: lx_xl_x_x`[G]] =
       for
         f <- StateT.liftF(targF.runEmptyA)
         a <- StateT.liftF(targA.runEmptyA)
-        t <- StateT.pure(`Type.Var: (x→x)→x→x`[G](0, nme, None))
+        t <- StateT.pure(`Type.Var: lx_xl_x_x`[G](0, nme, None))
         d <- StateT.pure(Statement.`type`.`[_[_], _]`[G, H, A](f, a, t))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t

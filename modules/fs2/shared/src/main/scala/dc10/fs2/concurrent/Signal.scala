@@ -10,10 +10,10 @@ import dc10.scala.dsl.{apply, dot, ==>}
 
 
 // trait Concurrent[F[_]]:
-//   def SignallingRef: F[`Type: (x→x)→x→x`[SignallingRef]]
+//   def SignallingRef: F[`Type: lx_xl_x_x`[SignallingRef]]
 //   // @scala.annotation.targetName("SignallingRef object")
 //   // def SignallingRef: F[`Value: x`[SignallingRef.type]]
-//   extension (s: `Type: (x→x)→x→x`[SignallingRef])
+//   extension (s: `Type: lx_xl_x_x`[SignallingRef])
 //     def of[G[_], A](initial: A): G[SignallingRef[G, A]]
 
 object Concurrent:
@@ -24,9 +24,9 @@ object Concurrent:
 
   // // val impl: Concurrent[[A] =>> StateT[ErrorF, Γ, A]] =
   // //   new Concurrent[[A] =>> StateT[ErrorF, Γ, A]]:
-  //   def SignallingRef: StateT[ErrorF, Γ, `Type: (x→x)→x→x`[SignallingRef]] = 
+  //   def SignallingRef: StateT[ErrorF, Γ, `Type: lx_xl_x_x`[SignallingRef]] = 
   //     for
-  //       t <- StateT.pure(`Type.Var: (x→x)→x→x`[SignallingRef](0, AliasSym("fs2.concurrent.SignallingRef"), None))
+  //       t <- StateT.pure(`Type.Var: lx_xl_x_x`[SignallingRef](0, AliasSym("fs2.concurrent.SignallingRef"), None))
   //       _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(lib))
   //     yield t
   //   // @scala.annotation.targetName("SignallingRef object")
@@ -35,16 +35,16 @@ object Concurrent:
         
     //   })
 
-  def SignallingRef: `Type: (x→x)→x→x`[SignallingRef] =
-    `Type.Var: (x→x)→x→x`[SignallingRef](0, AliasSym("fs2.concurrent.SignallingRef"), None)
+  def SignallingRef: `Type: lx_xl_x_x`[SignallingRef] =
+    `Type.Var: lx_xl_x_x`[SignallingRef](0, AliasSym("fs2.concurrent.SignallingRef"), None)
 
-  extension [G[_]] (s: `Type: (x→x)→x→x x→x`[SignallingRef, G])
+  extension [G[_]] (s: `Type: lx_xl_x_x x_x`[SignallingRef, G])
     // def of[G[_], A](initial: `Value: x`[A])(using C: Concurrent[G]): G[SignallingRef[G, A]] =
-    def of[A](initial: `Value: x`[A]): `Value.AppDot.1: x→x ((x→x)→x→x x→x x)`[G, SignallingRef, G, A, A] =
-    // def of[A](initial: `Value: x`[A]): `Value.AppDot.1: x→x x`[G, A, SignallingRef[G, A]] =
+    def of[A](initial: `Value: x`[A]): `Value.AppDot.1: x_x llx_xl_x_x x_x xl`[G, SignallingRef, G, A, A] =
+    // def of[A](initial: `Value: x`[A]): `Value.AppDot.1: x_x x`[G, A, SignallingRef[G, A]] =
       s.dot(
-        `Value.Def.1: x→x→x x (x→x ((x→x)→x→x x→x x))`(
-        // `Value.Def.1: x→x→x x (x→x x)`(
+        `Value.Def.1: x_x_x x lx_x llx_xl_x_x x_x xll`(
+        // `Value.Def.1: x_x_x x lx_x xl`(
           0,
           `DefSym.1`("of", `Value.Val: x`(0, ValSym("initial"), initial.tpe, None)),
           initial.tpe ==> s.targ1(s(initial.tpe)),

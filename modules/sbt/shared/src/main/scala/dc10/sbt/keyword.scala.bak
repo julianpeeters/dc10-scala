@@ -4,5 +4,5 @@ object keyword:
 
   extension (nme: StringContext)
     
-    def BASEDIR(args: Anyx): RepoSym =
-      RepoSym(nme.raw(argsx))
+    def BASEDIR(args: Anyxl: RepoSym =
+      RepoSym(nme.raw(argsxll

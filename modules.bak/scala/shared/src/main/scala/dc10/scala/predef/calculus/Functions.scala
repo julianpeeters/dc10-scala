@@ -41,7 +41,7 @@ trait Functions[F[_]]:
 
   extension [A] (fa: F[`Type.Var: x`[A]])
     @scala.annotation.targetName("tLam1")
-    def ==>>[G[_]](codomain: `Type.Var: x`[A] => F[`Type: x`[G[A]]]): F[`Type.Lam: x→x`[G, A]]
+    def ==>>[G[_]](codomain: `Type.Var: x`[A] => F[`Type: x`[G[A]]]): F[`Type.Lam: x_x`[G, A]]
 
   def EXT[`T.x`[t] <: `Type: x`[t], B, A](nme: String, tpe: F[`T.x`[A]])(ext: F[B]): F[B]
 
@@ -57,25 +57,25 @@ trait Functions[F[_]]:
 object Functions:
 
   def function1[A, B](a: `Type: x`[A], b: `Type: x`[B]): `Type: x`[A => B] =
-    `Type.AppInfix[_, _]`(0, `Type.Var: x→x→x`(0, "=>", scala.None), a, b)
+    `Type.AppInfix[_, _]`(0, `Type.Var: x_x_x`(0, "=>", scala.None), a, b)
 
   def function2[A, B, C](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C]): `Type: x`[(A, B) => C] =
-    `Type.AppInfix[_, _, _]`(0, `Type.Var: x→x→x→x`(0, "=>", scala.None), a, b, c)
+    `Type.AppInfix[_, _, _]`(0, `Type.Var: x_x_x_x`(0, "=>", scala.None), a, b, c)
 
   def function3[A, B, C, D](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C], d: `Type: x`[D]): `Type: x`[(A, B, C) => D] =
-    `Type.AppInfix[_, _, _, _]`(0, `Type.Var: x→x→x→x→x`(0, "=>", scala.None), a, b, c, d)
+    `Type.AppInfix[_, _, _, _]`(0, `Type.Var: x_x_x_x_x`(0, "=>", scala.None), a, b, c, d)
 
   def function1[A, B](a: `Value: x`[A], b: `Value: x`[B]): `Value: x`[A => B] =
-    `Value.Lam.1: x→x→x x x`(0, a, b, function1(a.tpe, b.tpe))
+    `Value.Lam.1: x_x_x x x`(0, a, b, function1(a.tpe, b.tpe))
 
-  // def `function1[_]`[F[_], A](a: `Type.Var: x`[A], fa: `Value: x`[F[A]]): `Value.x→x`[[A] =>> F[A]] =
-  //   `Value.Lam.1: x→x`(0, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
+  // def `function1[_]`[F[_], A](a: `Type.Var: x`[A], fa: `Value: x`[F[A]]): `Value.x_x`[[A] =>> F[A]] =
+  //   `Value.Lam.1: x_x`(0, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
 
-//   def `function1[_]`[F[_], A](a: `Type.Var: x`[A], fa: `Value.Var.Unbound.Data`[F[A]]): `Value.x→x`[[A] =>> F[A]] =
-//     // `Value.Lam.1: x→x`(0, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
-//     `Value.App.0: x→x`(0, fa, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
+//   def `function1[_]`[F[_], A](a: `Type.Var: x`[A], fa: `Value.Var.Unbound.Data`[F[A]]): `Value.x_x`[[A] =>> F[A]] =
+//     // `Value.Lam.1: x_x`(0, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
+//     `Value.App.0: x_x`(0, fa, fa, typeLambda1[[A] =>> F[A], A](a, fa.tpe))
 
-// // `Value.Lam.1: x→x`[[A] =>> A => Option[A], A](
+// // `Value.Lam.1: x_x`[[A] =>> A => Option[A], A](
 //         0,
 //         function1[A, Option[A]](
 //             "x" :: A,
@@ -84,22 +84,22 @@ object Functions:
 //         typeLambda1[[A] =>> A => Option[A], A](
 //           A[A],
 //           function1(A[A], t)
-//           // ???//function1(targ, `Type.Var: x→x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
+//           // ???//function1(targ, `Type.Var: x_x`[Option](0, "Option", scala.None, scala.List()).applyType(targ))
 //         )
 //       )
 
 
   def function2[A, B, C](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C]): `Value: x`[(A, B) => C] =
-    `Value.Lam.2: x→x→x→x x * x`(0, a, b, c, function2(a.tpe, b.tpe, c.tpe))
+    `Value.Lam.2: x_x_x_x x * x`(0, a, b, c, function2(a.tpe, b.tpe, c.tpe))
 
   def function3[A, B, C, D](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C], d: `Value: x`[D]): `Value: x`[(A, B, C) => D] =
-    `Value.Lam.3: x→x→x→x→x x * x x`(0, a, b, c, d, function3(a.tpe, b.tpe, c.tpe, d.tpe))
+    `Value.Lam.3: x_x_x_x_x x * x x`(0, a, b, c, d, function3(a.tpe, b.tpe, c.tpe, d.tpe))
 
-  def typeLambda1[F[_], A](a: `Type.Var: x`[A], b: `Type: x`[F[A]]): `Type.Lam: x→x`[F, A] =
-    `Type.Lam: x→x`[F, A](0, a, b)
+  def typeLambda1[F[_], A](a: `Type.Var: x`[A], b: `Type: x`[F[A]]): `Type.Lam: x_x`[F, A] =
+    `Type.Lam: x_x`[F, A](0, a, b)
 
-  // def typeLambda1[F[_], A, B](a: `Type.Var: x`[A], b: `Type.AppInfix[_, _]`[Function1, A, B]): `Type.Lam: x→x`[F, A] =
-  //   `Type.Lam: x→x`[F, A](0, a, b)
+  // def typeLambda1[F[_], A, B](a: `Type.Var: x`[A], b: `Type.AppInfix[_, _]`[Function1, A, B]): `Type.Lam: x_x`[F, A] =
+  //   `Type.Lam: x_x`[F, A](0, a, b)
 
   trait Mixins extends Functions[StateT[ErrorF, Γ, _]]
     with Applications.Mixins:
@@ -168,11 +168,11 @@ object Functions:
       @scala.annotation.targetName("tLam1")
       def ==>>[G[_]](
         codomain: `Type.Var: x`[A] => StateT[ErrorF, Γ, `Type: x`[G[A]]]
-      ): StateT[ErrorF, Γ, `Type.Lam: x→x`[G, A]] =
+      ): StateT[ErrorF, Γ, `Type.Lam: x_x`[G, A]] =
         for
           a <- StateT.liftF(fa.runEmptyA)
           b <- codomain(a)
-        yield `Type.Lam: x→x`[[A] =>> G[A], A](0, a, b)
+        yield `Type.Lam: x_x`[[A] =>> G[A], A](0, a, b)
 
     def EXT[`T.x`[t] <: `Type: x`[t], B, A](
       nme: String,
@@ -193,7 +193,7 @@ object Functions:
         (ctx, a) <- StateT.liftF(f.runEmpty)
         s <- StateT.liftF(ctx.pop(Error("Empty for comprehension")))
         g <- StateT.liftF(s.getValue[G[A]])
-        v <- StateT.pure[ErrorF, Γ, `Value: x`[G[A]]](`Value.AppForComp: x→x x`(a.getIndent, ctx._2, a, g.tpe))
+        v <- StateT.pure[ErrorF, Γ, `Value: x`[G[A]]](`Value.AppForComp: x_x x`(a.getIndent, ctx._2, a, g.tpe))
       yield v
 
     @scala.annotation.targetName("For [_[_], _, _]")
@@ -202,7 +202,7 @@ object Functions:
         (ctx, a) <- StateT.liftF(f.runEmpty)
         s <- StateT.liftF(ctx.pop(Error("Empty for comprehension")))
         g <- StateT.liftF(s.getValue[T[G, S, A]])
-        v <- StateT.pure[ErrorF, Γ, `Value: x`[T[G, S, A]]](`Value.AppForComp: x→x x`(a.getIndent, ctx._2, a, g.tpe))
+        v <- StateT.pure[ErrorF, Γ, `Value: x`[T[G, S, A]]](`Value.AppForComp: x_x x`(a.getIndent, ctx._2, a, g.tpe))
       yield v
 
     extension [G[_], H[t] <: `Value: x`[t], A] (nme: String)

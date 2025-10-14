@@ -15,73 +15,81 @@ import dc10.scala.*
 
   // // Values
   // extension [A] (domain: F[`Value.Var.Unbound.Data`[A]])
-  //   def ==>[B](codomain: `Value.Var.Unbound.Data`[A] => `Value: x`[B]): F[`Value.Lam.1: x→x→x x x`[A, B]]
+  //   def ==>[B](codomain: `Value.Var.Unbound.Data`[A] => `Value: x`[B]): F[`Value.Lam.1: x_x_x x x`[A, B]]
 
   // extension [A, B] (domain: (F[`Value.Var.Unbound.Data`[A]], F[`Value.Var.Unbound.Data`[B]]))
-  //   def ==>[C](codomain: (`Value.Var.Unbound.Data`[A], `Value.Var.Unbound.Data`[B]) => `Value: x`[C]): F[`Value.Lam.2: x→x→x→x x * x`[A, B, C]]
+  //   def ==>[C](codomain: (`Value.Var.Unbound.Data`[A], `Value.Var.Unbound.Data`[B]) => `Value: x`[C]): F[`Value.Lam.2: x_x_x_x x * x`[A, B, C]]
 
   // extension [A, B, C] (domain: (F[`Value.Var.Unbound.Data`[A]], F[`Value.Var.Unbound.Data`[B]], F[`Value.Var.Unbound.Data`[C]]))
-  //   def ==>[D](codomain: (`Value.Var.Unbound.Data`[A], `Value.Var.Unbound.Data`[B], `Value.Var.Unbound.Data`[C]) => `Value: x`[D]): F[`Value.Lam.3: x→x→x→x→x x * x x`[A, B, C, D]]
+  //   def ==>[D](codomain: (`Value.Var.Unbound.Data`[A], `Value.Var.Unbound.Data`[B], `Value.Var.Unbound.Data`[C]) => `Value: x`[D]): F[`Value.Lam.3: x_x_x_x_x x * x x`[A, B, C, D]]
 
 object function:
 
   // Types
-  // def FUNCTION1[A, B](a: `Type: x`[A], b: `Type: x`[B]): `Type.AppInfix: x→x→x x x`[Function1, A, B] =
-  //   `Type.AppInfix: x→x→x x x`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  // def FUNCTION1[A, B](a: `Type: x`[A], b: `Type: x`[B]): `Type.AppInfix: x_x_x x x`[Function1, A, B] =
+  //   `Type.AppInfix: x_x_x x x`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[A, B](a: `Type: x`[A], b: `Type: x`[B]): `Type.AppInfix: x→x→x x x`[Function1, A, B] =
-    `Type.AppInfix: x→x→x x x`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  def FUNCTION1[A, B](a: `Type: x`[A], b: `Type: x`[B]): `Type.AppInfix: x_x_x x x`[Function1, A, B] =
+    `Type.AppInfix: x_x_x x x`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x→x x`[F, B]): `Type.AppInfix: x→x→x x (x→x x)`[Function1, F, A, B] =
-    `Type.AppInfix: x→x→x x (x→x x)`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x_x x`[F, B]): `Type.AppInfix: x_x_x x lx_x xl`[Function1, F, A, B] =
+    `Type.AppInfix: x_x_x x lx_x xl`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[H[_], I[_[_], _], A, B](a: `Type: x`[A], b: `Type: (x→x)→x→x x→x x`[I, H, B]): `Type.AppInfix: x→x→x x ((x→x)→x→x x→x x)`[Function1, I, H, A, B] =
-    `Type.AppInfix: x→x→x x ((x→x)→x→x x→x x)`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  def FUNCTION1[H[_], I[_[_], _], A, B](a: `Type: x`[A], b: `Type: lx_xl_x_x x_x x`[I, H, B]): `Type.AppInfix: x_x_x x llx_xl_x_x x_x xl`[Function1, I, H, A, B] =
+    `Type.AppInfix: x_x_x x llx_xl_x_x x_x xl`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  def FUNCTION1[G[_[_], _], H[_], I[_], A, B](a: `Type: x`[A], b: `Type: x→x ((x→x)→x→x x→x x)`[I, G, H, B]): `Type.AppInfix: x→x→x x (x→x ((x→x)→x→x x→x x))`[Function1, G, H, I, A, B] =
-    `Type.AppInfix: x→x→x x (x→x ((x→x)→x→x x→x x))`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  def FUNCTION1[G[_[_], _], H[_], I[_], A, B](a: `Type: x`[A], b: `Type: x_x llx_xl_x_x x_x xl`[I, G, H, B]): `Type.AppInfix: x_x_x x lx_x llx_xl_x_x x_x xll`[Function1, G, H, I, A, B] =
+    `Type.AppInfix: x_x_x x lx_x llx_xl_x_x x_x xll`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  // def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x→x x`[F, B]): `Type.AppInfix: x→x→x x (x→x x)`[Function1, F, A, B] =
-  //   `Type.AppInfix: x→x→x x (x→x x)`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
-
-
-  def FUNCTION1[G[_], H[_], I[_[_], _], A, B](a: `Type: x→x x`[G, A], b: `Type: (x→x)→x→x x→x x`[I, H, B]): `Type.AppInfix: x→x→x (x→x x) ((x→x)→x→x x→x x)`[Function1, G, H, I, A, B] =
-    `Type.AppInfix: x→x→x (x→x x) ((x→x)→x→x x→x x)`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
-
-  def FUNCTION1[T[_[_], _], F[_], A, I[_[_], _], J[_], K[_[_]], L[_], B](a: `Type: (x→x)→x→x x→x x`[T, F, A], b: `Type: (x→x)→x→x x→x ((x→x)→x x→x)`[I, J, K, L]): `Type.AppInfix: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[Function1, T, F, A, I, J, K, L] =
-    `Type.AppInfix: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  // def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x_x x`[F, B]): `Type.AppInfix: x_x_x x lx_x xl`[Function1, F, A, B] =
+  //   `Type.AppInfix: x_x_x x lx_x xl`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
 
-  // extension [T[_[_], _], F[_], A] (domain: `Type: (x→x)→x→x x→x x`[T, F, A])
+  def FUNCTION1[G[_], H[_], I[_[_], _], A, B](a: `Type: x_x x`[G, A], b: `Type: lx_xl_x_x x_x x`[I, H, B]): `Type.AppInfix: x_x_x lx_x xl llx_xl_x_x x_x xl`[Function1, G, H, I, A, B] =
+    `Type.AppInfix: x_x_x lx_x xl llx_xl_x_x x_x xl`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
+
+  def FUNCTION1[T[_[_], _], F[_], A, I[_[_], _], J[_], K[_[_]], L[_]](a: `Type: lx_xl_x_x x_x x`[T, F, A], b: `Type: lx_xl_x_x x_x llx_xl_x x_xl`[I, J, K, L]): `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[Function1, T, F, A, I, J, K, L] =
+    `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
+
+  def FUNCTION1[T[_[_], _], F[_], A, I[_[_], _], J[_], K[_[_], _], L[_], B](a: `Type: lx_xl_x_x x_x x`[T, F, A], b: `Type: lx_xl_x_x x_x llx_xl_x_x x_x xl`[I, J, K, L, B]): `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`[Function1, T, F, A, I, J, K, L, B] =
+    `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
+
+  def FUNCTION1[T[_, _], F[_], G[_[_], _], H[_], A, I[_[_], _], J[_], K[_[_], _], L[_], B](a: `Type: x_x llx_xl_x_x x_x xl`[F, G, H, A], b: `Type: lx_xl_x_x x_x llx_xl_x_x x_x xl`[I, J, K, L, B]): `Type.AppInfix: x_x_x lx_x llx_xl_x_x x_x xll llx_xl_x_x x_x llx_xl_x_x x_x xll`[Function1, F, G, H, A, I, J, K, L, B] =
+    `Type.AppInfix: x_x_x lx_x llx_xl_x_x x_x xll llx_xl_x_x x_x llx_xl_x_x x_x xll`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
+
+  def FUNCTION1A[T[_, _], F[_, _], G[_[_], _], H[_], A, I[_[_], _], J[_], K[_[_]], L[_], M[_[_], _], N[_], O[_[_]], P[_]](a: `Type: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[F, G, H, A, I, J, K, L], b: `Type: lx_xl_x_x x_x llx_xl_x x_xl`[M, N, O, P]): `Type.AppInfix: x_x_x lx_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xlll llx_xl_x_x x_x llx_xl_x x_xll`[Function1, F, G, H, A, I, J, K, L, M, N, O, P] =
+    `Type.AppInfix: x_x_x lx_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xlll llx_xl_x_x x_x llx_xl_x x_xll`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
+
+  // extension [T[_[_], _], F[_], A] (domain: `Type: lx_xl_x_x x_x x`[T, F, A])
   //   def ==>[I[_[_], _], J[_], K[_[_]], L[_], B](
-  //     codomain: `Type: (x→x)→x→x x→x x`[T, F, A] => `Type: (x→x)→x→x x→x ((x→x)→x x→x)`[I, J, K, L]
-  //   ): `Type.AppInfix: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[Function1, T, F, A, I, J, K, L] =
+  //     codomain: `Type: lx_xl_x_x x_x x`[T, F, A] => `Type: lx_xl_x_x x_x llx_xl_x x_xl`[I, J, K, L]
+  //   ): `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[Function1, T, F, A, I, J, K, L] =
   //     FUNCTION1(domain, codomain)
 
-  // def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x→x x`[F, B]): `Type.AppInfix[A, F[B]]`[Function1, F, A, B] =
-  //   `Type.AppInfix[A, F[B]]`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)  
+  // def FUNCTION1[F[_], A, B](a: `Type: x`[A], b: `Type: x_x x`[F, B]): `Type.AppInfix[A, F[B]]`[Function1, F, A, B] =
+  //   `Type.AppInfix[A, F[B]]`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)  
 
-  // def FUNCTION1[T[_[_], _], F[_], A, B](a: `Type: x→x x`[F, A], b: `Type: (x→x)→x→x x→x x`[T, F, B]): `Type.AppInfix: x→x→x x x`[Function1, F[A], B] =
-  //   `Type.AppInfix[F[A], G[_[_], _]]`(0, `Type.Var: x→x→x`(0, AliasSym("=>"), scala.None), a, b)
+  // def FUNCTION1[T[_[_], _], F[_], A, B](a: `Type: x_x x`[F, A], b: `Type: lx_xl_x_x x_x x`[T, F, B]): `Type.AppInfix: x_x_x x x`[Function1, F[A], B] =
+  //   `Type.AppInfix[F[A], G[_[_], _]]`(0, `Type.Var: x_x_x`(0, AliasSym("=>"), scala.None), a, b)
 
-  // def FUNCTION2[A, B, C](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C]): `Type.AppInfix: x→x→x→x x * x`[Function2, A, B, C] =
-  //   `Type.AppInfix: x→x→x→x x * x`(0, `Type.Var: x→x→x→x`(0, AliasSym("=>"), scala.None), a, b, c)
+  // def FUNCTION2[A, B, C](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C]): `Type.AppInfix: x_x_x_x x * x`[Function2, A, B, C] =
+  //   `Type.AppInfix: x_x_x_x x * x`(0, `Type.Var: x_x_x_x`(0, AliasSym("=>"), scala.None), a, b, c)
 
-  // def FUNCTION3[A, B, C, D](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C], d: `Type: x`[D]): `Type.AppInfix: x→x→x→x→x x * x x`[Function3, A, B, C, D] =
-  //   `Type.AppInfix: x→x→x→x→x x * x x`(0, `Type.Var: x→x→x→x→x`(0, AliasSym("=>"), scala.None), a, b, c, d)
+  // def FUNCTION3[A, B, C, D](a: `Type: x`[A], b: `Type: x`[B], c: `Type: x`[C], d: `Type: x`[D]): `Type.AppInfix: x_x_x_x_x x * x x`[Function3, A, B, C, D] =
+  //   `Type.AppInfix: x_x_x_x_x x * x x`(0, `Type.Var: x_x_x_x_x`(0, AliasSym("=>"), scala.None), a, b, c, d)
   
   // Values
-  def function1[A, B](a: `Value: x`[A], b: `Value: x`[B]): `Value.Lam.1: x→x→x x x`[A, B] =
-    `Value.Lam.1: x→x→x x x`(0, a, b, FUNCTION1(a.tpe, b.tpe))
+  def function1[A, B](a: `Value: x`[A], b: `Value: x`[B]): `Value.Lam.1: x_x_x x x`[A, B] =
+    `Value.Lam.1: x_x_x x x`(0, a, b, FUNCTION1(a.tpe, b.tpe))
 
-  def function1[T[_[_], _], F[_], A, I[_[_], _], J[_], K[_[_]], L[_], B](a: `Value.Val: (x→x)→x→x x→x x`[T, F, A], b: `Value: (x→x)→x→x x→x ((x→x)→x x→x)`[I, J, K, L]): `Value.Lam1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[Function1, T, F, A, I, J, K, L] =
-    `Value.Lam1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`(0, a, b, FUNCTION1(a.tpe, b.tpe))
+  def function1[T[_[_], _], F[_], A, I[_[_], _], J[_], K[_[_]], L[_], B](a: `Value.Val: lx_xl_x_x x_x x`[T, F, A], b: `Value: lx_xl_x_x x_x llx_xl_x x_xl`[I, J, K, L]): `Value.Lam1: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[Function1, T, F, A, I, J, K, L] =
+    `Value.Lam1: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`(0, a, b, FUNCTION1(a.tpe, b.tpe))
 
-  // def function2[A, B, C](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C]): `Value.Lam.2: x→x→x→x x * x`[A, B, C] =
-  //   `Value.Lam.2: x→x→x→x x * x`(0, a, b, c, FUNCTION2(a.tpe, b.tpe, c.tpe))
+  // def function2[A, B, C](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C]): `Value.Lam.2: x_x_x_x x * x`[A, B, C] =
+  //   `Value.Lam.2: x_x_x_x x * x`(0, a, b, c, FUNCTION2(a.tpe, b.tpe, c.tpe))
 
-  // def function3[A, B, C, D](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C], d: `Value: x`[D]): `Value.Lam.3: x→x→x→x→x x * x x`[A, B, C, D] =
-  //   `Value.Lam.3: x→x→x→x→x x * x x`(0, a, b, c, d, FUNCTION3(a.tpe, b.tpe, c.tpe, d.tpe))
+  // def function3[A, B, C, D](a: `Value: x`[A], b: `Value: x`[B], c: `Value: x`[C], d: `Value: x`[D]): `Value.Lam.3: x_x_x_x_x x * x x`[A, B, C, D] =
+  //   `Value.Lam.3: x_x_x_x_x x * x x`(0, a, b, c, d, FUNCTION3(a.tpe, b.tpe, c.tpe, d.tpe))
 
   // Impl
   // val impl: function[StateT[ErrorF, Γ, _]] =
@@ -89,58 +97,72 @@ object function:
 
   // Types
   // extension [A] (domain: `Type: x`[A])
-  //   def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x→x→x x x`[Function1, A, B] =
+  //   def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x_x_x x x`[Function1, A, B] =
   //     FUNCTION1(domain, codomain)
 
   // extension [A] (domain: `Type: x`[A])
-  //   def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x→x→x x x`[Function1, A, B] =
+  //   def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x_x_x x x`[Function1, A, B] =
   //     FUNCTION1(domain, codomain)
 
   extension [A] (domain: `Type: x`[A])
-    def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x→x→x x x`[Function1, A, B] =
+    def ==>[B](codomain: `Type: x`[B]): `Type.AppInfix: x_x_x x x`[Function1, A, B] =
       FUNCTION1(domain, codomain)
 
   extension [A] (domain: `Type: x`[A])
-    def ==>[F[_], B](codomain: `Type: x→x x`[F, B]): `Type.AppInfix: x→x→x x (x→x x)`[Function1, F, A, B] =
+    def ==>[F[_], B](codomain: `Type: x_x x`[F, B]): `Type.AppInfix: x_x_x x lx_x xl`[Function1, F, A, B] =
       FUNCTION1(domain, codomain)
 
   // extension [G[_[_], _], H[_], A, B] (domain: `Type: x`[A])
-  //   def ==>(codomain: `Type: (x→x)→x→x x→x x`[G, H, B]): `Type.AppInfix: x→x→x x ((x→x)→x→x x→x x)`[Function1, G, H, A, B] =
+  //   def ==>(codomain: `Type: lx_xl_x_x x_x x`[G, H, B]): `Type.AppInfix: x_x_x x llx_xl_x_x x_x xl`[Function1, G, H, A, B] =
   //     FUNCTION1(domain, codomain)
 
   extension [G[_[_], _], H[_], I[_], A, B] (domain: `Type: x`[A])
-    def ==>(codomain: `Type: x→x ((x→x)→x→x x→x x)`[I, G, H, B]): `Type.AppInfix: x→x→x x (x→x ((x→x)→x→x x→x x))`[Function1, G, H, I, A, B] =
+    def ==>(codomain: `Type: x_x llx_xl_x_x x_x xl`[I, G, H, B]): `Type.AppInfix: x_x_x x lx_x llx_xl_x_x x_x xll`[Function1, G, H, I, A, B] =
       FUNCTION1(domain, codomain)
 
   // extension [F[_], A, B] (domain: `Type: x`[A])
-  //   def ==>(codomain: `Type: x→x x`[F, B]): `Type.AppInfix: x→x→x x (x→x x)`[Function1, F, A, B] =
+  //   def ==>(codomain: `Type: x_x x`[F, B]): `Type.AppInfix: x_x_x x lx_x xl`[Function1, F, A, B] =
   //     FUNCTION1(domain, codomain)
 
-  extension [G[_], H[_], I[_[_], _], A, B] (domain: `Type: x→x x`[G, A])
-    def ==>(codomain: `Type: (x→x)→x→x x→x x`[I, H, B]): `Type.AppInfix: x→x→x (x→x x) ((x→x)→x→x x→x x)`[Function1, G, H, I, A, B] =
+  extension [G[_], H[_], I[_[_], _], A, B] (domain: `Type: x_x x`[G, A])
+    def ==>(codomain: `Type: lx_xl_x_x x_x x`[I, H, B]): `Type.AppInfix: x_x_x lx_x xl llx_xl_x_x x_x xl`[Function1, G, H, I, A, B] =
       FUNCTION1(domain, codomain)
 
-  extension [T[_[_], _], F[_], A] (domain: `Type: (x→x)→x→x x→x x`[T, F, A])
-    def ==>[I[_[_], _], J[_], K[_[_]], L[_], B](
-      codomain: `Type: (x→x)→x→x x→x ((x→x)→x x→x)`[I, J, K, L]
-    ): `Type.AppInfix: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[Function1, T, F, A, I, J, K, L] =
+  extension [F[_], G[_[_], _], H[_], A, I[_[_], _], J[_], K[_[_], _], L[_], B] (domain: `Type: x_x llx_xl_x_x x_x xl`[F, G, H, A])
+    def ==>(codomain: `Type: lx_xl_x_x x_x llx_xl_x_x x_x xl`[I, J, K, L, B]): `Type.AppInfix: x_x_x lx_x llx_xl_x_x x_x xll llx_xl_x_x x_x llx_xl_x_x x_x xll`[Function1, F, G, H, A, I, J, K, L, B] =
       FUNCTION1(domain, codomain)
+
+  extension [T[_[_], _], F[_], A] (domain: `Type: lx_xl_x_x x_x x`[T, F, A])
+    def ==>[I[_[_], _], J[_], K[_[_]], L[_]](
+      codomain: `Type: lx_xl_x_x x_x llx_xl_x x_xl`[I, J, K, L]
+    ): `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[Function1, T, F, A, I, J, K, L] =
+      FUNCTION1(domain, codomain)
+    def ==>[I[_[_], _], J[_], K[_[_], _], L[_], B](
+      codomain: `Type: lx_xl_x_x x_x llx_xl_x_x x_x xl`[I, J, K, L, B]
+    ): `Type.AppInfix: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`[Function1, T, F, A, I, J, K, L, B] =
+      FUNCTION1(domain, codomain)
+
+  extension [F[_, _], G[_[_], _], H[_], A, I[_[_], _], J[_], K[_[_]], L[_]] (domain: `Type: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[F, G, H, A, I, J, K, L])
+    def ==>[M[_[_], _], N[_], O[_[_]], P[_]](
+      codomain: `Type: lx_xl_x_x x_x llx_xl_x x_xl`[M, N, O, P]
+    ): `Type.AppInfix: x_x_x lx_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xlll llx_xl_x_x x_x llx_xl_x x_xll`[Function1, F, G, H, A, I, J, K, L, M, N, O, P] =
+      FUNCTION1A(domain, codomain)
 
   // extension [A, B] (domain: (`Type: x`[A], `Type: x`[B]))
-  //   def ==>[C](codomain: `Type: x`[C]): `Type.AppInfix: x→x→x→x x * x`[Function2, A, B, C] =
+  //   def ==>[C](codomain: `Type: x`[C]): `Type.AppInfix: x_x_x_x x * x`[Function2, A, B, C] =
   //     FUNCTION2(domain._1, domain._2, codomain)
 
   // extension [A, B, C] (domain: (`Type: x`[A], `Type: x`[B], `Type: x`[C]))
-  //   def ==>[D](codomain: `Type: x`[D]): `Type.AppInfix: x→x→x→x→x x * x x`[Function3, A, B, C, D] =
+  //   def ==>[D](codomain: `Type: x`[D]): `Type.AppInfix: x_x_x_x_x x * x x`[Function3, A, B, C, D] =
   //     FUNCTION3(domain._1, domain._2, domain._3, codomain)
 
   // Values
   extension [A] (domain: `Value.Val: x`[A])
-    def ==>[B](codomain: `Value.Val: x`[A] => `Value: x`[B]): `Value.Lam.1: x→x→x x x`[A, B] =
+    def ==>[B](codomain: `Value.Val: x`[A] => `Value: x`[B]): `Value.Lam.1: x_x_x x x`[A, B] =
       function1(domain, codomain(domain))
 
-  extension [T[_[_], _], F[_], A] (domain: `Value.Val: (x→x)→x→x x→x x`[T, F, A])
+  extension [T[_[_], _], F[_], A] (domain: `Value.Val: lx_xl_x_x x_x x`[T, F, A])
     def ==>[I[_[_], _], J[_], K[_[_]], L[_], B](
-      codomain: `Value.Val: (x→x)→x→x x→x x`[T, F, A] => `Value: (x→x)→x→x x→x ((x→x)→x x→x)`[I, J, K, L]
-    ): `Value.Lam1: x→x→x ((x→x)→x→x x→x x) ((x→x)→x→x x→x ((x→x)→x x→x))`[Function1, T, F, A, I, J, K, L] =
+      codomain: `Value.Val: lx_xl_x_x x_x x`[T, F, A] => `Value: lx_xl_x_x x_x llx_xl_x x_xl`[I, J, K, L]
+    ): `Value.Lam1: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xll`[Function1, T, F, A, I, J, K, L] =
       function1(domain, codomain(domain))

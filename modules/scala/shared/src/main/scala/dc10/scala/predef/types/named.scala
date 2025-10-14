@@ -31,7 +31,7 @@ object named:
       //       //     lvl = 0,
       //       //     sym = sym._2,
       //       //     arg1 = field,
-      //       //     tpe = `Type.App[_, _]`(0, `Type.Var: x→x→x`(0, "=>", None), a.tpe, n),
+      //       //     tpe = `Type.App[_, _]`(0, `Type.Var: x_x_x`(0, "=>", None), a.tpe, n),
       //       //   )
       //       // )
       //       case _ => ??? // Left(List(Error(s"Expected Identifier but found ${a}")))

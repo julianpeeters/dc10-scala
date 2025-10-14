@@ -21,7 +21,7 @@ trait Files[F[_], G[_], H[_]]:
   def BASEDIR[A](nme: String): RepoSym
 
   // extension (nme: StringContext)
-  //   def BASEDIR(args: Anyx): RepoSym
+  //   def BASEDIR(args: Anyxl: RepoSym
   extension (sym: RepoSym)
     def withSelf[A](files: RepoSym => F[A]): F[Unit]
   
@@ -70,7 +70,7 @@ object Files:
 
           // d <- StateT.pure(ds.toList.map(d => SbtStatement.ProjectDef(AddSbtPlugin(d))))// match
           // d <- StateT.liftF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), NonEmptyList[SbtStatement]](ds.toList.map(d => SbtStatement.ProjectDef(AddSbtPlugin(d))) match
-          //   case h :: t => Right(NonEmptyList.of(h, tx))
+          //   case h :: t => Right(NonEmptyList.of(h, txll
           //   case Nil => Left(List(LanguageError("project cannot be empty"))))
           // // p <- StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]](Source(List("project", "plugins.sbt"), d).addParent(List(sym.nme)))
           // c <- if s._2.isEmpty//ms match

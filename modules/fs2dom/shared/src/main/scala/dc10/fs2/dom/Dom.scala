@@ -13,5 +13,5 @@ object Dom:
 
   val lib: LibDep = LibDep("org.typelevel", "fs2-dom", "0.2.1")
 
-  def HtmlElement: `Type: (x→x)→x`[HtmlElement] =
-    `Type.Var: (x→x)→x`(0, AliasSym("fs2.dom.HtmlElement"), None)
+  def HtmlElement: `Type: lx_xl_x`[HtmlElement] =
+    `Type.Var: lx_xl_x`(0, AliasSym("fs2.dom.HtmlElement"), None)

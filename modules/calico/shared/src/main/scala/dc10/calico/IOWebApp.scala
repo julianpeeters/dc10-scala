@@ -9,10 +9,10 @@ import dc10.scala.dsl.{EXTENDS, OBJECT}
 
 trait IOWebApp[F[_]]:
 
-  def IOWebApp(name: String)(render: F[`Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]]): F[Unit]
-  // def Render(program: `Value: x→x x`[IO, Unit]): F[`Value.Val: x→x x`[IO, Unit]]
-  def Render(program: `Value: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]): F[`Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]]
-  // def Render(program: `Value: x→x x`[IO, Unit]): F[`Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`[IO, Unit]]
+  def IOWebApp(name: String)(render: F[`Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]]): F[Unit]
+  // def Render(program: `Value: x_x x`[IO, Unit]): F[`Value.Val: x_x x`[IO, Unit]]
+  def Render(program: `Value: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]): F[`Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]]
+  // def Render(program: `Value: x_x x`[IO, Unit]): F[`Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`[IO, Unit]]
 
 
 object IOWebApp:
@@ -25,7 +25,7 @@ object IOWebApp:
       def IOWebApp(
         name: String
       )(
-        render: StateT[ErrorF, Γ, `Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]]
+        render: StateT[ErrorF, Γ, `Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]]
       ): StateT[ErrorF, Γ, Unit] =
         for
           _ <- OBJECT"$name".EXTENDS(`Type.Var: x`(0, AliasSym("calico.IOWebApp"), None)) {render}
@@ -33,11 +33,11 @@ object IOWebApp:
         yield ()
 
       def Render(
-        program: `Value: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]
-      ): StateT[ErrorF, Γ, `Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`[Resource, IO, HtmlElement, IO]] =
+        program: `Value: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]
+      ): StateT[ErrorF, Γ, `Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`[Resource, IO, HtmlElement, IO]] =
         for
-          v <- StateT.pure(`Value.Val: (x→x)→x→x x→x ((x→x)→x x→x)`(0, `ValSym`("render"), program.tpe, Some(program)))
-          d <- StateT.pure(`ValDef: (x→x)→x→x x→x ((x→x)→x x→x)`(v))
+          v <- StateT.pure(`Value.Val: lx_xl_x_x x_x llx_xl_x x_xl`(0, `ValSym`("render"), program.tpe, Some(program)))
+          d <- StateT.pure(`ValDef: lx_xl_x_x x_x llx_xl_x x_xl`(v))
           // _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(IOWebApp.lib))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v

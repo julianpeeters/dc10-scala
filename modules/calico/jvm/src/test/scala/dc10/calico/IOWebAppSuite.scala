@@ -27,6 +27,10 @@ class IOWebAppSuite extends FunSuite:
       ast.compile.string
       
     val expected: String =
-      "val foo: cats.effect.IO[fs2.concurrent.SignallingRef[cats.effect.IO, String]] = fs2.concurrent.SignallingRef[cats.effect.IO].of(\"Hello, World\")\n".stripMargin
+      """object Main extends calico.IOWebApp:
+        |
+        |  val render: cats.effect.Resource[cats.effect.IO, fs2.dom.HtmlElement[cats.effect.IO]] = fs2.concurrent.SignallingRef[cats.effect.IO].of("World").toResource.flatMap(name => div(name))
+        |
+        |""".stripMargin
       
     assertEquals(obtained, expected)
