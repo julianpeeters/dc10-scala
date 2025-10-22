@@ -3,7 +3,7 @@ package dc10.scala.predef.datatype
 import _root_.scala.language.implicitConversions
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.6`
+import dc10.scala.version.`3.3.7`
 import munit.FunSuite
 
 class VariableTypesSuite extends FunSuite:

@@ -10,7 +10,7 @@ class PrimitiveTypeSuite extends FunSuite:
 
   // compile
   import dc10.scala.compiler.{compile, string}
-  import dc10.scala.version.`3.3.6`
+  import dc10.scala.version.`3.3.7`
 
   test("def dec"):
 

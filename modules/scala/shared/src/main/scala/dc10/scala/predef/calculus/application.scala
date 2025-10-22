@@ -5,11 +5,11 @@ import dc10.scala.internal.substitution.substitute
 
 object application:
 
-  extension [T[_], A] (l: `Type.Lam: x_x`[[X] =>> T[X], A])
+  extension [T[_], A] (l: `Type.Lam: x_x`[T, A])
     def apply(a: `Type: x`[A]): `Type: x_x x`[T, A] =
       l.codomain.substitute(a)
 
-  extension [T[_[_], _], F[_], A] (l: `Type.Lam: lx_xl_x_x`[[X[_], Y] =>> T[X, Y], F, A])
+  extension [T[_[_], _], F[_], A] (l: `Type.Lam: lx_xl_x_x`[T, F, A])
     def apply(f: `Type: x_x`[F], a: `Type: x`[A]): `Type: lx_xl_x_x x_x x`[T, F, A] =
       l.codomain.substitute(f, a)
 

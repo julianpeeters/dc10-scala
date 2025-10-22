@@ -1,5 +1,5 @@
 val Dc10V = "0.7.0"
-val MUnitV = "1.0.2"
+val MUnitV = "1.2.1"
 
 inThisBuild(List(
   crossScalaVersions := Seq(scalaVersion.value),
@@ -22,7 +22,7 @@ inThisBuild(List(
     "-Wunused:all",
     // "-Xkind-projector:underscores",
   ),
-  scalaVersion := "3.3.6",
+  scalaVersion := "3.3.7",
   versionScheme := Some("semver-spec"),
 ))
 

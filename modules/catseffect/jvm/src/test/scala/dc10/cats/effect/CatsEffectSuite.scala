@@ -4,7 +4,7 @@ import _root_.scala.language.implicitConversions
 import dc10.cats.effect.dsl.{IO, IOApp, Run, println}
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.6`
+import dc10.scala.version.`3.3.7`
 
 import munit.FunSuite
 
@@ -34,9 +34,7 @@ class CatsEffectSuite extends FunSuite:
       
     val expected: String =
       """object Hello extends cats.effect.IOApp.Simple:
-        |
         |  val run: cats.effect.IO[Unit] = cats.effect.IO.println("Hello, World!")
-        |
         |  """.stripMargin
     
     assertEquals(obtained, expected.dropRight(2))

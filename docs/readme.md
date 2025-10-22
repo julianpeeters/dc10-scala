@@ -27,7 +27,7 @@ Use the `compiler` impl to check and render code to `string` or `virtualFile`:
 
 ```scala mdoc
 import dc10.scala.compiler.{compile, string}
-import dc10.scala.version.`3.3.6`
+import dc10.scala.version.`3.3.7`
 
 val result: String = snippet.compile.string
 ```

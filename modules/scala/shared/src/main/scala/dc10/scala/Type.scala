@@ -132,7 +132,8 @@ case class `Type.App: x_x llx_xl_x_x x_x xl`[F[_], G[_[_], _], H[_], A](lvl: Int
 
 sealed trait `Type: x_x`[T[_]] extends Type
 case class `Type.Lam: x_x`[F[_], A](lvl: Int, domain: `Type.Var: x`[A], codomain: `Type.App: x_x x`[F, A]) extends `Type: x_x`[F]
-case class `Type.Var: x_x`[T[_]](lvl: Int, sym: AliasSym, impl: Option[`Type: x_x`[[A] =>> T[A]]], ctors: () => List[Value]) extends `Type: x_x`[T]
+// case class `Type.Var: x_x`[T[_]](lvl: Int, sym: AliasSym, impl: Option[`Type: x_x`[[A] =>> T[A]]], ctors: () => List[Value]) extends `Type: x_x`[T]
+case class `Type.Var: x_x`[T[_]](lvl: Int, sym: AliasSym, impl: Option[`Type: x_x`[[A] =>> T[A]]]) extends `Type: x_x`[T]
 
 sealed trait `Type: lx_xl_x_x x_x`[T[_[_], _], F[_]] extends Type:
   def tfun: `Type: lx_xl_x_x`[T]

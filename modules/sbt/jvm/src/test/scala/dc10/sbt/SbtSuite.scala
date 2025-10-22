@@ -6,21 +6,10 @@ class SbtSuite extends FunSuite:
   
   import dc10.sbt.dsl.*
   import dc10.sbt.compiler
-  import dc10.sbt.version.`1.11.6`
-  import dc10.scala.dsl.{*, given}
-  import dc10.scala.version.`3.3.6`
-  import scala.language.implicitConversions
+  import dc10.sbt.version.`1.11.7`
+  import dc10.scala.version.`3.3.7`
   
   test("base dir"):
-
-    val `Main.scala` =
-      FILE"Main.scala" {
-        PACKAGE"example" {
-
-          VAL"hello"$ String := "hello, world"
-
-        }
-      }
 
     val ast =
       BASEDIR("dc10-example").withSelf: self => 
@@ -37,7 +26,7 @@ class SbtSuite extends FunSuite:
       
     val expected: List[String] =
       List(
-        """ThisBuild / scalaVersion := "3.3.6"
+        """ThisBuild / scalaVersion := "3.3.7"
           |ThisBuild / version := "0.1.0-SNAPSHOT"
           |
           |lazy val root = (project in file(".")).settings(
@@ -76,7 +65,7 @@ class SbtSuite extends FunSuite:
   //       """|package example
   //          |
   //          |val hello: String = "hello, world"""".stripMargin,
-  //       """|ThisBuild / scalaVersion := "3.3.6"
+  //       """|ThisBuild / scalaVersion := "3.3.7"
   //          |ThisBuild / version := "0.1.0-SNAPSHOT"
   //          |
   //          |lazy val `dc10-example` = crossProject(JSPlatform, JVMPlatform, NativePlatform)

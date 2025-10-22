@@ -4,6 +4,8 @@ import dc10.sbt.Extras.{Gitignore, License, Readme}
 import dc10.scala.{LibDep, Statement}
 
 sealed trait SbtStatement
+case class AddSbtPlugin(libDep: Statement) extends SbtStatement
+case object BuildProperties extends SbtStatement
 case class ProjectDef(project: Project) extends SbtStatement
 case class LibDepStatement(statement: Statement) extends SbtStatement
 case class LicenseStatement(license: License) extends SbtStatement

@@ -6,15 +6,23 @@ import dc10.file.SourceFile
   // import dc10.scala.compiler
 
 import dc10.sbt.compiler
-import dc10.sbt.{LicenseStatement, GitignoreStatement, ReadmeStatement, RepoSym, SbtStatement}
+import dc10.sbt.{BuildProperties, LicenseStatement, GitignoreStatement, ReadmeStatement, RepoSym, SbtStatement}
 import dc10.sbt.Build.SourceDir
 import dc10.sbt.Extras.{Gitignore, License, Readme}
 // import dc10.sbt.Symbol.Project.{AddSbtPlugin, CrossProject, SubProject, Root}
 import dc10.scala.{ErrorF, Statement}
 import cats.data.{NonEmptyList}
 import dc10.LanguageError
-import dc10.sbt.SbtStatement.asSbtStatement
+// import dc10.sbt.SbtStatement.asSbtStatement
 import fs2.io.file.Path
+import dc10.sbt.AddSbtPlugin
+import dc10.sbt.ProjectDef
+import dc10.sbt.LibDepStatement
+import dc10.sbt.ScalaStatement
+import dc10.sbt.Project.CrossProject
+import dc10.sbt.Project.Root
+import dc10.sbt.Project.SubProject
+import dc10.sbt.SbtStatement.asSbtStatement
 // import java.nio.file.Path
 
 trait Files[F[_], G[_], H[_]]:
@@ -105,9 +113,36 @@ object Files:
         //   case SbtStatement.ReadmeStatement(s) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), List[Unit]]((List()))
         //   case SbtStatement.ScalaStatement(statement) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), List[Unit]]((List()))
         // )
+        _ <- ps.traverse(p => p match
+          case AddSbtPlugin(libDep) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case BuildProperties => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case ProjectDef(project) => project match
+            case CrossProject(nme, src) => src.files.traverse_(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(l.copy(contents = l.contents.map(s => s.asSbtStatement)))))
+            case Root(nme, agg, src) => src.files.traverse_(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(l.copy(contents = l.contents.map(s => s.asSbtStatement)))))
+            case SubProject(nme, src) => src.files.traverse_(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(l.copy(contents = l.contents.map(s => s.asSbtStatement)))))
+          
+          case LibDepStatement(statement) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case LicenseStatement(license) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case GitignoreStatement(gitignore) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case ReadmeStatement(readme) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+          case ScalaStatement(statement) => StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](())
+        )
         d <- StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]](SourceFile(Path("build.sbt"), ps))
-        _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.dep(l)))
+        e <- StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]](SourceFile(Path("project")/"build.properties", NonEmptyList(BuildProperties, Nil)))
+        _ <- s._1._1.toList.toNel.fold(StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit](()))(nel =>
+          StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(SourceFile(Path("project")/"plugins.sbt", nel))))//StateT.pure[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]](SourceFile(Path("project")/"plugins.sbt", nel)))
+
+        // _ <- StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx =>
+        //   // println("ADDING " + l)
+        //   ctx.dep(???)
+        // )
+        // _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx =>
+        //   println("ADDING " + l)
+        //   ctx.dep(l))
+        // )
         _ <- StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(d))
+        _ <- StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(e))
+        // _ <- StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f))
       yield s._2
 
     def GITIGNORE: StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), Unit] =
@@ -133,13 +168,10 @@ object Files:
     ): StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceDir] =
       for
         s <- StateT.liftF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), (Set[Statement], List[SourceFile[NonEmptyList, Statement]])](files.runEmptyS)
-        cs = s._2.map(f => f.copy(
-          path = Path("src/main/scala")/f.path, 
-          contents = f.contents.map(s => s.asSbtStatement)
-        ))
+        cs = s._2.map(f => f.copy(path = Path("src/main/scala")/f.path))
         // _ <- ds.toList.traverse(l => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.dep(l)))
-        _ <- cs.traverse_(f => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f)))
-      yield SourceDir(List("."), s._1) // s.map(f => f.copy(path = f.path ++ List("src", "main", "scala"))))
+        // _ <- cs.traverse_(f => StateT.modifyF[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]])](ctx => ctx.ext(f)))
+      yield SourceDir(Path("."), s._1, cs) // s.map(f => f.copy(path = f.path ++ List("src", "main", "scala"))))
 
     // given refF: Conversion[SourceFile[NonEmptyList, SbtStatement], StateT[ErrorF, (Set[SbtStatement], List[SourceFile[NonEmptyList, SbtStatement]]), SourceFile[NonEmptyList, SbtStatement]]] =
     //   v => StateT.pure(v)

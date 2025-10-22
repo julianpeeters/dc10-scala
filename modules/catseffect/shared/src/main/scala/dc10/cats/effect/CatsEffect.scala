@@ -6,7 +6,6 @@ import dc10.scala.{*, given}
 import dc10.scala.compiler.{Γ, dep}
 import dc10.scala.dsl.{String, Unit, EXTENDS, OBJECT, ==>, apply, dot}
 
-
 trait CatsEffect[F[_]]:
   type IO[_]
   def IO: `Type: x_x`[IO]
@@ -28,7 +27,7 @@ object CatsEffect:
     new CatsEffect[[A] =>> StateT[ErrorF, Γ, A]]:
 
       def IO: `Type: x_x`[IO] =
-        `Type.Var: x_x`(0, AliasSym("cats.effect.IO"), None, ctors = () => Nil)
+        `Type.Var: x_x`(0, AliasSym("cats.effect.IO"), None)
 
       def IOApp(
         name: String

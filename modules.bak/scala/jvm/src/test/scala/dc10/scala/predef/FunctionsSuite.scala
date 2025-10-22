@@ -5,7 +5,7 @@ import cats.implicits.given
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
 import dc10.scala.{Dep, Statement}
-import dc10.scala.version.`3.3.6`
+import dc10.scala.version.`3.3.7`
 import munit.FunSuite
 
 class FunctionsSuite extends FunSuite:

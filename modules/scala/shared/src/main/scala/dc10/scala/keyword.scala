@@ -19,6 +19,12 @@ object keyword:
     def PACKAGE(args: Any*): PkgSym =
       PkgSym(args.mkString + nme.parts.mkString)
 
+    def SEALED(args: Any*): SldTrtSym =
+      SldTrtSym(args.mkString + nme.parts.mkString)
+
+    def TRAIT(args: Any*): TrtSym =
+      TrtSym(args.mkString + nme.parts.mkString)
+
     def TYPE(args: Any*): AliasSym =
       AliasSym(nme.raw(args*))
 

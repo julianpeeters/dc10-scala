@@ -17,15 +17,11 @@ object DefSym:
   extension (sym: `DefSym.0`)
     def apply[A, R](a: `Value.Val: x`[A]): `DefSym.1`[A, R] =
       `DefSym.1`(sym.nme, a)
-
 case class FileSym(nme: String) extends Symbol
-
 case class LzySym(nme: String) extends Symbol
-
 case class ObjSym(nme: String) extends Symbol
-
 case class PkgSym(nme: String) extends Symbol
-
+case class SldTrtSym(nme: String) extends Symbol
+case class TrtSym(nme: String) extends Symbol
 case class ValSym(nme: String) extends Symbol
-
 case class VarSym(nme: String) extends Symbol

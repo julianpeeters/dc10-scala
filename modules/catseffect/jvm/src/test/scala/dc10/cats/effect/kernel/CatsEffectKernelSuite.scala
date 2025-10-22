@@ -4,7 +4,7 @@ import dc10.cats.effect.dsl.*
 import dc10.cats.effect.kernel.dsl.Resource
 import dc10.scala.compiler.{compile, string}
 import dc10.scala.dsl.{*, given}
-import dc10.scala.version.`3.3.6`
+import dc10.scala.version.`3.3.7`
 import scala.language.implicitConversions
 
 import munit.FunSuite

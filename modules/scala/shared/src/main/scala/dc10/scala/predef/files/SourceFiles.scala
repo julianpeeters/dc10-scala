@@ -12,6 +12,7 @@ trait SourceFiles[F[_], G[_]]:
   
   extension (sym: FileSym)
     def apply[A](statements: G[A]): F[A]
+    def withSelf[A](statements: FileSym => G[A]): F[A]
 
 object SourceFiles:
 
@@ -39,7 +40,21 @@ object SourceFiles:
             n <- StateT.pure(getPackage(s._1._2).foldLeft(Path(""))((acc, p) => acc / p))
             d <- StateT.liftF[ErrorF, Δ, SourceFile[NonEmptyList, Statement]](
                 NonEmptyList.fromList(s._1._2).fold(Left(List(CompilerError("Expected at least one statement")))): l =>
-                  Right(SourceFile(n / sym.nme, l))
+                  Right(SourceFile(n / s"${sym.nme}.scala", l))
+              )
+            _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, Δ](ctx => ctx.dep(l)))
+            _ <- StateT.modifyF[ErrorF, Δ](ctx => ctx.ext(d))
+          yield s._2
+
+        def withSelf[A](
+          statements: FileSym => StateT[ErrorF, Γ, A]
+        ): StateT[ErrorF, Δ, A] = 
+          for
+            s <- StateT.liftF[ErrorF, Δ, (Γ, A)](statements(sym).runEmpty)
+            n <- StateT.pure(getPackage(s._1._2).foldLeft(Path(""))((acc, p) => acc / p))
+            d <- StateT.liftF[ErrorF, Δ, SourceFile[NonEmptyList, Statement]](
+                NonEmptyList.fromList(s._1._2).fold(Left(List(CompilerError("Expected at least one statement")))): l =>
+                  Right(SourceFile(n / s"${sym.nme}.scala", l))
               )
             _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, Δ](ctx => ctx.dep(l)))
             _ <- StateT.modifyF[ErrorF, Δ](ctx => ctx.ext(d))

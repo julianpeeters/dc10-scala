@@ -5,8 +5,8 @@ import dc10.scala.internal.indent.getIndent
 
 object version:
 
-  given `3.3.6`: Renderer[Statement, Error, "scala-3.3.6"] =
-    new Renderer[Statement, Error, "scala-3.3.6"]:
+  given `3.3.7`: Renderer[Statement, Error, "scala-3.3.7"] =
+    new Renderer[Statement, Error, "scala-3.3.7"]:
 
       override def render(input: List[Statement]): String =
         input.map(stmt => stmt match
@@ -39,8 +39,8 @@ object version:
       override def renderErrors(errors: List[Error]): String =
         errors.map(_.toString()).toList.mkString("\n")
 
-      override def version: "scala-3.3.6" =
-        "scala-3.3.6"
+      override def version: "scala-3.3.7" =
+        "scala-3.3.7"
 
       private def renderIndent(i: Int): String =
         "  ".repeat(i)
@@ -79,7 +79,7 @@ object version:
           case `Value.App.1: x`(i, f, a, t)                      => s"${renderPattern(f)}(${renderValue(a)})"
           case `Value.App.2: x`(i, f, a, b, t)                   => s"${renderPattern(f)}(${renderValue(a)}, ${renderValue(b)})"
           case `Value.App.3: x`(i, f, a, b, c, t)                => s"${renderPattern(f)}(${renderValue(a)}, ${renderValue(b)}, ${renderValue(c)})"
-          case `Value.App.Vargs: x`(i, f, t, asxl                => s"${renderPattern(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
+          case `Value.App.Vargs: x`(i, f, t, as)                => s"${renderPattern(f)}(${as.map(a => renderValue(a)).mkString(", ")})"
           case `Value.AppDot.0: x`(i, f, a, t)                   => s"${renderValue(a)}.${renderValue(f)}"
           case `Value.AppDot.1: x`(i, f, a, b, t)                => s"${renderValue(a)}.${renderValue(f)}(${renderValue(b)})"
           case `Value.AppDotless: x`(i, f, a, b, t)              => s"${renderValue(a)} ${renderValue(f)} ${renderValue(b)}"

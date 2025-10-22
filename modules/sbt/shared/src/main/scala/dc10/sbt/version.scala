@@ -6,14 +6,16 @@ import cats.data.NonEmptyList
 
 object version:
 
-  given `1.11.6`[A <: String](using
+  given `1.11.7`[A <: String](using
     R: Renderer[NonEmptyList, A, Statement]
-  ): Renderer[NonEmptyList, "sbt-1.11.6", SbtStatement] =
-    new Renderer[NonEmptyList, "sbt-1.11.6", SbtStatement]:
+  ): Renderer[NonEmptyList, "1.11.7", SbtStatement] =
+    new Renderer[NonEmptyList, "1.11.7", SbtStatement]:
 
       override def render(input: NonEmptyList[SbtStatement]): String =
         """""".stripMargin ++
           input.map(stmt => stmt match
+            case AddSbtPlugin(d) => s"""addSbtPlugin(${R.render(NonEmptyList(d, Nil)).dropRight(1)})"""
+            case BuildProperties => s"sbt.version=${version}"
             case ProjectDef(p) => p match
               case Project.CrossProject(nme, src) =>
                 s"""|ThisBuild / scalaVersion := "${R.version.drop(6)}"
@@ -27,8 +29,7 @@ object version:
                     |       ${NonEmptyList.fromList(src.deps.toList).fold("")(l => R.render(l))}
                     |    )
                     |)""".stripMargin
-              case Project.AddSbtPlugin(d) =>
-                s"""addSbtPlugin(${R.render(NonEmptyList(d, Nil))})"""
+
               case Project.Root(nme, agg, src) =>
                 s"""ThisBuild / scalaVersion := "${R.version.drop(6)}"
                   |ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -39,7 +40,7 @@ object version:
                   |    ${NonEmptyList.fromList(src.deps.toList).fold("")(l => R.render(l))}
                   |  )
                   |)""".stripMargin
-              case Project.SubProject(nme, deps) => "WHOA" + nme
+              case Project.SubProject(nme, deps) => "WHOA" + nme + deps
             case LicenseStatement(s) => s match
               case Extras.License() => Apache2
             case GitignoreStatement(s) => s match
@@ -52,8 +53,8 @@ object version:
       override def renderErrors(errors: List[Error]): String =
         errors.map(_.toString()).mkString("\n")
 
-      override def version: "sbt-1.11.6" =
-        "sbt-1.11.6"
+      override def version: "1.11.7" =
+        "1.11.7"
 
   val Apache2: String =
     """|                                 Apache License

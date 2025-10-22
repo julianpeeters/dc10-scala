@@ -11,6 +11,9 @@ case class PackageDef(nme: List[String], contents: NonEmptyList[Statement]) exte
 case class `DefDef: x`[T](value: `Value.Def.0: x`[T]) extends Statement
 case class `DefDef: x_x x`[T[_], A](value: `Value.Def.0: x_x x`[T, A]) extends Statement
 case class `DefDef: x_x_x x x`[A, B](value: `Value.Def.1: x_x_x x x`[A, B]) extends Statement
+case class `SealedTraitDef: x`[T](tpe: `Type.Var: x`[T]) extends Statement
+case class `TraitDef: x`[T](tpe: `Type.Var: x`[T]) extends Statement
+case class `TraitDef: x_x`[T[_], A](tpe: `Type.Var: x_x`[T], targ1: `Type.Var: x`[A], body: List[Statement]) extends Statement
 case class `TypeDef: x`[T](tpe: `Type.Var: x`[T]) extends Statement
 case class `TypeDef: x_x x`[F[_], A](tpe: `Type.Var: x_x x`[F, A]) extends Statement
 case class `ValDef: x`[T](value: `Value.Val: x`[T]) extends Statement

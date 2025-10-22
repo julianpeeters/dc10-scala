@@ -1,13 +1,7 @@
 package dc10.sbt
 
-import dc10.scala.Statement
-
 sealed trait Project
 object Project:
-
-  case class AddSbtPlugin(
-    libDep: Statement
-  ) extends Project
 
   case class CrossProject(
     nme: String,
