@@ -10,14 +10,12 @@ import munit.FunSuite
 object DEF:
   def apply[F[_], T](v: `Value: x`[T]): Unit = ()
 
-class FunctionsSuite extends FunSuite:
+class ComplexTypesSuite extends FunSuite:
 
   test("val dec"):
 
     def ast =
-      for
-        _ <- VAL"f1"$ Int ==> String
-      yield ()
+      VAL"f1"$ Int ==> String
     
     val obtained: String =
       ast.compile.string
@@ -44,6 +42,25 @@ class FunctionsSuite extends FunSuite:
       """|val f: String => String = x => x
          |val b: String = f("hello")
          |val c: String = f(b)
+         |""".stripMargin
+      
+    assertEquals(obtained, expected)
+
+  test("list"):
+
+
+    def ast =
+      for
+        _ <- VAL"a"$ List(String)
+        _ <- VAL"b"$ List(String) := "hello" :: "goodbye" :: Nil
+      yield ()
+    
+    val obtained: String =
+      ast.compile.string
+      
+    val expected: String =
+      """|val a: List[String]
+         |val b: List[String] = List("hello", "goodbye")
          |""".stripMargin
       
     assertEquals(obtained, expected)

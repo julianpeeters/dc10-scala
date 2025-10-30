@@ -13,6 +13,9 @@ object keyword:
     def FILE(args: Any*): FileSym =
       FileSym(nme.raw(args*))
 
+    def GIVEN(args: Any*): `DefSym.0` =
+      `DefSym.0`(nme.raw(args*))
+
     def OBJECT(args: Any*): ObjSym =
       ObjSym(nme.raw(args*))
 

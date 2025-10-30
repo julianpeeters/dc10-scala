@@ -17,6 +17,14 @@ object application:
     def apply[A](a: `Type: x`[A]): `Type.App: x_x x`[T, A] =
       `Type.App: x_x x`(0, f, a)
 
+  extension [T[_], B] (f: (`Type: x_x`[T], B))
+    def apply[A](a: `Type: x`[A]): `Type.App: x_x x`[T, A] =
+      `Type.App: x_x x`(0, f._1, a)
+
+  extension [T[_], U[_], A] (f: (`Type: x_x`[T], `Value: x_x x`[U, A]))
+    def apply[B] (a: `Value: x_x x`[U, A]): `Value: x_x x`[U, A] =
+      a//`Value.App.1: x_x x`(0, f._2, a, f._2.tpe)
+
   extension [T[_]] (f: `Type: x_x`[T])
     def apply[G[_[_], _], H[_], A](a: `Type: lx_xl_x_x x_x x`[G, H, A]): `Type.App: x_x llx_xl_x_x x_x xl`[T, G, H, A] =
       `Type.App: x_x llx_xl_x_x x_x xl`(0, f, a)

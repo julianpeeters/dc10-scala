@@ -23,8 +23,8 @@ trait Objects[F[_]]:
   extension [B] (sym: ObjSym)
     // def apply[A](contents: F[A]): F[`Value.Var.Bound.Data.Obj`[A]]
     def apply[A](contents: F[B]): F[`Value.Obj: x`[A]]
-    def EXTENDS[T, A](parent: `Type: x`[T]): F[`Value.Obj: x`[T]]
-    def EXTENDS[T, A](parent: `Type: x`[T])(contents: F[B]): F[`Value.Obj: x`[T]]
+    infix def EXTENDS[T, A](parent: `Type: x`[T]): F[`Value.Obj: x`[T]]
+    infix def EXTENDS[T, A](parent: `Type: x`[T])(contents: F[B]): F[`Value.Obj: x`[T]]
 
 object Objects:
 
@@ -99,7 +99,7 @@ object Objects:
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
           yield v
 
-        def EXTENDS[T, A](
+        infix def EXTENDS[T, A](
           parent: `Type: x`[T]
         ): StateT[ErrorF, Γ, `Value.Obj: x`[T]] =
           for
@@ -109,7 +109,7 @@ object Objects:
             _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
           yield v
 
-        def EXTENDS[T, A](
+        infix def EXTENDS[T, A](
           parent: `Type: x`[T]
         )(
           contents: StateT[ErrorF, Γ, B]

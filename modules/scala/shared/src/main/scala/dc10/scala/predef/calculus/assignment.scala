@@ -4,6 +4,7 @@ import cats.data.StateT
 import dc10.scala.{*, given}
 import dc10.scala.compiler.Γ
 import dc10.scala.internal.implementation.implement
+import scala.annotation.targetName
 
 object assignment:
 
@@ -17,6 +18,18 @@ object assignment:
         d <- StateT.pure(`TypeDef: x`(t))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
       yield t
+
+  extension [T[_], A] (lhs: StateT[ErrorF, Γ, `Value.Def.0: x_x x`[T, A]])
+    @targetName("assign Def 0")
+    def :=(
+      rhs: `Value: x_x x`[T, A]
+    ): StateT[ErrorF, Γ, `Value.Def.0: x_x x`[T, A]] =
+      for
+        l <- StateT.liftF(lhs.runEmptyA)
+        v <- StateT.pure(l.implement(rhs))
+        d <- StateT.pure(`DefDef: x_x x`(v))
+        _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+      yield v
     
   extension [T[_, _], A, B] (lhs: StateT[ErrorF, Γ, `Value.Def.1: x_x_x x x`[A, B]])
     @scala.annotation.targetName("assignDef1")

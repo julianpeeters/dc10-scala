@@ -25,6 +25,7 @@ case class `Value.Lit.Float: x`(lvl: Int, tpe: `Type: x`[Float], f: Float) exten
 case class `Value.Lit.Double: x`(lvl: Int, tpe: `Type: x`[Double], d: Double) extends `Value: x`[Double]
 case class `Value.Lit.String: x`(lvl: Int, tpe: `Type: x`[String], s: String) extends `Value: x`[String]
 case class `Value.Lit.Unit: x`(lvl: Int, tpe: `Type: x`[Unit], u: Unit) extends `Value: x`[Unit]
+case class `Value.Giv: x`[T](lvl: Int, sym: GivSym, tpe: `Type: x`[T], impl: Option[`Value: x`[T]]) extends `Value: x`[T]
 case class `Value.Obj: x`[T](lvl: Int, sym: ObjSym, tpe: `Type: x`[T], parent: Option[`Type: x`[T]], body: List[Statement]) extends `Value: x`[T]
 case class `Value.Val: x`[T](lvl: Int, sym: ValSym, tpe: `Type: x`[T], impl: Option[`Value: x`[T]]) extends `Value: x`[T]
 
@@ -34,6 +35,8 @@ case class `Value.App.1: x_x x`[F[_], A, B](lvl: Int, fun: `Value: x_x_x x lx_x 
 case class `Value.AppDot.1: x_x x`[F[_], A, B](lvl: Int, fun: `Value: x_x_x x lx_x xl`[Function1, F, A, B], targ: `Type: x_x`[F], arg: `Value: x`[A], tpe: `Type: x_x x`[F, B]) extends `Value: x_x x`[F, B]
 case class `Value.AppForComp: x_x x`[G[_], A](lvl: Int, gens: NonEmptyList[Statement], ret: `Value: x`[A], tpe: `Type: x_x x`[G, A]) extends `Value: x_x x`[G, A]
 case class `Value.Def.0: x_x x`[T[_], A](lvl: Int, sym: `DefSym.0`, tpe: `Type: x_x x`[T, A], impl: Option[`Value: x_x x`[T, A]]) extends `Value: x_x x`[T, A]
+case class `Value.Giv: x_x x`[T[_], A](lvl: Int, sym: GivSym, tpe: `Type: x_x x`[T, A], impl: Option[`Value: x_x x`[T, A]]) extends `Value: x_x x`[T, A]
+case class `Value.Lit.List: x_x x`[A](lvl: Int, tpe: `Type: x_x x`[List, A], l: List[`Value: x`[A]]) extends `Value: x_x x`[List, A]
 case class `Value.Val: x_x x`[T[_], A](lvl: Int, sym: ValSym, tpe: `Type: x_x x`[T, A], impl: Option[`Value: x_x x`[T, A]]) extends `Value: x_x x`[T, A]
 
 sealed trait `Value: x_x llx_xl_x_x x_x xl`[F[_], G[_[_], _], H[_], A] extends Value:

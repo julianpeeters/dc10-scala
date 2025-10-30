@@ -31,6 +31,8 @@ object version:
           case d@`ValDef: x_x_x x llx_xl_x_x x_x xl`(_)       => renderValDef(d)
           case d@`ValDef: x_x_x x lx_x llx_xl_x_x x_x xll`(_) => renderValDef(d)
           case d@`ValDef: lx_xl_x_x x_x llx_xl_x x_xl`(_)     => renderValDef(d)
+          case d@`GivenDef: x`(_)     => renderGivenDef(d)
+          case d@`GivenDef: x_x x`(_) => renderGivenDef(d)
         )
         .toList
         .mkString
@@ -61,6 +63,12 @@ object version:
       //   ???
       //   // renderIndent(ext.field.getIndent) ++ s"extension (${ext.field.sym.nme}: ${renderTypeExpr(ext.field.tpe)})\n${render(ext.body)}\n"
 
+      private def renderGivenDef[T](d: `GivenDef: x`[T]): String =
+        renderIndent(d.value.lvl) ++ s"given ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl) + "\n"
+
+      private def renderGivenDef[T[_], A](d: `GivenDef: x_x x`[T, A]): String =
+        renderIndent(d.value.lvl) ++ s"given ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl) + "\n"
+
       private def renderLibDep(dep: LibDep): String =
         s"\"${dep.org}\" %% \"${dep.nme}\" % \"${dep.ver}\"\n"
 
@@ -69,14 +77,14 @@ object version:
           (d.obj.parent, d.obj.body) match
             case (None, Nil)       => s"object ${d.obj.sym.nme}\n"
             case (Some(p), Nil)    => s"case object ${d.obj.sym.nme} extends ${renderType(p)}\n"
-            case (None, h :: t)    => s"object ${d.obj.sym.nme}:\n${render(NonEmptyList(h, t))}"
-            case (Some(p), h :: t) => s"object ${d.obj.sym.nme} extends ${renderType(p)}:\n${render(NonEmptyList(h, t))}"
+            case (None, h :: t)    => s"object ${d.obj.sym.nme}:\n${render(NonEmptyList(h, t))}\n"
+            case (Some(p), h :: t) => s"object ${d.obj.sym.nme} extends ${renderType(p)}:\n${render(NonEmptyList(h, t))}\n"
         )
 
       private def renderPackageDef(pkg: PackageDef): String =
         if pkg.nme.isEmpty
         then render(pkg.contents)
-        else s"package ${pkg.nme.mkString(".")}\n\n${render(pkg.contents)}\n"
+        else s"package ${pkg.nme.mkString(".")}\n\n${render(pkg.contents)}"
 
       private def renderPattern(value: Value): String =
         ???
@@ -157,7 +165,7 @@ object version:
         //     |${t.body.map(s => render(List(s))).mkString("\n")}""".stripMargin
       
       private def renderTraitDef[T[_], A](t: `TraitDef: x_x`[T, A]): String =
-        renderIndent(t.tpe.lvl) ++ s"trait ${t.tpe.sym.nme}[${t.targ1.sym.nme}]" + NonEmptyList.fromList(t.body).fold("\n")(nel => ":\n" + render(nel))
+        renderIndent(t.tpe.lvl) ++ s"trait ${t.tpe.sym.nme}[${t.targ1.sym.nme}]" + NonEmptyList.fromList(t.body).fold("\n")(nel => ":\n" + render(nel) + "\n")
             // |${t.body.map(s => render(List(s))).mkString("\n")}
 
       // private def renderTraitDef[T[_[_]], F[_]](t: `trait`.`[_[_]]`[T, F]): String =
@@ -265,6 +273,9 @@ object version:
           // case `Value.Def.1: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`(_, s, _, _) => s.nme
           // case `Value.Val: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`(_, s, _, _) => s.nme
           case `Value.Def.1: x_x_x lx_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xlll llx_xl_x_x x_x llx_xl_x x_xll`(_, s, _, _) => s.nme
+          case `Value.Giv: x`(_, s, _, _)     => s.nme
+          case `Value.Giv: x_x x`(_, s, _, _) => s.nme
+          case `Value.Lit.List: x_x x`(_, _, l) => l.map(v => renderValue(v)).toString
 
       private def renderValDef[T](d: `ValDef: x`[T]): String =
         renderIndent(d.value.lvl) ++ s"val ${renderValue(d.value)}: ${renderType(d.value.tpe)}" ++ renderImpl(d.value.impl) + "\n"

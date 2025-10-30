@@ -8,6 +8,24 @@ object implementation:
     def implement(rhs: `Type: x`[T]): `Type.Var: x`[T] =
       `Type.Var: x`[T](lhs.lvl, lhs.sym, Some(rhs))
 
+
+  extension [T[_], A] (lhs: `Value.Def.0: x_x x`[T, A])
+    def implement(rhs: `Value: x_x x`[T, A]): `Value.Def.0: x_x x`[T, A] =
+      `Value.Def.0: x_x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
+
+  extension [T[_, _], A, B] (lhs: `Value.Def.1: x_x_x x x`[A, B])
+    def implement(rhs: `Value: x`[B]): `Value.Def.1: x_x_x x x`[A, B] =
+      `Value.Def.1: x_x_x x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
+
+  extension [T] (lhs: `Value.Giv: x`[T])
+    def implement(rhs: `Value: x`[T]): `Value.Giv: x`[T] =
+      `Value.Giv: x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
+
+  extension [T[_], A] (lhs: `Value.Giv: x_x x`[T, A])
+    def implement(rhs: `Value: x_x x`[T, A]): `Value.Giv: x_x x`[T, A] =
+      `Value.Giv: x_x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
+
+
   extension [T[_, _], A, B] (lhs: `Value.Val: x_x_x x x`[T, A, B])
     // def implement(rhs: `Value.Lam.1: x_x_x x x`[A, B]): `Value.Val: x_x_x x x`[T, A, B] =
     //   `Value.Val: x_x_x x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
@@ -31,12 +49,3 @@ object implementation:
   extension [T[_[_], _], F[_], A] (lhs: `Value.Val: lx_xl_x_x x_x x`[T, F, A])
     def implement(rhs: `Value: lx_xl_x_x x_x x`[T, F, A]): `Value.Val: lx_xl_x_x x_x x`[T, F, A] =
       `Value.Val: lx_xl_x_x x_x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))
-
-
-  // extension [A, B] (lhs: `Value.Var.Unbound.Comp.Def.0`[A, B])
-  //   def implement(rhs: `Value: x`[A => B]): `Value.Var.Bound.Comp.Def.0`[A, B] =
-  //     `Value.Var.Bound.Comp.Def.0`(lhs.lvl, lhs.sym, lhs.tpe, lhs.ret, rhs)
-
-  extension [T[_, _], A, B] (lhs: `Value.Def.1: x_x_x x x`[A, B])
-    def implement(rhs: `Value: x`[B]): `Value.Def.1: x_x_x x x`[A, B] =
-      `Value.Def.1: x_x_x x x`(lhs.lvl, lhs.sym, lhs.tpe, Some(rhs))

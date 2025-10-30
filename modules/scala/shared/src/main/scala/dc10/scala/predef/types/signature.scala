@@ -54,6 +54,13 @@ object signature:
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
 
+      infix def $[R[_], A](tpe: `Type: x_x x`[R, A]):  StateT[ErrorF, Γ, `Value.Def.0: x_x x`[R, A]] =          
+        for
+          v <- StateT.pure(`Value.Def.0: x_x x`(0, sym, tpe, None))
+          d <- StateT.pure(`DefDef: x_x x`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
+
     extension [A, R] (sym: `DefSym.1`[A, R])
       infix def $(tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Def.1: x_x_x x x`[A, R]] =
         for
@@ -61,6 +68,25 @@ object signature:
           d <- StateT.pure(`DefDef: x_x_x x x`(v))
           _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
         yield v
+
+
+    extension (sym: GivSym)
+
+      infix def $[R](tpe: `Type: x`[R]):  StateT[ErrorF, Γ, `Value.Giv: x`[R]] =          
+        for
+          v <- StateT.pure(`Value.Giv: x`(0, sym, tpe, None))
+          d <- StateT.pure(`GivenDef: x`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
+
+      infix def $[R[_], A](tpe: `Type: x_x x`[R, A]):  StateT[ErrorF, Γ, `Value.Giv: x_x x`[R, A]] =          
+        for
+          v <- StateT.pure(`Value.Giv: x_x x`(0, sym, tpe, None))
+          d <- StateT.pure(`GivenDef: x_x x`(v))
+          _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+        yield v
+
+
 
     extension (sym: `ValSym`)
 

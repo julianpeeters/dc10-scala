@@ -35,6 +35,7 @@ class CatsEffectSuite extends FunSuite:
     val expected: String =
       """object Hello extends cats.effect.IOApp.Simple:
         |  val run: cats.effect.IO[Unit] = cats.effect.IO.println("Hello, World!")
+        |
         |  """.stripMargin
     
     assertEquals(obtained, expected.dropRight(2))

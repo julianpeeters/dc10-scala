@@ -40,7 +40,7 @@ object template:
       yield t
 
   extension [T] (s: StateT[ErrorF, Γ, `Type.Var: x`[T]])
-    def withCompanion[U](f: `Type.Var: x`[T] => StateT[ErrorF, Γ, `Value.Obj: x`[T]]): StateT[ErrorF, Γ, `Type.Var: x`[T]] =
+    def withCompanion[U](f: `Type.Var: x`[T] => StateT[ErrorF, Γ, U]): StateT[ErrorF, Γ, `Type.Var: x`[T]] =
       for
         t <- s 
         _ <- dc10.scala.dsl.apply(OBJECT"${t.sym.nme}") {
@@ -65,16 +65,27 @@ object template:
     //     _ <- s._1.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
     //   yield t
 
-    def apply[T[_], A](targ1: StateT[ErrorF, Γ, `Type.Var: x`[A]])(body: `Type.Var: x`[A] => StateT[ErrorF, Γ, B]): StateT[ErrorF, Γ, `Type.Var: x_x`[T]] =
+    def apply[T[_],  A](targ1: StateT[ErrorF, Γ, `Type.Var: x`[A]])(body: `Type.Var: x`[A] => StateT[ErrorF, Γ, B]): StateT[ErrorF, Γ, (`Type.Var: x_x`[T], B)] =
       // a =>
       for
         a <- StateT.liftF(targ1.runEmptyA)
-        s <- StateT.liftF(body(a).runEmptyS)
+        s <- StateT.liftF(body(a).runEmpty)
         t <- StateT.pure(`Type.Var: x_x`[T](0, AliasSym(sym.nme), None))
-        d <- StateT.pure(`TraitDef: x_x`[T, A](t, a, s._2.map(s => s.addIndent)))
+        d <- StateT.pure(`TraitDef: x_x`[T, A](t, a, s._1._2.map(s => s.addIndent)))
         _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
-        _ <- s._1.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
-      yield t
+        _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
+      yield (t, ???)
+
+    // def apply[T[_], U[_], A](targ1: StateT[ErrorF, Γ, `Type.Var: x`[A]])(body: `Type.Var: x`[A] => StateT[ErrorF, Γ, B]): StateT[ErrorF, Γ, (`Type.Var: x_x`[T], `Value: x_x x`[U, A])] =
+    //   // a =>
+    //   for
+    //     a <- StateT.liftF(targ1.runEmptyA)
+    //     s <- StateT.liftF(body(a).runEmpty)
+    //     t <- StateT.pure(`Type.Var: x_x`[T](0, AliasSym(sym.nme), None))
+    //     d <- StateT.pure(`TraitDef: x_x`[T, A](t, a, s._1._2.map(s => s.addIndent)))
+    //     _ <- StateT.modifyF[ErrorF, Γ](ctx => ctx.ext(d))
+    //     _ <- s._1._1.toList.traverse(l => StateT.modifyF[ErrorF, Γ](ctx => ctx.dep(l)))
+    //   yield (t, ???)
   
     // def withSelf(f: `Type.Var: x`[T] => StateT[ErrorF, Γ, `Value.Obj: x`[T]]): StateT[ErrorF, Γ, `Value.Obj: x`[T]] =
     //   s.flatMap(t => f(t))

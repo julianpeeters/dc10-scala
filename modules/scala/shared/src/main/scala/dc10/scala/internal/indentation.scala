@@ -28,6 +28,8 @@ object indentation:
         case s@`ValDef: x_x_x x lx_x llx_xl_x_x x_x xll`(value) => s.copy(value = value.copy(lvl = value.lvl + 1))
         case s@`ValDef: lx_xl_x_x x_x x`(value) => s.copy(value = value.copy(lvl = value.lvl + 1))
         case s@`ValDef: lx_xl_x_x x_x llx_xl_x x_xl`(value) => s.copy(value = value.copy(lvl = value.lvl + 1))
+        case s@`GivenDef: x`(value) => s.copy(value = value.copy(lvl = value.lvl + 1))
+        case s@`GivenDef: x_x x`(value) => s.copy(value = value.copy(lvl = value.lvl + 1))
       
   extension (tpe: Type)
     def addIndent: Type =
@@ -165,3 +167,6 @@ object indentation:
         // case v@`Value.Lam1: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`(lvl, _, _, _) => v.copy(lvl = lvl + 1)
         // case v@`Value.Val: x_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x_x x_x xll`(lvl, _, _, _) => v.copy(lvl = lvl + 1)
         case v@`Value.Def.1: x_x_x lx_x_x llx_xl_x_x x_x xl llx_xl_x_x x_x llx_xl_x x_xlll llx_xl_x_x x_x llx_xl_x x_xll`(lvl, _, _, _) => v.copy(lvl = lvl + 1)
+        case v@`Value.Giv: x`(lvl, _, _, _) => v.copy(lvl = lvl + 1)
+        case v@`Value.Giv: x_x x`(lvl, _, _, _) => v.copy(lvl = lvl + 1)
+        case v@`Value.Lit.List: x_x x`(lvl, _, _) => v.copy(lvl = lvl + 1)
